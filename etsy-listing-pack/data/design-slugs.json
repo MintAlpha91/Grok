@@ -1,0 +1,12 @@
+{
+  "designs": [
+    {"design": "Crimson Sun: The Last Ronin", "slug": "crimson-sun-last-ronin"},
+    {"design": "Oni Mask: Crimson Oni Vigil", "slug": "oni-mask-crimson-oni"},
+    {"design": "Quiet Rain: Umbrella Crossing", "slug": "quiet-rain-umbrella-crossing"},
+    {"design": "Quiet Rain: Window Seat", "slug": "quiet-rain-window-seat"},
+    {"design": "Starbound Sirens: Nebula Queen", "slug": "starbound-nebula-queen"},
+    {"design": "Neon Cyberpunk: Dual Blade Alley", "slug": "neon-dual-blade-alley"},
+    {"design": "Ronin Rain: Ghost Armour", "slug": "ronin-ghost-armour"},
+    {"design": "Ronin Rain: Last Stand at the Gate", "slug": "ronin-last-stand"}
+  ]
+}

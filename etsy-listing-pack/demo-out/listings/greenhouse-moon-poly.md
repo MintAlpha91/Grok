@@ -1,0 +1,46 @@
+# Greenhouse Moon (poly)
+
+Portfolio sample only. These designs are fictional and are not for sale. This file does not log in and does not publish.
+
+- Slug: greenhouse-moon
+- Publish state: not_published
+- Price: AU$69 (2XL AU$73), GST included
+- Sizes: XS to 2XL only
+- Shipping: free within Australia
+- Printful product id: 257
+- Printful template id: none recorded
+
+## Title (131 characters)
+
+Greenhouse Moon All Over Print T-Shirt, Fern and Moonlight Art Tee, Polyester Full Print Shirt, Original Art by Lumen Sample Studio
+
+## Description
+
+A glass greenhouse stands under a huge moon, ferns pressed to the panes. This is the original Greenhouse Moon artwork, printed edge to edge across the whole shirt.
+
+Portfolio sample only. Not a live shop listing and not for sale.
+
+- Original artwork from the fictional Lumen Sample Studio
+- All-over print: Greenhouse Moon
+- Soft, lightweight polyester tee, sublimation printed so the colours stay bright and won't crack or peel
+- AU$69, GST included, with free shipping within Australia
+- Sizes XS to 2XL (2XL is AU$73)
+- Printed to order, so the artwork can sit slightly differently at the seams from shirt to shirt
+
+Check the size guide in the photos before ordering a real shirt like this.
+
+## Tags (13)
+
+1. greenhouse tee
+2. moonlight shirt
+3. fern art tee
+4. glasshouse tee
+5. plant lover gift
+6. moon print shirt
+7. night garden tee
+8. botanical gift
+9. green thumb tee
+10. greenhouse moon
+11. whole shirt print
+12. photo print tee
+13. made to order tee
