@@ -32,5 +32,7 @@ def enrich(listings: list, slugs: dict, progress: dict) -> list[dict]:
             item["etsy_url"] = None
             item["etsy_listing_id"] = None
             item["printful_template_id"] = None
+        if progress.get("unpublished_banner"):
+            item["paste_note"] = progress["unpublished_banner"]
         enriched.append(item)
     return enriched

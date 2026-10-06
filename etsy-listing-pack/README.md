@@ -36,3 +36,18 @@ Open `out/INDEX.md`, then the matching file in `out/listings/`.
 - Files marked `not_published` or `template_only` wait until Jason says go.
 
 Design names in the Marketing JSON join to these slugs: `crimson-sun-last-ronin`, `oni-mask-crimson-oni`, `quiet-rain-umbrella-crossing`, `quiet-rain-window-seat`, `starbound-nebula-queen`, `neon-dual-blade-alley`, `ronin-ghost-armour`, `ronin-last-stand`.
+
+## Portfolio demo
+
+`demo-out/` is a two-design sample you can show a buyer. The artwork names are fictional (Paper Boat Harbour and Greenhouse Moon, credited to Lumen Sample Studio). It does not use the live shop name, live titles, or live tags. Prices are the same placeholders: polyester AU$69 (2XL AU$73) and cotton AU$75 (2XL AU$79). Nothing in the demo is for sale, and the command does not log into Etsy.
+
+Show `demo-out/INDEX.md`, then open one file under `demo-out/listings/`. Regenerate it with:
+
+```bash
+cd etsy-listing-pack
+PYTHONPATH=src python3 -m elp \
+  --listings data/demo-listings.json \
+  --slugs data/demo-slugs.json \
+  --progress data/demo-publish-status.json \
+  --out demo-out
+```

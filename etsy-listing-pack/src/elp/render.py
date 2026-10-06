@@ -5,7 +5,13 @@ from pathlib import Path
 from elp.rules import TAG_COUNT, validate_listing
 
 
-def build_pack(listings: list[dict], out_dir: str | Path, progress_note: str) -> tuple[list[str], Path]:
+def build_pack(
+    listings: list[dict],
+    out_dir: str | Path,
+    progress_note: str,
+    index_title: str | None = None,
+    index_hint: str | None = None,
+) -> tuple[list[str], Path]:
     out = Path(out_dir)
     listing_dir = out / "listings"
     listing_dir.mkdir(parents=True, exist_ok=True)
@@ -25,7 +31,10 @@ def build_pack(listings: list[dict], out_dir: str | Path, progress_note: str) ->
         path.write_text(_markdown(listing), encoding="utf-8")
     report = out / "QA.md"
     report.write_text(_qa(listings, [], progress_note), encoding="utf-8")
-    (out / "INDEX.md").write_text(_index(listings, progress_note), encoding="utf-8")
+    (out / "INDEX.md").write_text(
+        _index(listings, progress_note, index_title, index_hint),
+        encoding="utf-8",
+    )
     return [], report
 
 
@@ -87,7 +96,7 @@ def _markdown(listing: dict) -> str:
             "Use this file to compare copy. Do not create a second listing."
         )
     else:
-        banner = (
+        banner = listing.get("paste_note") or (
             "Not published. Paste into Etsy only after Jason says go. "
             "This file does not log in and does not publish."
         )
@@ -113,13 +122,14 @@ def _markdown(listing: dict) -> str:
     )
 
 
-def _index(listings: list[dict], note: str) -> str:
+def _index(listings: list[dict], note: str, title: str | None, hint: str | None) -> str:
     lines = [
-        "# Elemental Wood AOP listing pack",
+        f"# {title or 'Elemental Wood AOP listing pack'}",
         "",
         note,
         "",
-        "Paste from `listings/*.md` or from `listings.csv`. The live row is for comparison. `not_published` and `template_only` rows wait until Jason says go.",
+        hint
+        or "Paste from `listings/*.md` or from `listings.csv`. The live row is for comparison. `not_published` and `template_only` rows wait until Jason says go.",
         "",
         "| Slug | Fabric | State | Price | Title characters |",
         "|---|---|---|---|---|",

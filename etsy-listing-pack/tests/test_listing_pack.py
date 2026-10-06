@@ -65,6 +65,60 @@ class RealCopyTests(unittest.TestCase):
             self.assertEqual(len(saved), 16)
 
 
+class DemoTests(unittest.TestCase):
+    def test_fictional_demo_is_safe_to_show(self):
+        progress = load_json(DATA / "demo-publish-status.json")
+        listings = enrich(
+            load_json(DATA / "demo-listings.json"),
+            load_json(DATA / "demo-slugs.json"),
+            progress,
+        )
+        self.assertEqual(len(listings), 4)
+        self.assertEqual({row["design"] for row in listings}, {"Paper Boat Harbour", "Greenhouse Moon"})
+        leaked = (
+            "elemental wood",
+            "crimson sun",
+            "quiet rain",
+            "last ronin",
+            "rogers inc",
+            "oni",
+            "nebula queen",
+            "dual blade",
+            "ghost armour",
+            "window seat",
+            "umbrella crossing",
+            "etsy.com/listing",
+        )
+        live_tags = {
+            tag.casefold()
+            for row in load_json(DATA / "marketing-aop-listings.json")
+            for tag in row["tags"]
+        }
+        for listing in listings:
+            self.assertEqual(validate_listing(listing), [])
+            self.assertLessEqual(len(listing["title"]), TITLE_MAX)
+            self.assertEqual(len(listing["tags"]), TAG_COUNT)
+            blob = json.dumps(listing).casefold()
+            for phrase in leaked:
+                self.assertNotIn(phrase, blob)
+            for tag in listing["tags"]:
+                self.assertLessEqual(len(tag), TAG_MAX)
+                self.assertNotIn(tag.casefold(), live_tags)
+        with tempfile.TemporaryDirectory() as tmp:
+            errors, _report = build_pack(
+                listings,
+                tmp,
+                progress["note"],
+                index_title=progress.get("index_title"),
+                index_hint=progress.get("index_hint"),
+            )
+            self.assertEqual(errors, [])
+            text = "\n".join(path.read_text(encoding="utf-8") for path in Path(tmp).rglob("*") if path.is_file())
+            lowered = text.casefold()
+            for phrase in leaked:
+                self.assertNotIn(phrase, lowered)
+
+
 class RuleTests(unittest.TestCase):
     def _sample(self):
         listings, _progress = _pack()

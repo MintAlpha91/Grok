@@ -18,7 +18,13 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     progress = load_json(args.progress)
     listings = enrich(load_json(args.listings), load_json(args.slugs), progress)
-    errors, report = build_pack(listings, args.out, progress.get("note", ""))
+    errors, report = build_pack(
+        listings,
+        args.out,
+        progress.get("note", ""),
+        index_title=progress.get("index_title"),
+        index_hint=progress.get("index_hint"),
+    )
     print(f"Wrote {report}")
     if errors:
         print(f"{len(errors)} problem(s). No paste files were written.")

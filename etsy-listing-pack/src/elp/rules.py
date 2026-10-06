@@ -47,8 +47,9 @@ def validate_listing(listing: dict) -> list[str]:
         errors.append(f"{label}: title is {len(title)} characters; limit is {TITLE_MAX}")
     if not title.strip():
         errors.append(f"{label}: title is empty")
-    if "Rogers Inc Designs" not in title:
-        errors.append(f"{label}: title must keep the Rogers Inc Designs credit")
+    credit = listing.get("studio_credit") or "Rogers Inc Designs"
+    if credit not in title:
+        errors.append(f"{label}: title must keep the {credit} credit")
 
     if not isinstance(tags, list):
         errors.append(f"{label}: tags must be a list")
