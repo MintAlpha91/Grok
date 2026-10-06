@@ -1,0 +1,20 @@
+{
+  "paused_until_jason_says_go": true,
+  "note": "This pack does not log into Etsy or Printful and does not publish. One listing is already live. The other 15 stay unpublished until Jason says go.",
+  "known": [
+    {
+      "slug": "crimson-sun-last-ronin",
+      "fabric": "poly",
+      "state": "live",
+      "etsy_listing_id": 4589600597,
+      "etsy_url": "https://www.etsy.com/listing/4589600597",
+      "printful_template_id": 108436673
+    },
+    {
+      "slug": "crimson-sun-last-ronin",
+      "fabric": "cotton",
+      "state": "template_only",
+      "printful_template_id": 108436823
+    }
+  ]
+}
