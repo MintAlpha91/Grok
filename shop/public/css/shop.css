@@ -197,7 +197,7 @@ p { margin: 0; }
 
 .art {
   position: relative;
-  aspect-ratio: 1280 / 808;
+  aspect-ratio: 1280 / 720;
   background: #1a1a1a;
   overflow: hidden;
   border: 1px solid var(--line);

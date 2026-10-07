@@ -22,6 +22,7 @@ from store.catalog import (  # noqa: E402
     public_catalog,
     quote_lines,
     settle,
+    unit_cents,
     validate_customer,
 )
 from store.checkout import checkout_mode, checkout_public, place_order, stripe_fields  # noqa: E402
@@ -52,6 +53,31 @@ def restore_env(saved):
 def clear_payment_env():
     for key in ENV_KEYS:
         os.environ.pop(key, None)
+
+
+def jpeg_size(path: Path) -> tuple[int, int]:
+    """Read width and height from a JPEG SOF marker. Tests stay on the stdlib."""
+    data = path.read_bytes()
+    if data[:2] != b"\xff\xd8":
+        raise AssertionError(f"{path.name} is not a JPEG")
+    index = 2
+    while index + 9 < len(data):
+        if data[index] != 0xFF:
+            index += 1
+            continue
+        marker = data[index + 1]
+        if marker in (0xC0, 0xC1, 0xC2):
+            height = int.from_bytes(data[index + 5:index + 7], "big")
+            width = int.from_bytes(data[index + 7:index + 9], "big")
+            return width, height
+        if marker in (0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
+            index += 2
+            continue
+        length = int.from_bytes(data[index + 2:index + 4], "big")
+        if length < 2:
+            break
+        index += 2 + length
+    raise AssertionError(f"{path.name} has no SOF marker")
 
 
 class CopyAndPriceTests(unittest.TestCase):
@@ -109,6 +135,24 @@ class CopyAndPriceTests(unittest.TestCase):
             cotton = ROOT / "public" / "mockups" / f"{design['slug']}-aop-cotton.jpg"
             self.assertTrue(cotton.is_file())
             self.assertEqual(design["image"], url)
+
+    def test_mockups_drop_the_price_caption_and_2xl_stays_the_surcharge(self):
+        catalog = load_catalog()
+        ronin = next(item for item in catalog["products"] if item["slug"] == "crimson-sun-last-ronin")
+        self.assertEqual(unit_cents(catalog, ronin, "poly", "M"), 6500)
+        self.assertEqual(unit_cents(catalog, ronin, "poly", "2XL"), 6900)
+        self.assertEqual(unit_cents(catalog, ronin, "cotton", "M"), 7100)
+        self.assertEqual(unit_cents(catalog, ronin, "cotton", "2XL"), 7500)
+        self.assertNotEqual(unit_cents(catalog, ronin, "cotton", "2XL"), 7900)
+        self.assertEqual(unit_cents(catalog, ronin, "chest", "XS"), 4700)
+        self.assertEqual(unit_cents(catalog, ronin, "chest", "2XL"), 5100)
+        self.assertEqual(unit_cents(catalog, ronin, "chest", "3XL"), 5400)
+        css = (ROOT / "public" / "css" / "shop.css").read_text(encoding="utf-8")
+        self.assertIn("aspect-ratio: 1280 / 720", css)
+        mockups = list((ROOT / "public" / "mockups").glob("*-aop-*.jpg"))
+        self.assertEqual(len(mockups), 16)
+        for path in mockups:
+            self.assertEqual(jpeg_size(path), (1280, 720), path.name)
 
     def test_lanes_are_data_not_a_fixed_page(self):
         public = public_catalog(checkout_public())

@@ -10,7 +10,7 @@ Jason still needs to confirm these. They are not invented on the site.
 Also still open:
 
 - This server stores the order. It does not send the “we’ll email when it ships” message itself.
-- Shirt photos are the Printful mockups in `public/mockups/{slug}-aop-poly.jpg` and `{slug}-aop-cotton.jpg`. Pin crops for six designs are in the same folder.
+- Shirt photos are the Printful mockups in `public/mockups/{slug}-aop-poly.jpg` and `{slug}-aop-cotton.jpg`, cropped to 1280×720 so the caption strip is gone. The page price is the only price. Do not put the Printful caption (old AU$69 / AU$75) back on the photo. Pin crops for six designs are in the same folder and are not gallery tiles.
 - Scene sentences live on each product in `catalog.json`. They were carried from the Etsy listing pack into Marketing’s blurb template. Marketing can replace `products.*.scene`.
 - The live collection nav label is Full Bleed. Blackletter, As High As Fuel, Brush & Smoke, Living Screens, and Night Shift are upcoming collection pages. “As High As Fuel” is the stoner lane, not a priced product. Night Shift is seasonal, not an adults-only lane.
 - Remove `<meta name="robots" content="noindex">` when payments are on and the shop should be indexed. Demo and off modes keep the shop out of search.
