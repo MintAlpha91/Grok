@@ -278,6 +278,9 @@ function emptyLane(catalog, example, label) {
 function laneStatusLine(item) {
   if (!item) return "";
   if (item.status === "upcoming") return "Coming. More designs before this lane is a storefront.";
+  if (item.status === "ready" && (item.count || 0) >= 10) {
+    return "Ready to list. This lane has the designs. The shop stays a preview until every collection has at least 10.";
+  }
   if (item.status === "ready") return "Ready to list. This preview lane needs at least 10 designs before it is the storefront.";
   if (item.status === "preview") return "Preview. Held until this lane is cleared.";
   return "";

@@ -218,22 +218,27 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(next(item["label"] for item in public["collections"] if item["id"] == "aop"), "Full Bleed")
         brush = next(item for item in public["collections"] if item["id"] == "brush-smoke")
         self.assertEqual(brush["label"], "Brush & Smoke")
-        self.assertEqual(brush["status"], "upcoming")
-        self.assertEqual(brush["count"], 0)
+        self.assertEqual(brush["status"], "preview")
+        self.assertEqual(brush["count"], 4)
         chest_lane = next(item for item in public["collections"] if item["id"] == "chest-dtg")
         self.assertEqual(chest_lane["status"], "ready")
         self.assertEqual(chest_lane["count"], 8)
         bio = next(item for item in public["collections"] if item["id"] == "biomechanical")
-        self.assertEqual(bio["status"], "upcoming")
-        self.assertEqual(bio["count"], 0)
-        self.assertEqual(aop["count"], 8)
+        self.assertEqual(bio["status"], "preview")
+        self.assertEqual(bio["count"], 1)
+        self.assertEqual(aop["count"], 21)
+        self.assertNotEqual(aop["status"], "live")
+        featured = [item for item in public["products"] if item["collection"] == "aop" and item["status"] == "live"]
+        self.assertEqual(len(featured), 8)
         public_slugs = {item["slug"] for item in public["products"]}
         self.assertIn("kitsune-neon-nine-tail-shrine", public_slugs)
         self.assertIn("blood-covenant", public_slugs)
+        self.assertIn("astral-fox-empress", public_slugs)
+        self.assertIn("quiet-blade", public_slugs)
+        self.assertIn("half-machine-skull", public_slugs)
         self.assertNotIn("too-high-to-care", public_slugs)
         self.assertIn("chest-starbound-nebula-queen", public_slugs)
-        self.assertNotIn("astral-fox-empress", public_slugs)
-        for held in ("starbound-nebula-queen", "quiet-blade", "half-machine-skull", "fuel-pump"):
+        for held in ("starbound-nebula-queen", "fuel-pump"):
             self.assertNotIn(held, public_slugs)
         fuel_card = next(item for item in public["products"] if item["slug"] == "as-high-as-fuel")
         self.assertEqual(fuel_card["status"], "upcoming")
@@ -249,7 +254,7 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertTrue(all(item.get("status") == "held" for item in stored["products"] if item["slug"] in {"fuel-pump", "fuel-gauge", "fuel-stoner", "fuel-prices"}))
         self.assertEqual(
             [item["label"] for item in public["series"]],
-            ["Ronin Rain", "Quiet Rain", "Starbound", "Crimson Sun", "Crimson Oni", "Neon Cyberpunk", "New concepts", "Blackletter", "As High As Fuel"],
+            ["Ronin Rain", "Quiet Rain", "Starbound", "Crimson Sun", "Crimson Oni", "Neon Cyberpunk", "Brush & Smoke", "Biomechanical", "New concepts", "Blackletter", "As High As Fuel"],
         )
         script = (ROOT / "public" / "js" / "app.js").read_text(encoding="utf-8")
         html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
@@ -305,6 +310,7 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(catalog["fabrics"]["poly"]["price_cents"], 6500)
         self.assertEqual(catalog["fabrics"]["cotton"]["price_cents"], 7100)
         self.assertEqual(catalog["fabrics"]["chest"]["price_cents"], 4700)
+        self.assertEqual(catalog["pricing"]["wave1_cents"], {"hoodie": 7500, "aop_beanie": 4900, "flexfit": 5500})
         public_body = json.dumps(public_catalog(checkout_public()))
         self.assertNotIn("etsy_cents", public_body)
         self.assertIn("Official store", public_body)
@@ -330,8 +336,12 @@ class CopyAndPriceTests(unittest.TestCase):
             quote_lines([{"slug": "fuel-pump", "fabric": "chest", "size": "M", "qty": 1}])
         with self.assertRaises(ShopError):
             quote_lines([{"slug": "starbound-nebula-queen", "fabric": "poly", "size": "M", "qty": 1}])
-        with self.assertRaises(ShopError):
-            quote_lines([{"slug": "astral-fox-empress", "fabric": "poly", "size": "M", "qty": 1}])
+        fox = quote_lines([{"slug": "astral-fox-empress", "fabric": "poly", "size": "M", "qty": 1}])
+        self.assertEqual(fox["lines"][0]["unit_cents"], 6500)
+        blade = quote_lines([{"slug": "quiet-blade", "fabric": "chest", "size": "M", "qty": 1}])
+        self.assertEqual(blade["lines"][0]["unit_cents"], 4700)
+        skull = quote_lines([{"slug": "half-machine-skull", "fabric": "chest", "size": "M", "qty": 1}])
+        self.assertEqual(skull["lines"][0]["unit_cents"], 4700)
         with self.assertRaises(ShopError):
             quote_lines([{"slug": "crimson-sun-last-ronin", "fabric": "cotton", "size": "M", "qty": 1}])
         with self.assertRaises(ShopError):
