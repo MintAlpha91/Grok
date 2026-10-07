@@ -80,8 +80,15 @@ class CopyAndPriceTests(unittest.TestCase):
     def test_homepage_html_uses_rogers_inc_title(self):
         html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
         self.assertIn("Rogers Inc Designs — All-Over Print Anime Tees", html)
+        self.assertIn('src="/brand/logo.png"', html)
+        self.assertIn('src="/brand/mini-banner.png"', html)
         self.assertIn("Rogers Inc", html)
         self.assertNotIn("Elemental Wood", html)
+        script = (ROOT / "public" / "js" / "app.js").read_text(encoding="utf-8")
+        self.assertIn('src: "/brand/banner.png"', script)
+        self.assertIn('alt: "Rogers Inc Designs"', script)
+        for name in ("logo.png", "banner.png", "mini-banner.png"):
+            self.assertTrue((ROOT / "public" / "brand" / name).is_file())
 
     def test_hooks_and_blurb_template(self):
         copy = load_copy()

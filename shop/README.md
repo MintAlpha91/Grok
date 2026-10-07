@@ -1,6 +1,6 @@
 # Rogers Inc Designs shop
 
-Draft storefront for the eight all-over print tees. The site brand is **Rogers Inc** / **Rogers Inc Designs**. **Elemental Wood** is the Etsy shop name only, linked from the footer and the about page.
+Draft storefront for the eight all-over print tees. The site brand is **Rogers Inc** / **Rogers Inc Designs**. The header uses `public/brand/logo.png`, the homepage hero uses `public/brand/banner.png`, and the strip under the nav uses `public/brand/mini-banner.png`. **Elemental Wood** is the Etsy shop name only, linked from the footer and the about page.
 
 Prices are locked: polyester AU$69 (2XL AU$73), cotton AU$75 (2XL AU$79). Free shipping in Australia. Sizes XS–2XL. Buyer-facing wording lives in `web-copy.json`.
 

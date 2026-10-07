@@ -191,6 +191,7 @@ function renderHome(catalog) {
   const grid = el("section", { class: "grid wrap" }, catalog.designs.map(card));
   return [
     el("section", { class: "hero wrap" }, [
+      el("img", { class: "hero-banner", src: "/brand/banner.png", alt: "Rogers Inc Designs" }),
       el("p", { class: "kicker" }, catalog.shop.collection),
       el("h1", {}, catalog.home.headline),
       el("p", { class: "sub" }, catalog.home.sub),
