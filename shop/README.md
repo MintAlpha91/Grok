@@ -16,6 +16,8 @@ Demo checkout does not charge a card and does not print or ship a shirt.
 
 ## Run
 
+Leave `STRIPE_SECRET_KEY` unset. Stripe Checkout is in the repo and parked until Jason adds `sk_test_` later. Local checkout is demo or PayID.
+
 ```bash
 cd shop
 SHOP_CHECKOUT=demo PYTHONPATH=src python3 -m store
@@ -23,37 +25,29 @@ SHOP_CHECKOUT=demo PYTHONPATH=src python3 -m store
 
 Open http://127.0.0.1:8765
 
-## Payments
-
-Stripe Checkout is the card path. PayID is only used when no Stripe secret is set. Demo runs when `SHOP_CHECKOUT=demo` and neither of those is set. With none of them set, checkout refuses the order.
-
-Use Stripe **test** keys only. The server rejects `sk_live_` and `rk_live_`. Do not commit keys. Copy `.env.example` to `.env` (gitignored) or export the variables in the shell.
-
-| Variable | Required | What to set |
-| --- | --- | --- |
-| `STRIPE_SECRET_KEY` | Yes, for card checkout | `sk_test_…` from the Stripe Dashboard, test mode |
-| `STRIPE_PUBLISHABLE_KEY` | No | `pk_test_…` if you add Stripe.js later. Hosted Checkout does not read it |
-| `SHOP_BASE_URL` | Yes, once the site has a public origin | Return origin Stripe sends the buyer back to, no trailing path. Local: `http://127.0.0.1:8765` |
-| `SHOP_PAYID` | No | PayID address. Ignored while `STRIPE_SECRET_KEY` is set |
-| `SHOP_PAYID_NAME` | No | Defaults to Rogers Inc Designs |
-| `SHOP_CHECKOUT` | No | `demo` for a no-charge walkthrough when Stripe is unset |
+PayID instead of demo:
 
 ```bash
 cd shop
-export STRIPE_SECRET_KEY=sk_test_...
-export SHOP_BASE_URL=http://127.0.0.1:8765
-PYTHONPATH=src python3 -m store
-```
-
-Card checkout creates a Stripe Checkout Session in AUD. Each line is the catalog price (name, fabric, size). GST is already inside that amount: `automatic_tax` is off and each price is `tax_behavior=inclusive`. The only shipping rate is free delivery inside Australia. Other countries are not offered a free rate, and overseas checkout stays closed until a charged rate is added. Success returns to `/order/RID-…?session_id={CHECKOUT_SESSION_ID}`. Cancel returns to `/checkout?cancelled=1`.
-
-Test a card in the Stripe Dashboard’s test mode with `4242 4242 4242 4242`, any future expiry, any CVC, and any postcode. The order stays unpaid until Stripe reports `payment_status=paid` for that session and the paid total matches the catalog total. A paid order is saved for a person to send to Printful. Nothing is pushed to Printful automatically, and a test payment does not print a shirt by itself.
-
-PayID, only when Stripe is unset:
-
-```bash
 SHOP_PAYID=you@bank SHOP_PAYID_NAME="Rogers Inc Designs" PYTHONPATH=src python3 -m store
 ```
+
+## Payments
+
+Stripe Checkout is ready and parked. The server uses it only when `STRIPE_SECRET_KEY` is set. With that variable unset, `SHOP_PAYID` shows PayID and holds the order unpaid. If PayID is also unset, `SHOP_CHECKOUT=demo` walks through checkout with no charge and no print. If none of those are set, checkout refuses the order.
+
+Do not commit keys. The server rejects `sk_live_` and `rk_live_`. Copy `.env.example` to `.env` (gitignored) only if you want those variables in one file. The process does not load `.env` by itself.
+
+| Variable | When |
+| --- | --- |
+| `SHOP_CHECKOUT=demo` | Local no-charge walkthrough. Use this until a PayID or a Stripe test key is set |
+| `SHOP_PAYID` | PayID address. Used when `STRIPE_SECRET_KEY` is unset |
+| `SHOP_PAYID_NAME` | Optional. Defaults to Rogers Inc Designs |
+| `STRIPE_SECRET_KEY` | Later. `sk_test_…` turns hosted Checkout on |
+| `STRIPE_PUBLISHABLE_KEY` | Later, optional. `pk_test_…`. Hosted Checkout does not read it |
+| `SHOP_BASE_URL` | Later, with Stripe. Return origin, no path. Local: `http://127.0.0.1:8765` |
+
+When Jason sets `sk_test_…`, card checkout creates a Stripe Checkout Session in AUD at the catalog price (name, fabric, size). GST is already inside that amount: `automatic_tax` is off and each price is `tax_behavior=inclusive`. The only shipping rate is free delivery inside Australia. Success returns to `/order/RID-…?session_id={CHECKOUT_SESSION_ID}`. Cancel returns to `/checkout?cancelled=1`. Test card `4242 4242 4242 4242`, any future expiry, any CVC. A paid order is saved for a person to send to Printful. Nothing is pushed to Printful automatically.
 
 ## Tests
 

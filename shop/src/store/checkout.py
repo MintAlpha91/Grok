@@ -1,4 +1,9 @@
-"""Demo, PayID, and Stripe checkout for Rogers Inc Designs. Demo never charges and never prints."""
+"""Demo, PayID, and Stripe checkout for Rogers Inc Designs.
+
+Stripe Checkout stays in this module and runs only when STRIPE_SECRET_KEY is set.
+Until Jason adds sk_test_, local checkout is PayID (SHOP_PAYID) or demo (SHOP_CHECKOUT=demo).
+Demo never charges and never prints.
+"""
 
 from __future__ import annotations
 
@@ -29,6 +34,7 @@ ORDER_ID = re.compile(r"^RID-[A-F0-9]{8}$")
 
 
 def checkout_mode(env: dict | None = None) -> str:
+    """Stripe is parked. An unset secret leaves PayID, then demo, then off."""
     env = os.environ if env is None else env
     if (env.get("STRIPE_SECRET_KEY") or "").strip():
         return "stripe"
