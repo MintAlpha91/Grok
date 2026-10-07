@@ -232,6 +232,7 @@ function renderHome(catalog) {
       item.label,
       item.sub ? el("span", { class: "lane-sub" }, item.sub) : null,
       item.status === "upcoming" ? el("span", { class: "lane-status" }, "Coming") : null,
+      item.status === "ready" ? el("span", { class: "lane-status" }, "Ready to list") : null,
       item.status === "preview" ? el("span", { class: "lane-status" }, "Preview") : null,
     ])
   )));
@@ -274,8 +275,17 @@ function emptyLane(catalog, example, label) {
   return el("p", { class: "empty wrap" }, `${catalog.shop.more} Example: ${example}${stop}`);
 }
 
+function laneStatusLine(item) {
+  if (!item) return "";
+  if (item.status === "upcoming") return "Coming. More designs before this lane is a storefront.";
+  if (item.status === "ready") return "Ready to list. This preview lane needs at least 10 designs before it is the storefront.";
+  if (item.status === "preview") return "Preview. Held until this lane is cleared.";
+  return "";
+}
+
 function laneLabel(item) {
   if (item.status === "upcoming") return `${item.label} · Coming`;
+  if (item.status === "ready") return `${item.label} · Ready to list`;
   if (item.status === "preview") return `${item.label} · Preview`;
   return item.label;
 }
@@ -315,6 +325,8 @@ function renderShop(catalog, route) {
   const selectedSeries = series === "all" ? null : catalog.series.find((item) => item.id === series);
   const intro = [];
   if (selected && selected.sub) intro.push(selected.sub);
+  const laneNote = laneStatusLine(selected);
+  if (laneNote) intro.push(laneNote);
   if (selected && selected.intro) intro.push(selected.intro);
   if (selected && selected.detail) intro.push(selected.detail);
   if (selectedSeries && selectedSeries.blurb) intro.push(selectedSeries.blurb);
@@ -369,7 +381,7 @@ function renderCollection(catalog, route) {
     : null;
   const empty = products.length ? null : emptyLane(catalog, item.example, item.name);
   return [
-    pageHead(item.name, uniqueText([item.sub, item.intro, item.detail])),
+    pageHead(item.name, uniqueText([item.sub, laneStatusLine(item), item.intro, item.detail])),
     ladder || omitted ? el("section", { class: "prose wrap" }, [ladder, omitted].filter(Boolean)) : null,
     empty,
     products.length ? el("section", { class: "grid wrap" }, products.map(card)) : null,

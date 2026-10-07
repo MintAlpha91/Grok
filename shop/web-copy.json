@@ -8,7 +8,7 @@
     "contact_email": null,
     "remake_window_confirmed": null,
     "remake_window_draft": "within 7 days of delivery",
-    "catalog": "Lanes and products are catalog.json. The live lane nav label is Full Bleed.",
+    "catalog": "Lanes and products are catalog.json. The Full Bleed nav label stays Full Bleed. A collection is not the public storefront until it has at least 10 items. Thin lanes stay ready-to-list or upcoming. This shop is a preview until every collection meets that floor.",
     "held_collection_blurbs": {
       "gothic-blackletter": "Industrial gothic type and dark ornament — charcoal ink, brick-red heat, and letterforms with teeth.",
       "fuel": "Slow burns and night drives — a chest-print lane for hazy skies and long roads."
@@ -36,7 +36,7 @@
   "about": "Rogers Inc Designs is the brand. Elemental Wood is our Etsy shop name for the same art — original anime-style art made in Australia. Dark ink, brick heat, no franchise filler. Tees are printed, cut and sewn to order, so a full-bleed piece can sit a little differently at the seams.",
   "shop": {
     "drops_title": "New drops",
-    "intro": "First wave is live. Collections still opening.",
+    "intro": "Preview catalog. Each collection needs at least 10 designs before it is the storefront.",
     "more": "More designs coming.",
     "fabrics": "Polyester hits with colour and wraps the shirt. Cotton is a softer hand, matte, and opens after the first sales.",
     "collection": "Original anime art for people who actually wear it."

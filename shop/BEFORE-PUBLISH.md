@@ -1,5 +1,7 @@
 # Before this shop goes live
 
+This shop is a preview catalog, not a live store. Do not treat it as go-live ready until every collection has at least 10 items. A thin collection stays `upcoming` or `ready` (ready to list). It is not the public storefront. When Design supplies more art and mockups, add them to the catalog and move the lane toward that floor. Do not deploy, and do not describe the site as open.
+
 The website brand is Rogers Inc / Rogers Inc Designs. Elemental Wood is the Etsy shop name only.
 
 Jason still needs to confirm these. They are not invented on the site.
@@ -14,7 +16,7 @@ Also still open:
 - Scene sentences live on each product in `catalog.json`. They were carried from the Etsy listing pack into Marketing’s blurb template. Marketing can replace `products.*.scene`.
 - Live poly full bleed is the seven aligned core scenes plus Nine-Tail Neon Shrine. The other new-concept all-over tees are upcoming, not live. Nebula Queen full bleed stays held until alignment is confirmed. The chest print of that scene stays with the other seven chest tees.
 - Blackletter and As High As Fuel are preview cards, 10 each, at AU$47. They can be ordered in the demo shop and stay held for a real go-live until Jason clears them. The main Fuel tee uses the white and heather listing previews only. Brush & Smoke and Biomechanical stay off sale.
-- Living Screens uses the wallpaper blurb. Crimson Sun and Quiet Rain packs are noted as 10 ready, but no wallpaper files are on this site, so nothing in that lane can be downloaded. Night Shift is seasonal, not an adults-only lane. Blackletter and As High As Fuel marketing blurbs stay off the public shop until those lanes are cleared.
+- Full Bleed and Chest print are ready to list, at 8 designs each. Living Screens uses the wallpaper blurb and stays upcoming: Crimson Sun and Quiet Rain packs are noted as 10 ready, but no wallpaper files are on this site, so nothing in that lane can be downloaded. Night Shift is seasonal, not an adults-only lane. Blackletter and As High As Fuel marketing blurbs stay off the public shop until those lanes are cleared.
 - Remove `<meta name="robots" content="noindex">` when Jason says the shop should be indexed. Test-mode Stripe still keeps the shop out of search.
 - Stripe Checkout is ready and parked. Leave `STRIPE_SECRET_KEY` unset. Use `SHOP_PAYID` or `SHOP_CHECKOUT=demo` until Jason adds `sk_test_` later. Do not commit keys. The server rejects `sk_live_` / `rk_live_`. See README “Payments”.
 - Free shipping on the Stripe session is Australia only. Do not add a zero shipping rate for other countries. Overseas postage stays closed until a charged rate is set.

@@ -78,9 +78,19 @@ def fabric_is_orderable(fabric: dict) -> bool:
     return fabric.get("status", "live") == "live"
 
 
+COLLECTION_FLOOR = 10
+
+
 def shop_visible(product: dict) -> bool:
     """Live tees, plus preview cards that can be ordered in the demo shop."""
     return product.get("status", "live") in {"live", "preview"}
+
+
+def presented_collection_status(status: str, count: int, floor: int = COLLECTION_FLOOR) -> str:
+    """A thin lane is ready to list, not the public storefront."""
+    if status == "live" and count < floor:
+        return "ready"
+    return status
 
 
 def fabric_price(catalog: dict, product: dict, fabric_id: str) -> tuple[int, int]:
@@ -293,19 +303,21 @@ def public_collections(catalog: dict) -> list[dict]:
     for item in catalog["collections"]:
         if item.get("status") == "hidden":
             continue
+        count = counts.get(item["id"], 0)
+        status = presented_collection_status(item.get("status", "live"), count)
         rows.append(
             {
                 "id": item["id"],
                 "name": item["name"],
                 "label": item.get("label") or item["name"],
-                "status": item.get("status", "live"),
+                "status": status,
                 "sub": item.get("sub", ""),
                 "intro": item.get("intro", ""),
                 "detail": item.get("detail", ""),
                 "example": item.get("example", ""),
                 "landing": item.get("landing") or item["id"],
                 "fabric": item.get("fabric") or "",
-                "count": counts.get(item["id"], 0),
+                "count": count,
             }
         )
     return rows

@@ -19,6 +19,7 @@ from store.catalog import (  # noqa: E402
     blurb,
     load_catalog,
     load_copy,
+    presented_collection_status,
     public_catalog,
     quote_lines,
     settle,
@@ -180,19 +181,26 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(aop["sub"], "AOP Heroes")
         self.assertEqual(aop["intro"], "All-over print tees that wrap the full scene edge to edge — original anime art cut for cloth, designed in Australia.")
         screens = next(item for item in public["collections"] if item["id"] == "living-screens")
-        self.assertEqual(screens["status"], "live")
+        self.assertEqual(screens["status"], "upcoming")
+        self.assertEqual(screens["count"], 0)
         self.assertIn("wallpaper packs", screens["intro"])
         rain = next(item for item in public["series"] if item["id"] == "quiet-rain")
         self.assertIn("Soft weather, sharp silence", rain["blurb"])
-        self.assertEqual(aop["status"], "live")
+        self.assertEqual(aop["status"], "ready")
+        self.assertEqual(presented_collection_status("live", 8), "ready")
+        self.assertEqual(presented_collection_status("live", 10), "live")
+        self.assertEqual(presented_collection_status("preview", 10), "preview")
         body = json.dumps(public)
         self.assertNotIn("letterforms with teeth", body)
         self.assertNotIn("hazy skies", body)
         self.assertNotIn("Eight designs", body)
         self.assertNotIn("8 designs", body)
         self.assertNotIn("8 tees", body)
+        self.assertNotIn("First wave is live", body)
+        self.assertNotIn("live store", body)
+        self.assertTrue(all(item["status"] != "live" or item["count"] >= 10 for item in public["collections"]))
         self.assertEqual(public["shop"]["drops_title"], "New drops")
-        self.assertEqual(public["shop"]["intro"], "First wave is live. Collections still opening.")
+        self.assertEqual(public["shop"]["intro"], "Preview catalog. Each collection needs at least 10 designs before it is the storefront.")
         self.assertEqual(public["shop"]["more"], "More designs coming.")
         stored = load_catalog()
         fuel = next(item for item in public["collections"] if item["id"] == "fuel")
@@ -211,7 +219,7 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(brush["status"], "upcoming")
         self.assertEqual(brush["count"], 0)
         chest_lane = next(item for item in public["collections"] if item["id"] == "chest-dtg")
-        self.assertEqual(chest_lane["status"], "live")
+        self.assertEqual(chest_lane["status"], "ready")
         self.assertEqual(chest_lane["count"], 8)
         bio = next(item for item in public["collections"] if item["id"] == "biomechanical")
         self.assertEqual(bio["status"], "upcoming")
