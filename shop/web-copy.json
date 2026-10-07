@@ -45,7 +45,7 @@
   "returns": "These tees are made to order, so we can’t take returns for change of mind or wrong size once production has started. If your order arrives damaged or with a clear print fault, email us within 7 days of delivery with photos and your order number and we’ll sort a remake or refund under Australian Consumer Law. Nothing in this policy limits your rights under the Australian Consumer Law.",
   "returns_contact_gap": "The contact email for print faults is not on this site yet.",
   "checkout": {
-    "stripe": "Pay securely by card. You’ll get an order confirmation by email.",
+    "stripe": "Pay securely by card. GST is already in the price. The tee is not sent to print until the payment clears.",
     "payid": "Checkout will show PayID details. Your order is held until payment clears, then we send it to print.",
     "demo_lead": "This shop is in demo mode. You can walk through checkout, but no payment will be taken and no shirt will be printed or shipped.",
     "demo_emphasis": "no payment will be taken and no shirt will be printed or shipped.",

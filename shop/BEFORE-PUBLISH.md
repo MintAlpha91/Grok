@@ -13,6 +13,9 @@ Also still open:
 - Shirt photos are the Printful mockups in `public/mockups/{slug}-aop-poly.jpg` and `{slug}-aop-cotton.jpg`, cropped to 1280×720 so the caption strip is gone. The page price is the only price. Do not put the Printful caption (old AU$69 / AU$75) back on the photo. Pin crops for six designs are in the same folder and are not gallery tiles.
 - Scene sentences live on each product in `catalog.json`. They were carried from the Etsy listing pack into Marketing’s blurb template. Marketing can replace `products.*.scene`.
 - The live collection nav label is Full Bleed. Blackletter, As High As Fuel, Brush & Smoke, Living Screens, and Night Shift are upcoming collection pages. “As High As Fuel” is the stoner lane, not a priced product. Night Shift is seasonal, not an adults-only lane.
-- Remove `<meta name="robots" content="noindex">` when payments are on and the shop should be indexed. Demo and off modes keep the shop out of search.
+- Remove `<meta name="robots" content="noindex">` when Jason says the shop should be indexed. Test-mode Stripe still keeps the shop out of search.
+- Stripe is test mode only. Set `STRIPE_SECRET_KEY` to `sk_test_…` and `SHOP_BASE_URL` to the public origin. Optional `STRIPE_PUBLISHABLE_KEY` (`pk_test_…`) is unused by hosted Checkout. Do not commit keys. The server rejects `sk_live_` / `rk_live_`. See README “Payments” for the test card.
+- Free shipping on the Stripe session is Australia only. Do not add a zero shipping rate for other countries. Overseas postage stays closed until a charged rate is set.
+- PayID (`SHOP_PAYID`) is the fallback when the Stripe secret is unset. It does not run alongside Stripe.
 
-Demo checkout does not charge a card and does not send anything to print.
+Demo checkout, used when Stripe and PayID are both unset, does not charge a card and does not send anything to print. A Stripe test payment is a real test-mode charge and still does not send the shirt to print by itself.

@@ -25,14 +25,35 @@ Open http://127.0.0.1:8765
 
 ## Payments
 
-Stripe is used when `STRIPE_SECRET_KEY` is set. Otherwise PayID is used when `SHOP_PAYID` is set. Otherwise demo mode runs when `SHOP_CHECKOUT=demo`. With none of those set, checkout refuses the order.
+Stripe Checkout is the card path. PayID is only used when no Stripe secret is set. Demo runs when `SHOP_CHECKOUT=demo` and neither of those is set. With none of them set, checkout refuses the order.
+
+Use Stripe **test** keys only. The server rejects `sk_live_` and `rk_live_`. Do not commit keys. Copy `.env.example` to `.env` (gitignored) or export the variables in the shell.
+
+| Variable | Required | What to set |
+| --- | --- | --- |
+| `STRIPE_SECRET_KEY` | Yes, for card checkout | `sk_test_…` from the Stripe Dashboard, test mode |
+| `STRIPE_PUBLISHABLE_KEY` | No | `pk_test_…` if you add Stripe.js later. Hosted Checkout does not read it |
+| `SHOP_BASE_URL` | Yes, once the site has a public origin | Return origin Stripe sends the buyer back to, no trailing path. Local: `http://127.0.0.1:8765` |
+| `SHOP_PAYID` | No | PayID address. Ignored while `STRIPE_SECRET_KEY` is set |
+| `SHOP_PAYID_NAME` | No | Defaults to Rogers Inc Designs |
+| `SHOP_CHECKOUT` | No | `demo` for a no-charge walkthrough when Stripe is unset |
 
 ```bash
-STRIPE_SECRET_KEY=sk_live_... SHOP_BASE_URL=https://your-domain PYTHONPATH=src python3 -m store
-SHOP_PAYID=you@bank SHOP_PAYID_NAME="Rogers Inc Designs" PYTHONPATH=src python3 -m store
+cd shop
+export STRIPE_SECRET_KEY=sk_test_...
+export SHOP_BASE_URL=http://127.0.0.1:8765
+PYTHONPATH=src python3 -m store
 ```
 
-Paid orders are saved for a person to send to Printful. Nothing is pushed to Printful automatically.
+Card checkout creates a Stripe Checkout Session in AUD. Each line is the catalog price (name, fabric, size). GST is already inside that amount: `automatic_tax` is off and each price is `tax_behavior=inclusive`. The only shipping rate is free delivery inside Australia. Other countries are not offered a free rate, and overseas checkout stays closed until a charged rate is added. Success returns to `/order/RID-…?session_id={CHECKOUT_SESSION_ID}`. Cancel returns to `/checkout?cancelled=1`.
+
+Test a card in the Stripe Dashboard’s test mode with `4242 4242 4242 4242`, any future expiry, any CVC, and any postcode. The order stays unpaid until Stripe reports `payment_status=paid` for that session and the paid total matches the catalog total. A paid order is saved for a person to send to Printful. Nothing is pushed to Printful automatically, and a test payment does not print a shirt by itself.
+
+PayID, only when Stripe is unset:
+
+```bash
+SHOP_PAYID=you@bank SHOP_PAYID_NAME="Rogers Inc Designs" PYTHONPATH=src python3 -m store
+```
 
 ## Tests
 

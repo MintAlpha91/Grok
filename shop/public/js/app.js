@@ -153,7 +153,7 @@ function setTitle(title, description) {
 function setRobots(mode) {
   const meta = document.querySelector('meta[name="robots"]');
   if (!meta) return;
-  meta.setAttribute("content", mode === "stripe" || mode === "payid" ? "index,follow" : "noindex");
+  meta.setAttribute("content", "noindex");
 }
 
 function chrome(catalog) {
@@ -643,8 +643,11 @@ async function renderOrder(catalog, route) {
       kids.push(el("p", {}, order.notice.text));
       kids.push(el("p", {}, `Pay ${money(order.total_cents)} to PayID ${order.payid} (${order.payid_name}).`));
       kids.push(el("p", {}, `Reference ${order.reference}. The tee is not sent to print until this payment clears.`));
+    } else if (order.mode === "stripe" && !order.payment_taken) {
+      kids.push(el("p", {}, "Card payment is not complete. No charge is treated as finished, and nothing has been sent to print."));
     } else if (order.payment_taken) {
-      kids.push(el("p", {}, "Payment received."));
+      saveCart([]);
+      kids.push(el("p", {}, "Payment received. GST was already included. Free shipping in Australia."));
       kids.push(el("p", {}, catalog.delivery));
     } else {
       kids.push(el("p", {}, order.notice.text));

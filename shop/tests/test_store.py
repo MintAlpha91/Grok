@@ -25,7 +25,14 @@ from store.catalog import (  # noqa: E402
     unit_cents,
     validate_customer,
 )
-from store.checkout import checkout_mode, checkout_public, place_order, stripe_fields  # noqa: E402
+from store.checkout import (  # noqa: E402
+    _form_body,
+    checkout_mode,
+    checkout_public,
+    confirm_stripe,
+    place_order,
+    stripe_fields,
+)
 from store.server import make_server  # noqa: E402
 
 ENV_KEYS = (
@@ -357,7 +364,122 @@ class CheckoutTests(unittest.TestCase):
         fields = dict(stripe_fields(order, "https://shop.example"))
         self.assertEqual(fields["line_items[0][price_data][unit_amount]"], "6900")
         self.assertEqual(fields["line_items[0][price_data][currency]"], "aud")
-        self.assertIn("Crimson Sun: The Last Ronin", fields["line_items[0][price_data][product_data][name]"])
+        self.assertEqual(fields["line_items[0][price_data][tax_behavior]"], "inclusive")
+        self.assertEqual(fields["automatic_tax[enabled]"], "false")
+        self.assertNotIn("line_items[1][price_data][unit_amount]", fields)
+        name = fields["line_items[0][price_data][product_data][name]"]
+        self.assertIn("Crimson Sun: The Last Ronin", name)
+        self.assertIn("Polyester", name)
+        self.assertIn("2XL", name)
+        self.assertEqual(fields["shipping_address_collection[allowed_countries][0]"], "AU")
+        self.assertNotIn("shipping_address_collection[allowed_countries][1]", fields)
+        self.assertEqual(fields["shipping_options[0][shipping_rate_data][fixed_amount][amount]"], "0")
+        self.assertEqual(fields["shipping_options[0][shipping_rate_data][display_name]"], "Free shipping in Australia")
+        self.assertNotIn("shipping_options[1][shipping_rate_data][fixed_amount][amount]", fields)
+        self.assertEqual(
+            fields["success_url"],
+            "https://shop.example/order/RID-AABBCCDD?session_id={CHECKOUT_SESSION_ID}",
+        )
+        self.assertEqual(fields["cancel_url"], "https://shop.example/checkout?cancelled=1")
+        body = _form_body(list(fields.items())).decode()
+        self.assertIn("{CHECKOUT_SESSION_ID}", body)
+        self.assertNotIn("%7BCHECKOUT_SESSION_ID%7D", body)
+
+    def test_stripe_test_key_opens_checkout_and_live_key_does_not(self):
+        os.environ["STRIPE_SECRET_KEY"] = "sk_test_example"
+        os.environ["SHOP_PAYID"] = "rogers@example"
+        self.assertEqual(checkout_mode(), "stripe")
+        captured = {}
+
+        def fake(path, secret, fields=None):
+            captured["path"] = path
+            captured["secret"] = secret
+            captured["fields"] = dict(fields or [])
+            return {"id": "cs_test_1", "url": "https://checkout.stripe.com/c/pay/cs_test_1"}
+
+        with mock.patch("store.checkout._stripe_request", side_effect=fake):
+            view = place_order(
+                self.orders,
+                [{"slug": "crimson-sun-last-ronin", "fabric": "poly", "size": "2XL", "qty": 1}],
+                self.customer(),
+                base_url="http://127.0.0.1:8765",
+            )
+        self.assertEqual(view["url"], "https://checkout.stripe.com/c/pay/cs_test_1")
+        self.assertEqual(view["status"], "pending_payment")
+        self.assertFalse(view["payment_taken"])
+        self.assertFalse(view["print_or_ship"])
+        self.assertEqual(view["total_cents"], 6900)
+        self.assertEqual(captured["secret"], "sk_test_example")
+        self.assertEqual(captured["fields"]["line_items[0][price_data][unit_amount]"], "6900")
+        self.assertEqual(captured["fields"]["automatic_tax[enabled]"], "false")
+        self.assertIn("2XL", captured["fields"]["line_items[0][price_data][product_data][name]"])
+        self.assertIn("Polyester", captured["fields"]["line_items[0][price_data][product_data][name]"])
+
+        os.environ["STRIPE_SECRET_KEY"] = "sk_live_example"
+        with mock.patch("store.checkout._stripe_request", side_effect=AssertionError("live stripe called")):
+            with self.assertRaises(ShopError) as caught:
+                place_order(self.orders, self.lines(), self.customer(), base_url="http://127.0.0.1:8765")
+        self.assertEqual(caught.exception.status, 409)
+        self.assertIn("test secret", str(caught.exception))
+
+    def test_confirm_stripe_accepts_the_inclusive_total_only(self):
+        os.environ["STRIPE_SECRET_KEY"] = "sk_test_example"
+        sessions = {
+            "create": {"id": "cs_test_paid", "url": "https://checkout.stripe.com/c/pay/cs_test_paid"},
+        }
+
+        def fake(path, secret, fields=None):
+            if fields is None:
+                return sessions["retrieve"]
+            return sessions["create"]
+
+        with mock.patch("store.checkout._stripe_request", side_effect=fake):
+            view = place_order(
+                self.orders,
+                [{"slug": "crimson-sun-last-ronin", "fabric": "poly", "size": "M", "qty": 1}],
+                self.customer(),
+                base_url="https://shop.example",
+            )
+            sessions["retrieve"] = {
+                "id": "cs_test_paid",
+                "payment_status": "unpaid",
+                "amount_total": 6500,
+                "currency": "aud",
+            }
+            pending = confirm_stripe(self.orders, view["id"], "cs_test_paid", "sk_test_example")
+            self.assertFalse(pending["payment_taken"])
+            sessions["retrieve"] = {
+                "id": "cs_test_paid",
+                "payment_status": "paid",
+                "amount_total": 7091,
+                "currency": "aud",
+                "total_details": {"amount_shipping": 0, "amount_tax": 591},
+            }
+            with self.assertRaises(ShopError):
+                confirm_stripe(self.orders, view["id"], "cs_test_paid", "sk_test_example")
+            sessions["retrieve"] = {
+                "id": "cs_test_paid",
+                "payment_status": "paid",
+                "amount_total": 6500,
+                "currency": "aud",
+                "total_details": {"amount_shipping": 0, "amount_tax": 0},
+                "shipping_details": {"address": {"country": "US"}},
+            }
+            with self.assertRaises(ShopError):
+                confirm_stripe(self.orders, view["id"], "cs_test_paid", "sk_test_example")
+            sessions["retrieve"] = {
+                "id": "cs_test_paid",
+                "payment_status": "paid",
+                "amount_total": 6500,
+                "currency": "aud",
+                "total_details": {"amount_shipping": 0, "amount_tax": 0},
+                "shipping_details": {"address": {"country": "AU"}},
+            }
+            paid = confirm_stripe(self.orders, view["id"], "cs_test_paid", "sk_test_example")
+        self.assertTrue(paid["payment_taken"])
+        self.assertFalse(paid["print_or_ship"])
+        self.assertEqual(paid["total_cents"], 6500)
+        self.assertEqual(paid["gst_cents"], 591)
 
 
 class ServerTests(unittest.TestCase):

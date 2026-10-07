@@ -52,7 +52,7 @@ class Handler(BaseHTTPRequestHandler):
                 order_id = path.removeprefix("/api/orders/").upper()
                 query = parse_qs(parsed.query)
                 session_id = (query.get("session_id") or [""])[0]
-                secret = os.environ.get("STRIPE_SECRET_KEY", "")
+                secret = os.environ.get("STRIPE_SECRET_KEY", "").strip()
                 if session_id and secret:
                     view = confirm_stripe(self.server.orders_dir, order_id, session_id, secret)
                 else:

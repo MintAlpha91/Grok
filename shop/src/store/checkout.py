@@ -30,13 +30,26 @@ ORDER_ID = re.compile(r"^RID-[A-F0-9]{8}$")
 
 def checkout_mode(env: dict | None = None) -> str:
     env = os.environ if env is None else env
-    if env.get("STRIPE_SECRET_KEY"):
+    if (env.get("STRIPE_SECRET_KEY") or "").strip():
         return "stripe"
     if env.get("SHOP_PAYID"):
         return "payid"
     if env.get("SHOP_CHECKOUT") == "demo":
         return "demo"
     return "off"
+
+
+def require_test_secret(secret: str) -> str:
+    """Hosted Checkout uses the secret key. Live keys are refused until Jason says go."""
+    secret = (secret or "").strip()
+    if secret.startswith(("sk_live_", "rk_live_")):
+        raise ShopError(
+            "Production Stripe keys are not accepted. Set STRIPE_SECRET_KEY to a test secret (sk_test_…). No charge was taken.",
+            409,
+        )
+    if not secret.startswith("sk_test_"):
+        raise ShopError("Set STRIPE_SECRET_KEY to a Stripe test secret (sk_test_…).", 409)
+    return secret
 
 
 def checkout_public(env: dict | None = None) -> dict:
@@ -194,7 +207,7 @@ def place_order(
         order["payid_name"] = env.get("SHOP_PAYID_NAME") or "Rogers Inc Designs"
         _write(orders_dir, order)
         return buyer_view(order)
-    session = create_stripe_session(order, base_url, env["STRIPE_SECRET_KEY"])
+    session = create_stripe_session(order, base_url, require_test_secret(env.get("STRIPE_SECRET_KEY", "")))
     order["status"] = "pending_payment"
     order["stripe_session_id"] = session["id"]
     order["stripe_url"] = session["url"]
@@ -204,31 +217,67 @@ def place_order(
     return view
 
 
+def line_summary(line: dict) -> str:
+    parts = [line.get("listing_name") or line.get("name") or "Tee", line.get("fabric_label") or ""]
+    if line.get("size"):
+        parts.append(str(line["size"]))
+    return " — ".join(part for part in parts if part)
+
+
 def stripe_fields(order: dict, base_url: str) -> list[tuple[str, str]]:
+    """GST-inclusive AUD amounts. Australia ships free. No worldwide free rate. No added GST."""
+    origin = base_url.rstrip("/")
     fields = [
         ("mode", "payment"),
         ("customer_email", order["customer"]["email"]),
         ("client_reference_id", order["id"]),
-        ("success_url", f"{base_url}/order/{order['id']}?session_id={{CHECKOUT_SESSION_ID}}"),
-        ("cancel_url", f"{base_url}/checkout?cancelled=1"),
+        ("success_url", f"{origin}/order/{order['id']}?session_id={{CHECKOUT_SESSION_ID}}"),
+        ("cancel_url", f"{origin}/checkout?cancelled=1"),
         ("metadata[order_id]", order["id"]),
+        ("metadata[gst]", "included"),
+        ("metadata[shipping]", "AU"),
+        ("automatic_tax[enabled]", "false"),
+        ("shipping_address_collection[allowed_countries][0]", "AU"),
+        ("shipping_options[0][shipping_rate_data][type]", "fixed_amount"),
+        ("shipping_options[0][shipping_rate_data][display_name]", "Free shipping in Australia"),
+        ("shipping_options[0][shipping_rate_data][fixed_amount][amount]", "0"),
+        ("shipping_options[0][shipping_rate_data][fixed_amount][currency]", "aud"),
+        ("shipping_options[0][shipping_rate_data][tax_behavior]", "inclusive"),
     ]
     for index, line in enumerate(order["lines"]):
         prefix = f"line_items[{index}]"
-        name = f"{line['listing_name']} — {line['fabric_label']} — {line['size']}"
         fields.extend(
             [
                 (f"{prefix}[quantity]", str(line["qty"])),
                 (f"{prefix}[price_data][currency]", "aud"),
                 (f"{prefix}[price_data][unit_amount]", str(line["unit_cents"])),
-                (f"{prefix}[price_data][product_data][name]", name),
+                (f"{prefix}[price_data][tax_behavior]", "inclusive"),
+                (f"{prefix}[price_data][product_data][name]", line_summary(line)),
+                (f"{prefix}[price_data][product_data][description]", "GST included."),
+                (f"{prefix}[price_data][product_data][metadata][fabric]", line.get("fabric_label") or ""),
+                (f"{prefix}[price_data][product_data][metadata][size]", line.get("size") or ""),
             ]
         )
     return fields
 
 
+def _form_body(fields: list[tuple[str, str]]) -> bytes:
+    """Encode Checkout params. Stripe must see the success placeholder unencoded."""
+    parts = []
+    for key, value in fields:
+        encoded_key = urllib.parse.quote(str(key), safe="")
+        if "{CHECKOUT_SESSION_ID}" in value:
+            token = "___CHECKOUT_SESSION_ID___"
+            swapped = value.replace("{CHECKOUT_SESSION_ID}", token)
+            encoded = urllib.parse.quote(swapped, safe="").replace(token, "{CHECKOUT_SESSION_ID}")
+        else:
+            encoded = urllib.parse.quote(str(value), safe="")
+        parts.append(f"{encoded_key}={encoded}")
+    return "&".join(parts).encode()
+
+
 def _stripe_request(path: str, secret: str, fields: list[tuple[str, str]] | None = None) -> dict:
-    data = None if fields is None else urllib.parse.urlencode(fields).encode()
+    data = None if fields is None else _form_body(fields)
     request = urllib.request.Request(
         f"https://api.stripe.com/v1/{path}",
         data=data,
@@ -251,6 +300,7 @@ def _stripe_request(path: str, secret: str, fields: list[tuple[str, str]] | None
 
 
 def create_stripe_session(order: dict, base_url: str, secret: str) -> dict:
+    secret = require_test_secret(secret)
     session = _stripe_request("checkout/sessions", secret, stripe_fields(order, base_url))
     if not session.get("url") or not session.get("id"):
         raise ShopError("Card checkout did not return a payment page.", 502)
@@ -258,6 +308,7 @@ def create_stripe_session(order: dict, base_url: str, secret: str) -> dict:
 
 
 def confirm_stripe(orders_dir: Path, order_id: str, session_id: str, secret: str) -> dict:
+    secret = require_test_secret(secret)
     order = load_order(orders_dir, order_id)
     if order.get("stripe_session_id") != session_id:
         raise ShopError("This payment session does not match the order.", 400)
@@ -266,6 +317,11 @@ def confirm_stripe(orders_dir: Path, order_id: str, session_id: str, secret: str
     session = _stripe_request(f"checkout/sessions/{urllib.parse.quote(session_id)}", secret)
     if session.get("payment_status") != "paid":
         return buyer_view(order)
+    details = session.get("total_details") or {}
+    shipping = details.get("amount_shipping")
+    country = ((session.get("shipping_details") or {}).get("address") or {}).get("country")
+    if shipping not in (None, 0) or (country and country != "AU"):
+        raise ShopError("Payment shipping does not match free Australian delivery.", 409)
     if session.get("amount_total") != order["total_cents"] or session.get("currency") != "aud":
         raise ShopError("Payment amount does not match this order.", 409)
     order["status"] = "paid"
