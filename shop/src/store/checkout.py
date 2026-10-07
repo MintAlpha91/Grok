@@ -17,8 +17,10 @@ from store.catalog import (
     ShopError,
     load_catalog,
     load_copy,
+    price_addon,
     price_line,
     public_line,
+    settle,
     validate_customer,
 )
 
@@ -71,15 +73,19 @@ def _price_request(raw_lines: list) -> list[dict]:
     for raw in raw_lines:
         if not isinstance(raw, dict):
             raise ShopError("A cart line is unreadable.")
+        qty = raw.get("qty")
         priced.append(
             price_line(
                 catalog,
                 str(raw.get("slug", "")),
                 str(raw.get("fabric", "")),
                 str(raw.get("size", "")),
-                raw.get("qty"),
+                qty,
             )
         )
+        addon_id = raw.get("addon")
+        if addon_id:
+            priced.append(price_addon(catalog, str(addon_id), qty, str(raw.get("slug", ""))))
     return priced
 
 
@@ -109,6 +115,7 @@ def buyer_view(order: dict) -> dict:
         "shipping_cents": order["shipping_cents"],
         "total_cents": order["total_cents"],
         "gst_included": True,
+        "gst_cents": order.get("gst_cents", 0),
         "customer": order["customer"],
         "payment_taken": order["payment_taken"],
         "print_or_ship": order["print_or_ship"],
@@ -156,6 +163,7 @@ def place_order(
         raise ShopError(load_copy()["checkout"]["off"], 409)
     lines = _price_request(raw_lines)
     customer = validate_customer(raw_customer)
+    settled = settle(lines, customer["country"])
     now = _now()
     order = {
         "id": _new_id(),
@@ -164,8 +172,11 @@ def place_order(
         "status": mode,
         "currency": "AUD",
         "lines": lines,
-        "shipping_cents": 0,
-        "total_cents": sum(line["line_cents"] for line in lines),
+        "shipping_cents": settled["shipping_cents"],
+        "goods_cents": settled["goods_cents"],
+        "gst_cents": settled["gst_cents"],
+        "gst_included": True,
+        "total_cents": settled["total_cents"],
         "customer": customer,
         "payment_taken": False,
         "print_or_ship": False,

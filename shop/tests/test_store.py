@@ -15,11 +15,13 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from store.catalog import (  # noqa: E402
     LOCKED_PRICES,
+    ShopError,
     blurb,
     load_catalog,
     load_copy,
     public_catalog,
     quote_lines,
+    settle,
     validate_customer,
 )
 from store.checkout import checkout_mode, checkout_public, place_order, stripe_fields  # noqa: E402
@@ -57,7 +59,8 @@ class CopyAndPriceTests(unittest.TestCase):
         catalog = load_catalog()
         for fabric, locked in LOCKED_PRICES.items():
             row = catalog["fabrics"][fabric]
-            self.assertEqual((row["price_cents"], row["price_2xl_cents"]), locked)
+            self.assertEqual(row["price_cents"], locked["price_cents"])
+            self.assertEqual(row["premiums_cents"], locked["premiums_cents"])
 
     def test_brand_is_rogers_inc_and_elemental_wood_is_etsy_only(self):
         copy = load_copy()
@@ -97,17 +100,20 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(len(public["products"]), 8)
         self.assertEqual(len(live), 8)
         for design in public["products"]:
-            by_id = {item["id"]: item for item in design["fabrics"]}
-            for fabric_id in ("poly", "cotton"):
-                url = by_id[fabric_id]["mockup"]
-                self.assertEqual(url, f"/mockups/{design['slug']}-aop-{fabric_id}.jpg")
-                self.assertTrue((ROOT / "public" / url.lstrip("/")).is_file())
-            self.assertEqual(design["image"], by_id["poly"]["mockup"])
+            self.assertEqual([item["id"] for item in design["fabrics"]], ["poly"])
+            self.assertEqual([item["id"] for item in design["held_fabrics"]], ["cotton"])
+            self.assertEqual(design["held_fabrics"][0]["price_cents"], 7500)
+            url = design["fabrics"][0]["mockup"]
+            self.assertEqual(url, f"/mockups/{design['slug']}-aop-poly.jpg")
+            self.assertTrue((ROOT / "public" / url.lstrip("/")).is_file())
+            cotton = ROOT / "public" / "mockups" / f"{design['slug']}-aop-cotton.jpg"
+            self.assertTrue(cotton.is_file())
+            self.assertEqual(design["image"], url)
 
     def test_lanes_are_data_not_a_fixed_page(self):
         public = public_catalog(checkout_public())
         ids = [item["id"] for item in public["collections"]]
-        self.assertEqual(ids, ["aop", "gothic-blackletter", "stoner", "calligraphy"])
+        self.assertEqual(ids, ["aop", "chest-dtg", "gothic-blackletter", "stoner", "calligraphy"])
         aop = next(item for item in public["collections"] if item["id"] == "aop")
         stoner = next(item for item in public["collections"] if item["id"] == "stoner")
         self.assertEqual(aop["count"], 8)
@@ -115,10 +121,14 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(stoner["count"], 0)
         self.assertEqual(stoner["status"], "upcoming")
         self.assertEqual(stoner["example"], "As High As Fuel")
+        self.assertEqual(stoner["landing"], "as-high-as-fuel")
+        gothic = next(item for item in public["collections"] if item["id"] == "gothic-blackletter")
+        self.assertEqual(gothic["landing"], "gothic-blackletter")
         script = (ROOT / "public" / "js" / "app.js").read_text(encoding="utf-8")
         html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
         self.assertIn("catalog.products", script)
         self.assertIn("catalog.collections", script)
+        self.assertIn("/collection/", script)
         self.assertNotIn("crimson-sun-last-ronin", script)
         self.assertNotIn("crimson-sun-last-ronin", html)
 
@@ -138,13 +148,45 @@ class CopyAndPriceTests(unittest.TestCase):
     def test_quote_uses_server_prices_not_client_prices(self):
         quote = quote_lines([
             {"slug": "crimson-sun-last-ronin", "fabric": "poly", "size": "M", "qty": 1, "unit_cents": 1},
-            {"slug": "quiet-rain-window-seat", "fabric": "cotton", "size": "2XL", "qty": 1, "price_cents": 1},
+            {"slug": "quiet-rain-window-seat", "fabric": "poly", "size": "2XL", "qty": 1, "price_cents": 1},
         ])
         self.assertEqual(quote["lines"][0]["unit_cents"], 6900)
-        self.assertEqual(quote["lines"][1]["unit_cents"], 7900)
-        self.assertEqual(quote["total_cents"], 14800)
+        self.assertEqual(quote["lines"][1]["unit_cents"], 7300)
+        self.assertEqual(quote["total_cents"], 14200)
+        self.assertEqual(quote["gst_cents"], 1291)
+        self.assertEqual(quote["goods_cents"], quote["total_cents"])
+        self.assertNotEqual(quote["total_cents"], quote["goods_cents"] + quote["gst_cents"])
         self.assertEqual(quote["shipping_cents"], 0)
         self.assertNotIn("printful_product_id", quote["lines"][0])
+
+    def test_launch_ladder_holds_cotton_chest_and_wallpapers(self):
+        catalog = load_catalog()
+        self.assertEqual(catalog["pricing"]["story"], "parity")
+        self.assertEqual(catalog["pricing"]["held_undercuts_cents"]["poly"], 6500)
+        self.assertEqual(catalog["pricing"]["held_undercuts_cents"]["chest"], 4700)
+        self.assertNotEqual(catalog["fabrics"]["poly"]["price_cents"], 6500)
+        chest = catalog["fabrics"]["chest"]
+        self.assertEqual(chest["status"], "lane")
+        self.assertNotIn("4XL", chest["sizes"])
+        self.assertNotIn("5XL", chest["sizes"])
+        public = public_catalog(checkout_public())
+        self.assertEqual(public["offer"]["hero_fabric"], "poly")
+        self.assertEqual(public["addons"][0]["with_shirt_cents"], 1000)
+        self.assertEqual(public["addons"][0]["status"], "held")
+        with self.assertRaises(ShopError):
+            quote_lines([{"slug": "crimson-sun-last-ronin", "fabric": "cotton", "size": "M", "qty": 1}])
+        with self.assertRaises(ShopError):
+            quote_lines([{
+                "slug": "crimson-sun-last-ronin",
+                "fabric": "poly",
+                "size": "M",
+                "qty": 1,
+                "addon": "wallpaper-bundle",
+            }])
+        with self.assertRaises(ShopError):
+            quote_lines([{"slug": "crimson-sun-last-ronin", "fabric": "poly", "size": "4XL", "qty": 1}])
+        with self.assertRaises(ShopError):
+            settle([], "US")
 
     def test_customer_must_be_in_australia(self):
         with self.assertRaises(Exception):
@@ -189,7 +231,7 @@ class CheckoutTests(unittest.TestCase):
         }
 
     def lines(self):
-        return [{"slug": "oni-mask-crimson-oni", "fabric": "cotton", "size": "L", "qty": 2}]
+        return [{"slug": "oni-mask-crimson-oni", "fabric": "poly", "size": "L", "qty": 2}]
 
     def test_demo_takes_no_payment_and_does_not_print(self):
         os.environ["SHOP_CHECKOUT"] = "demo"
@@ -201,8 +243,10 @@ class CheckoutTests(unittest.TestCase):
         self.assertFalse(view["automatic_print"])
         self.assertIn("no payment will be taken and no shirt will be printed or shipped", view["notice"]["text"])
         saved = json.loads(next(self.orders.glob("*.json")).read_text(encoding="utf-8"))
-        self.assertEqual(saved["lines"][0]["printful_product_id"], 1414)
-        self.assertEqual(saved["lines"][0]["line_cents"], 15000)
+        self.assertEqual(saved["lines"][0]["printful_product_id"], 257)
+        self.assertEqual(saved["lines"][0]["line_cents"], 13800)
+        self.assertEqual(view["gst_cents"], 1255)
+        self.assertEqual(view["total_cents"], 13800)
         self.assertNotIn("printful_product_id", view["lines"][0])
         self.assertIn("not instant auto-push", saved["internal_note"])
 
@@ -290,6 +334,9 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(catalog["products"][0]["fabrics"][0]["price_cents"], 6900)
         self.assertEqual(len(catalog["products"]), 8)
         self.assertIn("gothic-blackletter", [item["id"] for item in catalog["collections"]])
+        self.assertIn("as-high-as-fuel", [item["landing"] for item in catalog["collections"]])
+        self.assertEqual(catalog["products"][0]["fabrics"][0]["id"], "poly")
+        self.assertEqual(catalog["products"][0]["held_fabrics"][0]["id"], "cotton")
         self.assertIn("no shirt will be printed", catalog["checkout"]["demo_lead"])
         view = self.post("/api/checkout", {
             "lines": [{"slug": "starbound-nebula-queen", "fabric": "poly", "size": "XS", "qty": 1}],

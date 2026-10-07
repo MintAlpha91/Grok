@@ -30,7 +30,7 @@
   "blurb_template": "{scene}. Printed edge to edge on a {fabric} all-over print tee. Original Rogers Inc Designs artwork. Made to order. Free shipping in Australia.",
   "size_note": "Sizes XS–2XL. 2XL is +AU$4. Check the size guide before you order — each shirt is printed, cut and sewn to order.",
   "size_chart_gap": "A measurement chart is not on this page yet. Compare with a tee you already wear.",
-  "shipping": "Free shipping within Australia on all tees. Orders are made to order with our print partner, then posted to you. Allow production time before the parcel is on the road — we’ll email when it ships. International shipping isn’t offered yet.",
+  "shipping": "Free shipping within Australia on all tees. Orders are made to order with our print partner, then posted to you. Allow production time before the parcel is on the road — we’ll email when it ships. Overseas postage is charged separately and is not switched on. Free shipping is Australia only.",
   "delivery": "Because every tee is made to order, please allow about 5–12 business days for printing and Australian delivery once the order is confirmed. Times can vary with the print partner and Australia Post.",
   "returns": "These tees are made to order, so we can’t take returns for change of mind or wrong size once production has started. If your order arrives damaged or with a clear print fault, email us within 7 days of delivery with photos and your order number and we’ll sort a remake or refund under Australian Consumer Law. Nothing in this policy limits your rights under the Australian Consumer Law.",
   "returns_contact_gap": "The contact email for print faults is not on this site yet.",
@@ -40,7 +40,7 @@
     "demo_lead": "This shop is in demo mode. You can walk through checkout, but no payment will be taken and no shirt will be printed or shipped.",
     "demo_emphasis": "no payment will be taken and no shirt will be printed or shipped.",
     "demo_tail": "Place a real order once payments are switched on, or buy the matching designs on our Etsy shop meanwhile.",
-    "international": "International shipping isn’t offered yet.",
+    "international": "Overseas postage is charged. It is not open on this shop yet, and Australian orders do not cover it.",
     "off": "Payments are not switched on. No payment will be taken and no shirt will be printed."
   },
   "fulfillment_note": "Printful fulfilment is started from the order record after payment — not instant auto-push until that pipeline is live.",

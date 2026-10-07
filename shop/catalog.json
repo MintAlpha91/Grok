@@ -11,49 +11,115 @@
   "premium_sizes": [
     "2XL"
   ],
+  "pricing": {
+    "gst": "inclusive",
+    "gst_share": "1/11",
+    "story": "parity",
+    "story_note": "Official store matches the Etsy ladder. Do not sell the same SKU cheaper here. AU$47 chest and AU$65 poly stay off until Marketing confirms an undercut.",
+    "held_undercuts_cents": {
+      "chest": 4700,
+      "poly": 6500
+    }
+  },
+  "offer": {
+    "hero_fabric": "poly",
+    "hero_line": "Full-bleed polyester, AU$69.",
+    "parity_line": "Same prices as the Etsy ladder. This shop does not list the same tee for less."
+  },
+  "addons": [
+    {
+      "id": "wallpaper-bundle",
+      "name": "Matching wallpapers",
+      "status": "held",
+      "with_shirt_cents": 1000,
+      "note": "AU$10 with a tee, inside the AU$8–12 band, about 15% under a tee plus the wallpaper pack bought separately. The files are not on this site yet, so the add-on cannot be ordered."
+    }
+  ],
   "fabrics": {
     "poly": {
       "label": "Polyester",
       "phrase": "polyester",
+      "kind": "aop",
+      "role": "hero",
+      "status": "live",
       "price_cents": 6900,
       "price_2xl_cents": 7300,
+      "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
+      "premiums_cents": {"2XL": 400},
       "printful_product_id": 257
     },
     "cotton": {
       "label": "Cotton",
       "phrase": "cotton",
+      "kind": "aop",
+      "role": "premium",
+      "status": "after_first_sales",
       "price_cents": 7500,
       "price_2xl_cents": 7900,
+      "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
+      "premiums_cents": {"2XL": 400},
       "printful_product_id": 1414
+    },
+    "chest": {
+      "label": "Chest print",
+      "phrase": "chest print",
+      "kind": "dtg",
+      "role": "entry",
+      "status": "lane",
+      "price_cents": 4900,
+      "sizes": ["XS", "S", "M", "L", "XL", "2XL", "3XL"],
+      "premiums_cents": {"2XL": 400, "3XL": 700},
+      "omit_sizes": ["4XL", "5XL"]
     }
   },
   "collections": [
     {
       "id": "aop",
+      "landing": "aop",
       "name": "All-over print",
       "label": "AOP wave",
       "status": "live",
-      "intro": "Eight designs. Two fabrics. One full-bleed print.",
-      "detail": "Pick polyester for bright colour that holds up, or soft cotton for a matte everyday feel. Free shipping within Australia."
+      "fabric": "poly",
+      "intro": "Eight designs. Full-bleed polyester. Printed edge to edge.",
+      "detail": "Polyester is AU$69 (2XL AU$73). Free shipping in Australia. Cotton is AU$75 and opens after the first sales."
+    },
+    {
+      "id": "chest-dtg",
+      "landing": "chest-print",
+      "name": "Chest print",
+      "label": "Chest print",
+      "status": "upcoming",
+      "fabric": "chest",
+      "intro": "One collector lane. Chest print, AU$49.",
+      "detail": "The first design is not in the catalog yet."
     },
     {
       "id": "gothic-blackletter",
+      "landing": "gothic-blackletter",
       "name": "Gothic blackletter",
       "label": "Gothic blackletter tees",
-      "status": "upcoming"
+      "status": "upcoming",
+      "intro": "Gothic blackletter tees.",
+      "detail": "A collection page for blackletter lettering, search, and gifts. Nothing in this lane is on sale yet."
     },
     {
       "id": "stoner",
-      "name": "Stoner",
-      "label": "Stoner",
+      "landing": "as-high-as-fuel",
+      "name": "As High As Fuel",
+      "label": "As High As Fuel",
       "status": "upcoming",
-      "example": "As High As Fuel"
+      "example": "As High As Fuel",
+      "intro": "As High As Fuel.",
+      "detail": "The stoner line, on its own page for search and gifts. Nothing in this lane is on sale yet."
     },
     {
       "id": "calligraphy",
+      "landing": "calligraphy",
       "name": "Calligraphy and brush",
       "label": "Calligraphy and brush",
-      "status": "upcoming"
+      "status": "upcoming",
+      "intro": "Calligraphy and brush.",
+      "detail": "Brush lettering, when those designs are ready. Nothing in this lane is on sale yet."
     }
   ],
   "series": [

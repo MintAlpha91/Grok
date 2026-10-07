@@ -73,7 +73,12 @@ function fabricRow(design, fabricId) {
 function unitCents(design, fabricId, size) {
   const fabric = fabricRow(design, fabricId);
   if (!fabric) return 0;
-  return size === "2XL" ? fabric.price_2xl_cents : fabric.price_cents;
+  const extra = (fabric.premiums_cents && fabric.premiums_cents[size]) || 0;
+  return fabric.price_cents + extra;
+}
+
+function collectionPath(item) {
+  return `/collection/${item.landing || item.id}`;
 }
 
 function art(design, fabricId) {
@@ -106,6 +111,8 @@ function parseRoute() {
   const product = path.match(/^\/product\/([a-z0-9-]+)$/);
   const order = path.match(/^\/order\/(RID-[A-F0-9]{8})$/i);
   if (path === "/" || path === "") return { name: "home" };
+  const collectionPage = path.match(/^\/collection\/([a-z0-9-]+)$/);
+  if (collectionPage) return { name: "collection", slug: collectionPage[1] };
   if (path === "/shop") {
     return {
       name: "shop",
@@ -195,7 +202,7 @@ function pageHead(title, paragraphs) {
 function renderHome(catalog) {
   setTitle(catalog.seo.title, catalog.seo.meta);
   const series = el("section", { class: "series wrap", id: "series" }, catalog.collections.map((item) => (
-    el("a", { href: `/shop?collection=${item.id}` }, [
+    el("a", { href: collectionPath(item) }, [
       item.label,
       item.status === "upcoming" ? el("span", { class: "lane-status" }, "Coming") : null,
     ])
@@ -212,6 +219,7 @@ function renderHome(catalog) {
         el("a", { class: "btn btn-ghost", href: "/#series" }, catalog.home.cta_secondary),
       ]),
       el("p", { class: "alt" }, catalog.home.alt),
+      catalog.offer && catalog.offer.hero_line ? el("p", { class: "note" }, catalog.offer.hero_line) : null,
     ]),
     series,
     grid,
@@ -252,7 +260,10 @@ function renderShop(catalog, route) {
   const intro = [];
   if (selected && selected.intro) intro.push(selected.intro);
   if (selected && selected.detail) intro.push(selected.detail);
-  if (!selected) intro.push(catalog.shop.collection);
+  if (!selected) {
+    intro.push(catalog.shop.collection);
+    if (catalog.offer && catalog.offer.parity_line) intro.push(catalog.offer.parity_line);
+  }
   const collectionFilters = el("nav", { class: "filters wrap", "aria-label": "Collections" }, [
     el("a", { href: shopHref("all", "all"), "aria-current": collection === "all" ? "true" : null }, "All"),
     ...catalog.collections.map((item) => el("a", {
@@ -283,24 +294,52 @@ function renderShop(catalog, route) {
   ];
 }
 
+function renderCollection(catalog, route) {
+  const item = catalog.collections.find((row) => row.landing === route.slug || row.id === route.slug);
+  if (!item) return renderMissing();
+  setTitle(`${item.name} — Rogers Inc Designs`, item.detail || catalog.seo.meta);
+  const products = catalog.products.filter((product) => product.collection === item.id);
+  const fabric = (catalog.fabrics || []).find((row) => row.id === item.fabric);
+  const ladder = fabric
+    ? el("p", { class: "lede" }, fabric.sizes.map((size) => {
+      const cents = fabric.price_cents + ((fabric.premiums_cents && fabric.premiums_cents[size]) || 0);
+      return `${size} ${money(cents)}`;
+    }).join(" · "))
+    : null;
+  const omitted = fabric && fabric.omit_sizes && fabric.omit_sizes.length
+    ? el("p", { class: "lede" }, `${fabric.omit_sizes.join(" and ")} are not in this version.`)
+    : null;
+  const empty = products.length ? null : el("p", { class: "empty wrap" }, (
+    item.example ? `Nothing in this lane yet. Example: ${item.example}.` : "Nothing in this lane yet."
+  ));
+  return [
+    pageHead(item.name, [item.intro, item.detail].filter(Boolean)),
+    ladder || omitted ? el("section", { class: "prose wrap" }, [ladder, omitted].filter(Boolean)) : null,
+    empty,
+    el("section", { class: "grid wrap" }, products.map(card)),
+  ];
+}
+
 function renderProduct(catalog, route) {
   const design = designBySlug(route.slug);
   if (!design) return [pageHead("Not in the shop", ["That tee is not in the Rogers Inc Designs shop."])];
   setTitle(`${design.name} — Rogers Inc Designs`, `${design.hook} Free shipping in Australia.`);
-  const fabric = design.fabrics.some((item) => item.id === route.fabric) ? route.fabric : "poly";
-  const size = catalog.sizes.includes(route.size) ? route.size : "";
+  const fabric = design.fabrics.some((item) => item.id === route.fabric) ? route.fabric : design.fabrics[0].id;
   const selected = fabricRow(design, fabric);
+  const sizes = selected.sizes || catalog.sizes;
+  const size = sizes.includes(route.size) ? route.size : "";
   const price = unitCents(design, fabric, size || "M");
   const shown = size ? price : selected.price_cents;
+  const extra = size && selected.premiums_cents ? selected.premiums_cents[size] : 0;
 
   const fabricPills = el("div", { class: "pills" }, design.fabrics.map((item) => {
-    const cents = size === "2XL" ? item.price_2xl_cents : item.price_cents;
+    const cents = unitCents(design, item.id, size || "M");
     return el("label", {}, [
       el("input", { type: "radio", name: "fabric", value: item.id, checked: item.id === fabric ? "checked" : null }),
       `${item.label} · ${money(cents)}`,
     ]);
   }));
-  const sizePills = el("div", { class: "pills" }, catalog.sizes.map((item) => (
+  const sizePills = el("div", { class: "pills" }, sizes.map((item) => (
     el("label", {}, [
       el("input", { type: "radio", name: "size", value: item, checked: item === size ? "checked" : null }),
       item,
@@ -310,7 +349,7 @@ function renderProduct(catalog, route) {
     el("fieldset", { class: "choice" }, [el("legend", {}, "Fabric"), fabricPills]),
     el("fieldset", { class: "choice" }, [el("legend", {}, "Size"), sizePills]),
     el("p", { class: "price", id: "price", "aria-live": "polite" }, money(shown)),
-    el("p", { class: "note" }, size ? (size === "2XL" ? "2XL is +AU$4." : catalog.footer[2]) : "Select a size. 2XL is +AU$4."),
+    el("p", { class: "note" }, extra ? `${size} is +${money(extra)}.` : catalog.footer[2]),
     el("label", { class: "qty" }, ["Quantity", el("input", { name: "qty", type: "number", min: "1", max: "4", value: "1" })]),
     el("button", { class: "btn", type: "submit" }, "Add to cart"),
     el("p", { class: "added", id: "added", "aria-live": "polite" }, ""),
@@ -345,6 +384,11 @@ function renderProduct(catalog, route) {
   const etsy = selected.etsy_url ? el("p", { class: "note" }, [
     etsyAnchor(catalog, catalog.etsy_link_label, selected.etsy_url),
   ]) : null;
+  const held = (design.held_fabrics || []).map((item) => {
+    const when = item.status === "after_first_sales" ? "after the first sales" : "not on sale yet";
+    return el("p", { class: "note" }, `${item.label} · ${money(item.price_cents)} · ${when}.`);
+  });
+  const addons = (catalog.addons || []).map((item) => el("p", { class: "note" }, item.note));
 
   return [el("article", { class: "product wrap" }, [
     art(design, fabric),
@@ -360,6 +404,8 @@ function renderProduct(catalog, route) {
         catalog.size_note.split("size guide")[1] || "",
       ]),
       etsy,
+      ...held,
+      ...addons,
     ]),
   ])];
 }
@@ -410,7 +456,7 @@ function lineKey(line) {
 function totals(quote, catalog) {
   return el("div", { class: "totals" }, [
     el("p", {}, catalog.footer[2]),
-    el("p", {}, catalog.footer[1]),
+    el("p", {}, `Includes GST ${money(quote.gst_cents)}`),
     el("strong", {}, money(quote.total_cents)),
     el("a", { class: "btn", href: "/checkout" }, "Checkout"),
   ]);
@@ -470,7 +516,7 @@ function renderCheckout(catalog, route) {
   api("/api/quote", { lines }).then((quote) => {
     summary.replaceChildren(...quote.lines.map((line) => (
       el("p", {}, `${line.qty} × ${line.name} · ${line.fabric_label} · ${line.size} · ${money(line.line_cents)}`)
-    )), el("strong", {}, money(quote.total_cents)));
+    )), el("p", {}, quote.shipping_cents ? `Shipping ${money(quote.shipping_cents)}` : "Free shipping in Australia"), el("p", {}, `Includes GST ${money(quote.gst_cents)}`), el("strong", {}, money(quote.total_cents)));
   }).catch((err) => {
     summary.replaceChildren(el("p", { class: "alert" }, err.message));
   });
@@ -556,6 +602,7 @@ async function renderOrder(catalog, route) {
     kids.push(...order.lines.map((line) => (
       el("p", {}, `${line.qty} × ${line.listing_name} · ${line.fabric_label} · ${line.size} · ${money(line.line_cents)}`)
     )));
+    kids.push(el("p", {}, order.gst_cents ? `Includes GST ${money(order.gst_cents)}` : catalog.footer[1]));
     kids.push(el("strong", {}, money(order.total_cents)));
     kids.push(el("p", { class: "note" }, `${order.customer.name}, ${order.customer.suburb} ${order.customer.state} ${order.customer.postcode}`));
     kids.push(el("p", { class: "note" }, order.created_brisbane));
@@ -613,6 +660,7 @@ async function render() {
   let nodes = [];
   if (route.name === "home") nodes = renderHome(catalog);
   else if (route.name === "shop") nodes = renderShop(catalog, route);
+  else if (route.name === "collection") nodes = renderCollection(catalog, route);
   else if (route.name === "product") nodes = renderProduct(catalog, route);
   else if (route.name === "cart") nodes = renderCart(catalog);
   else if (route.name === "checkout") nodes = renderCheckout(catalog, route);
