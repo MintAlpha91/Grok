@@ -81,8 +81,6 @@ def fabric_is_orderable(fabric: dict) -> bool:
 
 
 COLLECTION_FLOOR = 10
-# Gothic and Fuel stay preview until Jason clears them. Never featured from stored live.
-OFF_FEATURED_COLLECTIONS = {"gothic-blackletter", "fuel"}
 
 
 def shop_visible(product: dict) -> bool:
@@ -103,22 +101,15 @@ def presented_collection_status(
     collection_id: str = "",
     floor: int = COLLECTION_FLOOR,
 ) -> str:
-    """A thin lane is not the public storefront. Fuel and gothic stay off featured."""
-    if collection_id in OFF_FEATURED_COLLECTIONS and count < floor and status != "hidden":
-        return "upcoming" if collection_id == "fuel" else "preview"
-    if collection_id in OFF_FEATURED_COLLECTIONS and status == "live":
-        return "preview"
+    """A thin lane is not the public storefront."""
     if status == "live" and count < floor:
         return "ready"
     return status
 
 
 def presented_product_status(product: dict) -> str:
-    """Short series and off-featured lanes are preview cards, not the featured list."""
-    status = product.get("status", "live")
-    if status == "live" and product.get("collection") in OFF_FEATURED_COLLECTIONS:
-        return "preview"
-    return status
+    """Public status is the catalog status. Jason cleared Gothic and Fuel."""
+    return product.get("status", "live")
 
 
 def fabric_price(catalog: dict, product: dict, fabric_id: str) -> tuple[int, int]:

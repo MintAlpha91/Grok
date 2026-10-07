@@ -10,7 +10,7 @@ Prices are GST-inclusive official-store prices, under the Etsy ladder: polyester
 2. Drop mockups at `public/mockups/{slug}-aop-poly.jpg` and `public/mockups/{slug}-aop-cotton.jpg` (or `{slug}-poly.jpg` / `{slug}-cotton.jpg` for a later lane). The fabric selector uses whichever file exists.
 3. To open a new lane, add a collection (`id`, `name`, `label`, `status`, optional `intro`, `detail`, `example`). Use `upcoming` while the lane is empty and `ready` while it has designs but fewer than 10. Do not set `status` to `live` on a thin lane. The public catalog rewrites a `live` lane under 10 items to `ready`. The homepage lane row and the shop filters pick it up. Series labels go in the `series` list; the shop only shows a series chip once a visible product uses it.
 
-The Full Bleed intro is the `aop` collection text in `catalog.json`. It does not name a fixed shirt count. Full Bleed is live once it has at least 10 shop cards. Gothic and As High As Fuel stay preview cards until Jason clears them, even at 10. Nebula Queen stays held. The shop copy for “New drops” and “More designs coming.” lives in `web-copy.json`.
+The Full Bleed intro is the `aop` collection text in `catalog.json`. It does not name a fixed shirt count. Full Bleed, Gothic, and As High As Fuel are live once each lane has at least 10 shop cards. Nebula Queen stays held. The shop copy for “New drops” and “More designs coming.” lives in `web-copy.json`.
 
 Demo checkout does not charge a card and does not print or ship a shirt.
 

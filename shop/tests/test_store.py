@@ -220,19 +220,17 @@ class CopyAndPriceTests(unittest.TestCase):
         stored = load_catalog()
         fuel = next(item for item in public["collections"] if item["id"] == "fuel")
         self.assertEqual(fuel["count"], 10)
-        self.assertEqual(fuel["status"], "preview")
-        self.assertNotEqual(fuel["status"], "live")
+        self.assertEqual(fuel["status"], "live")
         self.assertEqual(fuel["landing"], "as-high-as-fuel")
         self.assertEqual(fuel["label"], "As High As Fuel")
         gothic = next(item for item in public["collections"] if item["id"] == "gothic-blackletter")
         self.assertEqual(gothic["landing"], "blackletter")
         self.assertEqual(gothic["label"], "Blackletter")
-        self.assertEqual(gothic["status"], "preview")
+        self.assertEqual(gothic["status"], "live")
         self.assertEqual(gothic["count"], 10)
-        self.assertNotEqual(gothic["status"], "live")
-        self.assertEqual(presented_collection_status("live", 10, "gothic-blackletter"), "preview")
-        self.assertEqual(presented_collection_status("live", 10, "fuel"), "preview")
-        self.assertEqual(presented_collection_status("live", 1, "fuel"), "upcoming")
+        self.assertEqual(presented_collection_status("live", 10, "gothic-blackletter"), "live")
+        self.assertEqual(presented_collection_status("live", 10, "fuel"), "live")
+        self.assertEqual(presented_collection_status("live", 1, "fuel"), "ready")
         self.assertEqual(next(item["label"] for item in public["collections"] if item["id"] == "aop"), "Full Bleed")
         brush = next(item for item in public["collections"] if item["id"] == "brush-smoke")
         self.assertEqual(brush["label"], "Brush & Smoke")
@@ -277,16 +275,24 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertIn("quiet-blade", public_slugs)
         self.assertIn("half-machine-skull", public_slugs)
         self.assertEqual(len([item for item in public["products"] if item["collection"] == "fuel"]), 10)
-        self.assertTrue(all(item["status"] == "preview" for item in public["products"] if item["collection"] in {"fuel", "gothic-blackletter"}))
+        self.assertTrue(all(item["status"] == "live" for item in public["products"] if item["collection"] in {"fuel", "gothic-blackletter"}))
         self.assertNotIn("chest-starbound-nebula-queen", public_slugs)
         for held in ("fuel-pump",):
             self.assertNotIn(held, public_slugs)
         fuel_card = next(item for item in public["products"] if item["slug"] == "as-high-as-fuel")
-        self.assertEqual(fuel_card["status"], "preview")
+        self.assertEqual(fuel_card["status"], "live")
         self.assertEqual(fuel_card["gallery"], [
             "/mockups/as-high-as-fuel-chest.jpg",
             "/mockups/as-high-as-fuel-heather.jpg",
         ])
+        for item in public["products"]:
+            if item["collection"] != "fuel":
+                continue
+            for shot in item.get("gallery") or []:
+                lowered = shot.lower()
+                self.assertNotIn("black", lowered)
+                self.assertNotIn("navy", lowered)
+                self.assertNotIn("forest", lowered)
         self.assertEqual(fuel["sub"], "slow burns & night drives")
         self.assertTrue(all(item.get("status") == "held" for item in stored["products"] if item["slug"] in {"fuel-pump", "fuel-gauge", "fuel-stoner", "fuel-prices"}))
         self.assertEqual(
