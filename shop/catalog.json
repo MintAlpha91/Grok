@@ -441,14 +441,25 @@
       "series": "starbound-sirens",
       "series_name": "Starbound",
       "templates": {},
-      "etsy": {},
+      "etsy": {
+        "poly": "https://www.etsy.com/listing/4589654524",
+        "cotton": "https://www.etsy.com/listing/4589718938"
+      },
       "collection": "aop",
       "status": "live",
       "tags": [
         "starbound-sirens"
       ],
       "hook": "Starbound royalty, zero apology.",
-      "scene": "A crowned queen with a golden halo sits on a throne of crystal against a pink and indigo nebula"
+      "scene": "A crowned queen with a golden halo sits on a throne of crystal against a pink and indigo nebula",
+      "mockups": {
+        "poly": "nebula-queen-nudge-down-shirt-mockup.jpg",
+        "cotton": "nebula-queen-nudge-down-shirt-mockup.jpg"
+      },
+      "gallery": [
+        "nebula-queen-nudge-down-shirt-mockup.jpg"
+      ],
+      "print_ready": "aop/Rogers-Inc-Designs-starbound-nebula-queen-aop-nudge-down-4500x5400.png"
     },
     {
       "slug": "neon-dual-blade-alley",
@@ -592,7 +603,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "starbound-sirens"
       ],
