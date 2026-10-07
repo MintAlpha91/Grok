@@ -1399,7 +1399,8 @@
         "fuel"
       ],
       "hook": "Premium grade only.",
-      "scene": "PREMIUM GRADE ONLY across the chest of a white tee"
+      "scene": "PREMIUM GRADE ONLY across the chest of a white tee",
+      "print_ready": "fuel/Rogers-Inc-Designs-premium-grade-only-front-4500x5400.png"
     },
     {
       "slug": "check-engine-chill-mode",
@@ -1418,7 +1419,8 @@
         "fuel"
       ],
       "hook": "Check engine. Chill mode.",
-      "scene": "CHECK ENGINE CHILL MODE across the chest of a white tee"
+      "scene": "CHECK ENGINE CHILL MODE across the chest of a white tee",
+      "print_ready": "fuel/Rogers-Inc-Designs-check-engine-chill-mode-front-4500x5400.png"
     },
     {
       "slug": "slow-lane-high-life",
@@ -1437,7 +1439,8 @@
         "fuel"
       ],
       "hook": "Slow lane. High life.",
-      "scene": "SLOW LANE HIGH LIFE across the chest of a white tee"
+      "scene": "SLOW LANE HIGH LIFE across the chest of a white tee",
+      "print_ready": "fuel/Rogers-Inc-Designs-slow-lane-high-life-front-4500x5400.png"
     },
     {
       "slug": "wallpaper-crimson-the-last-ronin",

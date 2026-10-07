@@ -64,6 +64,15 @@ def clear_payment_env():
         os.environ.pop(key, None)
 
 
+def png_size(path: Path) -> tuple[int, int]:
+    data = path.read_bytes()
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        raise AssertionError(f"{path.name} is not a PNG")
+    width = int.from_bytes(data[16:20], "big")
+    height = int.from_bytes(data[20:24], "big")
+    return width, height
+
+
 def jpeg_size(path: Path) -> tuple[int, int]:
     """Read width and height from a JPEG SOF marker. Tests stay on the stdlib."""
     data = path.read_bytes()
@@ -295,6 +304,32 @@ class CopyAndPriceTests(unittest.TestCase):
                 self.assertNotIn("forest", lowered)
         self.assertEqual(fuel["sub"], "slow burns & night drives")
         self.assertTrue(all(item.get("status") == "held" for item in stored["products"] if item["slug"] in {"fuel-pump", "fuel-gauge", "fuel-stoner", "fuel-prices"}))
+        received_fuel = ("premium-grade-only", "check-engine-chill-mode", "slow-lane-high-life")
+        for slug in received_fuel:
+            product = stored_slugs[slug]
+            filename = f"Rogers-Inc-Designs-{slug}-front-4500x5400.png"
+            path = ROOT / "print-ready" / "fuel" / filename
+            self.assertEqual(product["print_ready"], f"fuel/{filename}")
+            self.assertEqual(png_size(path), (4500, 5400))
+            self.assertNotIn(filename, json.dumps(public))
+        missing_print = (
+            "blood-covenant",
+            "iron-psalm",
+            "wraith-march",
+            "bone-chapel",
+            "hex-altar",
+            "pale-reign",
+            "too-high-to-care",
+            "gas-money-went-to-this",
+            "budget-went-up-in-smoke",
+            "running-on-fumes",
+            "empty-tank-full-heart",
+            "high-mileage-low-motivation",
+        )
+        for slug in missing_print:
+            self.assertNotIn("print_ready", stored_slugs[slug])
+            self.assertFalse((ROOT / "print-ready").joinpath(f"fuel/Rogers-Inc-Designs-{slug}-front-4500x5400.png").is_file())
+            self.assertFalse((ROOT / "print-ready").joinpath(f"gothic/Rogers-Inc-Designs-{slug}-front-4500x5400.png").is_file())
         self.assertEqual(
             [item["label"] for item in public["series"]],
             ["Ronin Rain", "Quiet Rain", "Starbound", "Crimson Sun", "Crimson Oni", "Neon Cyberpunk", "Brush & Smoke", "Biomechanical", "New concepts", "Blackletter", "As High As Fuel"],
