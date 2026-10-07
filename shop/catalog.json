@@ -1171,7 +1171,8 @@
         "gothic-blackletter"
       ],
       "hook": "Blood covenant.",
-      "scene": "A thorned chalice under BLOOD COVENANT, printed on a white tee"
+      "scene": "A thorned chalice under BLOOD COVENANT, printed on a white tee",
+      "print_ready": "gothic/Rogers-Inc-Designs-blood-covenant-front-4500x5400.png"
     },
     {
       "slug": "iron-psalm",
@@ -1190,7 +1191,8 @@
         "gothic-blackletter"
       ],
       "hook": "Iron psalm.",
-      "scene": "A barred gothic gate under IRON PSALM, printed on a white tee"
+      "scene": "A barred gothic gate under IRON PSALM, printed on a white tee",
+      "print_ready": "gothic/Rogers-Inc-Designs-iron-psalm-front-4500x5400.png"
     },
     {
       "slug": "wraith-march",
@@ -1209,7 +1211,8 @@
         "gothic-blackletter"
       ],
       "hook": "Wraith march.",
-      "scene": "A horned helm under WRAITH MARCH, printed on a white tee"
+      "scene": "A horned helm under WRAITH MARCH, printed on a white tee",
+      "print_ready": "gothic/Rogers-Inc-Designs-wraith-march-front-4500x5400.png"
     },
     {
       "slug": "bone-chapel",
@@ -1285,7 +1288,8 @@
         "fuel"
       ],
       "hook": "Too high to care.",
-      "scene": "TOO HIGH TO CARE across the chest of a white tee"
+      "scene": "TOO HIGH TO CARE across the chest of a white tee",
+      "print_ready": "fuel/Rogers-Inc-Designs-too-high-to-care-front-4500x5400.png"
     },
     {
       "slug": "gas-money-went-to-this",
@@ -1304,7 +1308,8 @@
         "fuel"
       ],
       "hook": "Gas money went to this.",
-      "scene": "GAS MONEY WENT TO THIS across the chest of a white tee"
+      "scene": "GAS MONEY WENT TO THIS across the chest of a white tee",
+      "print_ready": "fuel/Rogers-Inc-Designs-gas-money-went-to-this-front-4500x5400.png"
     },
     {
       "slug": "budget-went-up-in-smoke",
@@ -1323,7 +1328,8 @@
         "fuel"
       ],
       "hook": "The budget went up in smoke.",
-      "scene": "BUDGET WENT UP IN SMOKE across the chest of a white tee"
+      "scene": "BUDGET WENT UP IN SMOKE across the chest of a white tee",
+      "print_ready": "fuel/Rogers-Inc-Designs-budget-went-up-in-smoke-front-4500x5400.png"
     },
     {
       "slug": "running-on-fumes",

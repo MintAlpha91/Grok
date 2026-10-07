@@ -304,24 +304,34 @@ class CopyAndPriceTests(unittest.TestCase):
                 self.assertNotIn("forest", lowered)
         self.assertEqual(fuel["sub"], "slow burns & night drives")
         self.assertTrue(all(item.get("status") == "held" for item in stored["products"] if item["slug"] in {"fuel-pump", "fuel-gauge", "fuel-stoner", "fuel-prices"}))
-        received_fuel = ("premium-grade-only", "check-engine-chill-mode", "slow-lane-high-life")
-        for slug in received_fuel:
-            product = stored_slugs[slug]
-            filename = f"Rogers-Inc-Designs-{slug}-front-4500x5400.png"
-            path = ROOT / "print-ready" / "fuel" / filename
-            self.assertEqual(product["print_ready"], f"fuel/{filename}")
-            self.assertEqual(png_size(path), (4500, 5400))
-            self.assertNotIn(filename, json.dumps(public))
+        received_print = {
+            "fuel": (
+                "too-high-to-care",
+                "gas-money-went-to-this",
+                "budget-went-up-in-smoke",
+                "premium-grade-only",
+                "check-engine-chill-mode",
+                "slow-lane-high-life",
+            ),
+            "gothic": (
+                "blood-covenant",
+                "iron-psalm",
+                "wraith-march",
+            ),
+        }
+        for lane, slugs in received_print.items():
+            for slug in slugs:
+                product = stored_slugs[slug]
+                filename = f"Rogers-Inc-Designs-{slug}-front-4500x5400.png"
+                path = ROOT / "print-ready" / lane / filename
+                self.assertEqual(product["print_ready"], f"{lane}/{filename}")
+                self.assertEqual(png_size(path), (4500, 5400))
+                self.assertEqual(path.read_bytes()[25], 2)
+                self.assertNotIn(filename, json.dumps(public))
         missing_print = (
-            "blood-covenant",
-            "iron-psalm",
-            "wraith-march",
             "bone-chapel",
             "hex-altar",
             "pale-reign",
-            "too-high-to-care",
-            "gas-money-went-to-this",
-            "budget-went-up-in-smoke",
             "running-on-fumes",
             "empty-tank-full-heart",
             "high-mileage-low-motivation",
