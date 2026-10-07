@@ -160,10 +160,10 @@
       "landing": "chest-print",
       "name": "Chest print",
       "label": "Chest print",
-      "status": "ready",
+      "status": "live",
       "fabric": "chest",
       "intro": "Chest print, AU$47.",
-      "detail": "The same scenes, printed on the chest of a black tee. AU$47 GST. 2XL is +AU$4. 3XL is +AU$7. 10 ready cards (Nebula Queen chest still held).",
+      "detail": "The same scenes, printed on the chest of a black tee. AU$47 GST. 2XL is +AU$4. 3XL is +AU$7. 10 cards. Nebula Queen chest stays held.",
       "sub": "Black tees"
     },
     {
@@ -2097,7 +2097,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "ready",
+      "status": "live",
       "tags": [
         "neon-cyberpunk",
         "kitsune"
@@ -2118,7 +2118,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "ready",
+      "status": "live",
       "tags": [
         "ronin-rain",
         "tengu"
@@ -2139,7 +2139,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "ready",
+      "status": "live",
       "tags": [
         "starbound-sirens",
         "fox"

@@ -197,7 +197,8 @@ class CopyAndPriceTests(unittest.TestCase):
         }
         for design in chest:
             if design["slug"] in ready_chest:
-                self.assertEqual(design["status"], "ready")
+                self.assertEqual(design["status"], "live")
+                self.assertTrue(design["image"].endswith(f"{design['slug']}-chest.jpg"))
         for design in chest:
             self.assertEqual([item["id"] for item in design["fabrics"]], ["chest"])
             self.assertEqual(design["fabrics"][0]["price_cents"], 4700)
@@ -286,7 +287,7 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(brush["status"], "preview")
         self.assertEqual(brush["count"], 4)
         chest_lane = next(item for item in public["collections"] if item["id"] == "chest-dtg")
-        self.assertEqual(chest_lane["status"], "ready")
+        self.assertEqual(chest_lane["status"], "live")
         self.assertEqual(chest_lane["count"], 10)
         bio = next(item for item in public["collections"] if item["id"] == "biomechanical")
         self.assertEqual(bio["status"], "preview")
@@ -393,7 +394,7 @@ class CopyAndPriceTests(unittest.TestCase):
             "chest-astral-fox-empress": "chest/Rogers-Inc-Designs-astral-fox-empress-front-4500x5400.png",
         }
         for slug, relative in pending_chest_print.items():
-            self.assertEqual(stored_slugs[slug]["status"], "ready")
+            self.assertEqual(stored_slugs[slug]["status"], "live")
             self.assertEqual(stored_slugs[slug]["print_ready"], relative)
             self.assertFalse((ROOT / "print-ready" / relative).is_file())
         missing_print = ()
@@ -501,8 +502,8 @@ class CopyAndPriceTests(unittest.TestCase):
             "chest-tengu-storm-chrome-crow",
             "chest-astral-fox-empress",
         ):
-            with self.assertRaises(ShopError):
-                quote_lines([{"slug": slug, "fabric": "chest", "size": "M", "qty": 1}])
+            quoted = quote_lines([{"slug": slug, "fabric": "chest", "size": "M", "qty": 1}])
+            self.assertEqual(quoted["lines"][0]["unit_cents"], 4700)
         with self.assertRaises(ShopError):
             quote_lines([{"slug": "starbound-nebula-queen", "fabric": "cotton", "size": "M", "qty": 1}])
         wallpaper = quote_lines([{"slug": "wallpaper-crimson-the-last-ronin", "fabric": "wallpaper", "size": "Download", "qty": 1}])
