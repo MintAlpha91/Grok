@@ -416,7 +416,7 @@ function renderProduct(catalog, route) {
     const chosen = data.get("size");
     const added = document.getElementById("added");
     if (!chosen) {
-      added.textContent = "Choose a size from XS to 2XL.";
+      added.textContent = "Choose a size.";
       return;
     }
     const qty = Math.min(4, Math.max(1, Number(data.get("qty")) || 1));
@@ -449,9 +449,9 @@ function renderProduct(catalog, route) {
       el("p", { class: "blurb" }, design.blurbs[fabric]),
       form,
       el("p", { class: "note" }, [
-        catalog.size_note.split("size guide")[0],
+        (selected.size_note || catalog.size_note).split("size guide")[0],
         el("a", { href: "/shipping#size-guide" }, "size guide"),
-        catalog.size_note.split("size guide")[1] || "",
+        (selected.size_note || catalog.size_note).split("size guide")[1] || "",
       ]),
       etsy,
       ...held,

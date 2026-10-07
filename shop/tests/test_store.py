@@ -130,18 +130,26 @@ class CopyAndPriceTests(unittest.TestCase):
         catalog = load_catalog()
         public = public_catalog(checkout_public())
         live = [item for item in catalog["products"] if item.get("status", "live") == "live"]
-        self.assertEqual(len(public["products"]), 8)
-        self.assertEqual(len(live), 8)
-        for design in public["products"]:
+        self.assertEqual(len(public["products"]), len(live))
+        self.assertGreaterEqual(len(public["products"]), 8)
+        full_bleed = [item for item in public["products"] if item["collection"] == "aop"]
+        self.assertGreaterEqual(len(full_bleed), 8)
+        for design in full_bleed:
             self.assertEqual([item["id"] for item in design["fabrics"]], ["poly"])
             self.assertEqual([item["id"] for item in design["held_fabrics"]], ["cotton"])
             self.assertEqual(design["held_fabrics"][0]["price_cents"], 7100)
             url = design["fabrics"][0]["mockup"]
             self.assertEqual(url, f"/mockups/{design['slug']}-aop-poly.jpg")
             self.assertTrue((ROOT / "public" / url.lstrip("/")).is_file())
-            cotton = ROOT / "public" / "mockups" / f"{design['slug']}-aop-cotton.jpg"
-            self.assertTrue(cotton.is_file())
             self.assertEqual(design["image"], url)
+        originals = [item for item in full_bleed if (ROOT / "public" / "mockups" / f"{item['slug']}-aop-cotton.jpg").is_file()]
+        self.assertGreaterEqual(len(originals), 8)
+        chest = [item for item in public["products"] if item["collection"] == "chest-dtg"]
+        self.assertEqual(len(chest), 8)
+        for design in chest:
+            self.assertEqual([item["id"] for item in design["fabrics"]], ["chest"])
+            self.assertEqual(design["fabrics"][0]["price_cents"], 4700)
+            self.assertTrue(design["fabrics"][0]["mockup"])
 
     def test_mockups_drop_the_price_caption_and_2xl_stays_the_surcharge(self):
         catalog = load_catalog()
@@ -157,17 +165,17 @@ class CopyAndPriceTests(unittest.TestCase):
         css = (ROOT / "public" / "css" / "shop.css").read_text(encoding="utf-8")
         self.assertIn("aspect-ratio: 1280 / 720", css)
         mockups = list((ROOT / "public" / "mockups").glob("*-aop-*.jpg"))
-        self.assertEqual(len(mockups), 16)
+        self.assertGreaterEqual(len(mockups), 16)
         for path in mockups:
             self.assertEqual(jpeg_size(path), (1280, 720), path.name)
 
     def test_lanes_are_data_not_a_fixed_page(self):
         public = public_catalog(checkout_public())
         ids = [item["id"] for item in public["collections"]]
-        self.assertEqual(ids, ["aop", "chest-dtg", "gothic-blackletter", "stoner", "calligraphy", "living-screens", "night-shift"])
+        self.assertEqual(ids, ["aop", "chest-dtg", "gothic-blackletter", "stoner", "brush-smoke", "biomechanical", "living-screens", "night-shift"])
         aop = next(item for item in public["collections"] if item["id"] == "aop")
         stoner = next(item for item in public["collections"] if item["id"] == "stoner")
-        self.assertEqual(aop["count"], len(public["products"]))
+        self.assertEqual(aop["count"], len([item for item in public["products"] if item["collection"] == "aop"]))
         self.assertEqual(aop["sub"], "First wave")
         self.assertEqual(aop["intro"], "Full bleed. Edge to edge.")
         self.assertEqual(aop["status"], "live")
@@ -178,19 +186,30 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(public["shop"]["drops_title"], "New drops")
         self.assertEqual(public["shop"]["intro"], "First wave is live. Collections still opening.")
         self.assertEqual(public["shop"]["more"], "More designs coming.")
-        self.assertEqual(stoner["count"], 0)
-        self.assertEqual(stoner["status"], "upcoming")
+        self.assertEqual(stoner["count"], 5)
+        self.assertEqual(stoner["status"], "live")
         self.assertEqual(stoner["example"], "As High As Fuel")
         self.assertEqual(stoner["landing"], "as-high-as-fuel")
         gothic = next(item for item in public["collections"] if item["id"] == "gothic-blackletter")
         self.assertEqual(gothic["landing"], "blackletter")
         self.assertEqual(gothic["label"], "Blackletter")
+        self.assertEqual(gothic["status"], "live")
+        self.assertEqual(gothic["count"], 4)
         self.assertEqual(next(item["label"] for item in public["collections"] if item["id"] == "aop"), "Full Bleed")
-        self.assertEqual(next(item["label"] for item in public["collections"] if item["id"] == "calligraphy"), "Brush & Smoke")
+        brush = next(item for item in public["collections"] if item["id"] == "brush-smoke")
+        self.assertEqual(brush["label"], "Brush & Smoke")
+        self.assertEqual(brush["status"], "live")
+        self.assertEqual(brush["count"], 4)
+        chest_lane = next(item for item in public["collections"] if item["id"] == "chest-dtg")
+        self.assertEqual(chest_lane["status"], "live")
+        self.assertEqual(chest_lane["count"], 8)
+        bio = next(item for item in public["collections"] if item["id"] == "biomechanical")
+        self.assertEqual(bio["status"], "live")
+        self.assertEqual(bio["count"], 1)
         self.assertEqual(stoner["sub"], "slow burns & night drives")
         self.assertEqual(
             [item["label"] for item in public["series"]],
-            ["Ronin Rain", "Quiet Rain", "Starbound", "Crimson Sun", "Crimson Oni", "Neon Cyberpunk"],
+            ["Ronin Rain", "Quiet Rain", "Starbound", "Crimson Sun", "Crimson Oni", "Neon Cyberpunk", "Brush & Smoke", "Biomechanical", "New concepts", "Blackletter", "As High As Fuel"],
         )
         script = (ROOT / "public" / "js" / "app.js").read_text(encoding="utf-8")
         html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
@@ -217,6 +236,13 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertIn("Printed edge to edge on a cotton full-bleed tee.", cotton)
         self.assertIn("Original Rogers Inc Designs artwork.", poly)
         self.assertNotIn("Elemental Wood", poly)
+        public = public_catalog(checkout_public())
+        blade = next(item for item in public["products"] if item["slug"] == "quiet-blade")
+        self.assertIn("Chest print.", blade["blurbs"]["chest"])
+        self.assertNotIn("full-bleed", blade["blurbs"]["chest"])
+        king = next(item for item in public["products"] if item["slug"] == "void-king")
+        self.assertTrue(king["image"].endswith("/void-king-chest.jpg"))
+        self.assertEqual(king["fabrics"][0]["price_cents"], 4700)
 
     def test_quote_uses_server_prices_not_client_prices(self):
         quote = quote_lines([
@@ -245,13 +271,21 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertNotIn("etsy_cents", public_body)
         self.assertIn("Official store", public_body)
         chest = catalog["fabrics"]["chest"]
-        self.assertEqual(chest["status"], "lane")
+        self.assertEqual(chest["status"], "live")
         self.assertNotIn("4XL", chest["sizes"])
         self.assertNotIn("5XL", chest["sizes"])
         public = public_catalog(checkout_public())
         self.assertEqual(public["offer"]["hero_fabric"], "poly")
         self.assertEqual(public["addons"][0]["with_shirt_cents"], 1000)
         self.assertEqual(public["addons"][0]["status"], "held")
+        chest_quote = quote_lines([{"slug": "chest-crimson-sun-last-ronin", "fabric": "chest", "size": "M", "qty": 1}])
+        self.assertEqual(chest_quote["lines"][0]["unit_cents"], 4700)
+        chest_2xl = quote_lines([{"slug": "half-machine-skull", "fabric": "chest", "size": "3XL", "qty": 1}])
+        self.assertEqual(chest_2xl["lines"][0]["unit_cents"], 5400)
+        gothic_quote = quote_lines([{"slug": "void-king", "fabric": "chest", "size": "M", "qty": 1}])
+        self.assertEqual(gothic_quote["lines"][0]["unit_cents"], 4700)
+        fuel_quote = quote_lines([{"slug": "as-high-as-fuel", "fabric": "chest", "size": "2XL", "qty": 1}])
+        self.assertEqual(fuel_quote["lines"][0]["unit_cents"], 5100)
         with self.assertRaises(ShopError):
             quote_lines([{"slug": "crimson-sun-last-ronin", "fabric": "cotton", "size": "M", "qty": 1}])
         with self.assertRaises(ShopError):

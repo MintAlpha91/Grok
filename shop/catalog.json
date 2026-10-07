@@ -15,7 +15,7 @@
     "gst": "inclusive",
     "gst_share": "1/11",
     "story": "official-store",
-    "story_note": "Official store — no Etsy fees. Site prices are the undercut. Do not show the Etsy amount on the same SKU.",
+    "story_note": "Official store \u2014 no Etsy fees. Site prices are the undercut. Do not show the Etsy amount on the same SKU.",
     "etsy_cents": {
       "chest": 4900,
       "poly": 6900,
@@ -25,7 +25,7 @@
   "offer": {
     "hero_fabric": "poly",
     "hero_line": "Full-bleed polyester, AU$65.",
-    "story_line": "Official store — no Etsy fees."
+    "story_line": "Official store \u2014 no Etsy fees."
   },
   "addons": [
     {
@@ -34,7 +34,7 @@
       "status": "held",
       "with_shirt_cents": 1000,
       "line": "Same scene. Wear it or wallpaper it.",
-      "note": "AU$10 with a tee, inside the AU$8–12 band, about 15% under a tee plus the wallpaper pack bought separately. The files are not on this site yet, so the add-on cannot be ordered."
+      "note": "AU$10 with a tee, inside the AU$8\u201312 band, about 15% under a tee plus the wallpaper pack bought separately. The files are not on this site yet, so the add-on cannot be ordered."
     }
   ],
   "fabrics": {
@@ -46,8 +46,17 @@
       "status": "live",
       "price_cents": 6500,
       "price_2xl_cents": 6900,
-      "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
-      "premiums_cents": {"2XL": 400},
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "premiums_cents": {
+        "2XL": 400
+      },
       "printful_product_id": 257
     },
     "cotton": {
@@ -58,8 +67,17 @@
       "status": "after_first_sales",
       "price_cents": 7100,
       "price_2xl_cents": 7500,
-      "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
-      "premiums_cents": {"2XL": 400},
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "premiums_cents": {
+        "2XL": 400
+      },
       "printful_product_id": 1414
     },
     "chest": {
@@ -67,11 +85,26 @@
       "phrase": "chest print",
       "kind": "dtg",
       "role": "entry",
-      "status": "lane",
+      "status": "live",
       "price_cents": 4700,
-      "sizes": ["XS", "S", "M", "L", "XL", "2XL", "3XL"],
-      "premiums_cents": {"2XL": 400, "3XL": 700},
-      "omit_sizes": ["4XL", "5XL"]
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "2XL",
+        "3XL"
+      ],
+      "premiums_cents": {
+        "2XL": 400,
+        "3XL": 700
+      },
+      "omit_sizes": [
+        "4XL",
+        "5XL"
+      ],
+      "size_note": "Sizes XS\u20133XL. 2XL is +AU$4. 3XL is +AU$7. Check the size guide before you order \u2014 each shirt is printed, cut and sewn to order."
     }
   },
   "collections": [
@@ -91,42 +124,56 @@
       "landing": "chest-print",
       "name": "Chest print",
       "label": "Chest print",
-      "status": "upcoming",
+      "status": "live",
       "fabric": "chest",
-      "example": "City rain. Neon veins.",
-      "intro": "One collector lane. Chest print, AU$47.",
-      "detail": "Neon and Ronin Rain, when the first chest design is in. Nothing in this lane is on sale yet."
+      "intro": "Chest print, AU$47.",
+      "detail": "The same scenes, printed on the chest of a black tee. 2XL is +AU$4. 3XL is +AU$7.",
+      "sub": "Black tees"
     },
     {
       "id": "gothic-blackletter",
       "landing": "blackletter",
       "name": "Blackletter",
       "label": "Blackletter",
-      "status": "upcoming",
+      "status": "live",
       "sub": "Gothic industrial type.",
       "intro": "Gothic industrial type.",
-      "detail": "Heavy type, cut for cloth. Nothing in this lane is on sale yet."
+      "detail": "Chest print, AU$47. White tees.",
+      "fabric": "chest"
     },
     {
       "id": "stoner",
       "landing": "as-high-as-fuel",
       "name": "As High As Fuel",
       "label": "As High As Fuel",
-      "status": "upcoming",
+      "status": "live",
       "sub": "slow burns & night drives",
       "example": "As High As Fuel",
       "intro": "slow burns & night drives",
-      "detail": "The stoner line. Nothing in this lane is on sale yet."
+      "detail": "Chest print, AU$47. As High As The Price Of Fuel, and the fuel art that sits with it.",
+      "fabric": "chest"
     },
     {
-      "id": "calligraphy",
+      "id": "brush-smoke",
       "landing": "brush-and-smoke",
       "name": "Brush & Smoke",
       "label": "Brush & Smoke",
-      "status": "upcoming",
+      "status": "live",
       "sub": "Calligraphy and brush ink.",
       "intro": "Calligraphy and brush ink.",
-      "detail": "Ink and smoke. Nothing in this lane is on sale yet."
+      "detail": "Chest print, AU$47. White tees.",
+      "fabric": "chest"
+    },
+    {
+      "id": "biomechanical",
+      "landing": "biomechanical",
+      "name": "Biomechanical",
+      "label": "Biomechanical",
+      "status": "live",
+      "fabric": "chest",
+      "sub": "Half machine",
+      "intro": "Collector chest print.",
+      "detail": "Half Machine Skull. Chest print, AU$47."
     },
     {
       "id": "living-screens",
@@ -179,6 +226,31 @@
       "id": "neon-cyberpunk",
       "label": "Neon Cyberpunk",
       "collection": "aop"
+    },
+    {
+      "id": "brush-smoke",
+      "label": "Brush & Smoke",
+      "collection": "brush-smoke"
+    },
+    {
+      "id": "biomechanical",
+      "label": "Biomechanical",
+      "collection": "biomechanical"
+    },
+    {
+      "id": "new-concepts",
+      "label": "New concepts",
+      "collection": "aop"
+    },
+    {
+      "id": "gothic-blackletter",
+      "label": "Blackletter",
+      "collection": "gothic-blackletter"
+    },
+    {
+      "id": "fuel",
+      "label": "As High As Fuel",
+      "collection": "stoner"
     }
   ],
   "products": [
@@ -314,6 +386,648 @@
       ],
       "hook": "Hold the line or lose the night.",
       "scene": "A straw-hatted ronin stands large in the foreground as a rank of shadowed warriors gathers beneath a torii gate, with a neon city glowing through the rain behind them"
+    },
+    {
+      "slug": "chest-crimson-sun-last-ronin",
+      "name": "The Last Ronin",
+      "listing_name": "Crimson Sun: The Last Ronin \u2014 chest print",
+      "series": "crimson-sun",
+      "series_name": "Crimson Sun",
+      "templates": {},
+      "etsy": {},
+      "collection": "chest-dtg",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "crimson-sun"
+      ],
+      "hook": "Last man standing under a blood-red sky.",
+      "scene": "A lone ronin stands against a blood-red sun, with red filling the shirt right up to the collar"
+    },
+    {
+      "slug": "chest-oni-mask-crimson-oni",
+      "name": "Crimson Oni Vigil",
+      "listing_name": "Oni Mask: Crimson Oni Vigil \u2014 chest print",
+      "series": "oni-mask",
+      "series_name": "Crimson Oni",
+      "templates": {},
+      "etsy": {},
+      "collection": "chest-dtg",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "oni-mask"
+      ],
+      "hook": "The mask doesn't sleep. Neither should you.",
+      "scene": "The Crimson Oni is a horned Japanese demon mask in gold and blood red"
+    },
+    {
+      "slug": "chest-quiet-rain-umbrella-crossing",
+      "name": "Umbrella Crossing",
+      "listing_name": "Quiet Rain: Umbrella Crossing \u2014 chest print",
+      "series": "quiet-rain",
+      "series_name": "Quiet Rain",
+      "templates": {},
+      "etsy": {},
+      "collection": "chest-dtg",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "quiet-rain"
+      ],
+      "hook": "Soft weather, sharp silence.",
+      "scene": "A lone figure with a clear umbrella stands on a rain-soaked crosswalk, with purple city lights glowing in the wet street"
+    },
+    {
+      "slug": "chest-quiet-rain-window-seat",
+      "name": "Window Seat",
+      "listing_name": "Quiet Rain: Window Seat \u2014 chest print",
+      "series": "quiet-rain",
+      "series_name": "Quiet Rain",
+      "templates": {},
+      "etsy": {},
+      "collection": "chest-dtg",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "quiet-rain"
+      ],
+      "hook": "Soft weather, sharp silence.",
+      "scene": "A girl in a hoodie sits by a rain-streaked window with a steaming bowl of ramen and the city lights beyond"
+    },
+    {
+      "slug": "chest-starbound-nebula-queen",
+      "name": "Nebula Queen",
+      "listing_name": "Starbound Sirens: Nebula Queen \u2014 chest print",
+      "series": "starbound-sirens",
+      "series_name": "Starbound",
+      "templates": {},
+      "etsy": {},
+      "collection": "chest-dtg",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "starbound-sirens"
+      ],
+      "hook": "Starbound royalty, zero apology.",
+      "scene": "A crowned queen with a golden halo sits on a throne of crystal against a pink and indigo nebula"
+    },
+    {
+      "slug": "chest-neon-dual-blade-alley",
+      "name": "Dual Blade Alley",
+      "listing_name": "Neon Cyberpunk: Dual Blade Alley \u2014 chest print",
+      "series": "neon-cyberpunk",
+      "series_name": "Neon Cyberpunk",
+      "templates": {},
+      "etsy": {},
+      "collection": "chest-dtg",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "neon-cyberpunk"
+      ],
+      "hook": "Two blades. One alley. Nowhere left to hide.",
+      "scene": "A hooded, masked fighter crouches low in a flooded, rain-soaked alley with a glowing magenta blade in one hand and a cyan blade in the other, both fully in view"
+    },
+    {
+      "slug": "chest-ronin-ghost-armour",
+      "name": "Ghost Armour",
+      "listing_name": "Ronin Rain: Ghost Armour \u2014 chest print",
+      "series": "ronin-rain",
+      "series_name": "Ronin Rain",
+      "templates": {},
+      "etsy": {},
+      "collection": "chest-dtg",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "ronin-rain"
+      ],
+      "hook": "Empty steel that still walks.",
+      "scene": "An empty suit of samurai armour stands front and centre, glowing magenta and cyan in a rain-soaked back alley"
+    },
+    {
+      "slug": "chest-ronin-last-stand",
+      "name": "Last Stand at the Gate",
+      "listing_name": "Ronin Rain: Last Stand at the Gate \u2014 chest print",
+      "series": "ronin-rain",
+      "series_name": "Ronin Rain",
+      "templates": {},
+      "etsy": {},
+      "collection": "chest-dtg",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "ronin-rain"
+      ],
+      "hook": "Hold the line or lose the night.",
+      "scene": "A straw-hatted ronin stands large in the foreground as a rank of shadowed warriors gathers beneath a torii gate, with a neon city glowing through the rain behind them"
+    },
+    {
+      "slug": "quiet-blade",
+      "name": "Quiet Blade",
+      "listing_name": "Brush & Smoke: Quiet Blade",
+      "series": "brush-smoke",
+      "series_name": "Brush & Smoke",
+      "templates": {},
+      "etsy": {},
+      "collection": "brush-smoke",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "brush-smoke"
+      ],
+      "hook": "Brush ink down the front.",
+      "scene": "Vertical brush characters on a white tee"
+    },
+    {
+      "slug": "keep-moving",
+      "name": "Keep Moving",
+      "listing_name": "Brush & Smoke: Keep Moving",
+      "series": "brush-smoke",
+      "series_name": "Brush & Smoke",
+      "templates": {},
+      "etsy": {},
+      "collection": "brush-smoke",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "brush-smoke"
+      ],
+      "hook": "Keep moving.",
+      "scene": "KEEP MOVING in brush letters across the chest"
+    },
+    {
+      "slug": "still-burning",
+      "name": "Still Burning",
+      "listing_name": "Brush & Smoke: Still Burning",
+      "series": "brush-smoke",
+      "series_name": "Brush & Smoke",
+      "templates": {},
+      "etsy": {},
+      "collection": "brush-smoke",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "brush-smoke"
+      ],
+      "hook": "Still burning.",
+      "scene": "STILL BURNING in dripping brush letters"
+    },
+    {
+      "slug": "ink-root",
+      "name": "Ink Root",
+      "listing_name": "Brush & Smoke: Ink Root",
+      "series": "brush-smoke",
+      "series_name": "Brush & Smoke",
+      "templates": {},
+      "etsy": {},
+      "collection": "brush-smoke",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "brush-smoke"
+      ],
+      "hook": "Back print. One mark.",
+      "scene": "A large brush mark on the back of a white tee"
+    },
+    {
+      "slug": "half-machine-skull",
+      "name": "Half Machine Skull",
+      "listing_name": "Biomechanical: Half Machine Skull",
+      "series": "biomechanical",
+      "series_name": "Biomechanical",
+      "templates": {},
+      "etsy": {},
+      "collection": "biomechanical",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "biomechanical"
+      ],
+      "hook": "Half machine. Half bone.",
+      "scene": "A schematic skull, half bone and half machine, printed on the chest"
+    },
+    {
+      "slug": "astral-fox-empress",
+      "name": "Astral Fox Empress",
+      "listing_name": "Astral Fox Empress",
+      "series": "new-concepts",
+      "series_name": "New concepts",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "live",
+      "tags": [
+        "new-concepts"
+      ],
+      "hook": "A crowned fox in a star field.",
+      "scene": "A crowned fox in a star field"
+    },
+    {
+      "slug": "bone-lantern-yokai-parade",
+      "name": "Bone Lantern Yokai Parade",
+      "listing_name": "Bone Lantern Yokai Parade",
+      "series": "new-concepts",
+      "series_name": "New concepts",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "live",
+      "tags": [
+        "new-concepts"
+      ],
+      "hook": "Bone lanterns in a yokai parade.",
+      "scene": "Bone lanterns in a yokai parade"
+    },
+    {
+      "slug": "eclipse-torii-crimson",
+      "name": "Eclipse Torii",
+      "listing_name": "Eclipse Torii",
+      "series": "new-concepts",
+      "series_name": "New concepts",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "live",
+      "tags": [
+        "new-concepts"
+      ],
+      "hook": "A crimson torii at eclipse.",
+      "scene": "A crimson torii at eclipse"
+    },
+    {
+      "slug": "kitsune-neon-nine-tail-shrine",
+      "name": "Kitsune Neon Shrine",
+      "listing_name": "Kitsune Neon Shrine",
+      "series": "new-concepts",
+      "series_name": "New concepts",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "live",
+      "tags": [
+        "new-concepts"
+      ],
+      "hook": "Nine tails at the neon shrine.",
+      "scene": "Nine tails at the neon shrine"
+    },
+    {
+      "slug": "neon-oni-gatekeeper",
+      "name": "Neon Oni Gatekeeper",
+      "listing_name": "Neon Oni Gatekeeper",
+      "series": "new-concepts",
+      "series_name": "New concepts",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "live",
+      "tags": [
+        "new-concepts"
+      ],
+      "hook": "The gatekeeper at the shrine stair.",
+      "scene": "The gatekeeper at the shrine stair"
+    },
+    {
+      "slug": "neon-shrine-electric-torii-flood",
+      "name": "Neon Shrine",
+      "listing_name": "Neon Shrine",
+      "series": "new-concepts",
+      "series_name": "New concepts",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "live",
+      "tags": [
+        "new-concepts"
+      ],
+      "hook": "Electric torii in the flood.",
+      "scene": "Electric torii in the flood"
+    },
+    {
+      "slug": "neon-shrine-maiden",
+      "name": "Neon Shrine Maiden",
+      "listing_name": "Neon Shrine Maiden",
+      "series": "new-concepts",
+      "series_name": "New concepts",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "live",
+      "tags": [
+        "new-concepts"
+      ],
+      "hook": "A shrine maiden in neon rain.",
+      "scene": "A shrine maiden in neon rain"
+    },
+    {
+      "slug": "phantom-lantern-crossing",
+      "name": "Phantom Lantern Crossing",
+      "listing_name": "Phantom Lantern Crossing",
+      "series": "new-concepts",
+      "series_name": "New concepts",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "live",
+      "tags": [
+        "new-concepts"
+      ],
+      "hook": "A lantern at the crossing.",
+      "scene": "A lantern at the crossing"
+    },
+    {
+      "slug": "raijin-storm-grid",
+      "name": "Raijin Storm Grid",
+      "listing_name": "Raijin Storm Grid",
+      "series": "new-concepts",
+      "series_name": "New concepts",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "live",
+      "tags": [
+        "new-concepts"
+      ],
+      "hook": "A storm drum on the grid.",
+      "scene": "A storm drum on the grid"
+    },
+    {
+      "slug": "sakura-overdrive-mecha",
+      "name": "Sakura Overdrive",
+      "listing_name": "Sakura Overdrive",
+      "series": "new-concepts",
+      "series_name": "New concepts",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "live",
+      "tags": [
+        "new-concepts"
+      ],
+      "hook": "Mecha under the blossom.",
+      "scene": "Mecha under the blossom"
+    },
+    {
+      "slug": "tengu-storm-chrome-crow",
+      "name": "Tengu Storm",
+      "listing_name": "Tengu Storm",
+      "series": "new-concepts",
+      "series_name": "New concepts",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "live",
+      "tags": [
+        "new-concepts"
+      ],
+      "hook": "A chrome crow in the storm.",
+      "scene": "A chrome crow in the storm"
+    },
+    {
+      "slug": "tide-dragon-neon-pier",
+      "name": "Tide Dragon",
+      "listing_name": "Tide Dragon",
+      "series": "new-concepts",
+      "series_name": "New concepts",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "live",
+      "tags": [
+        "new-concepts"
+      ],
+      "hook": "A tide dragon at the neon pier.",
+      "scene": "A tide dragon at the neon pier"
+    },
+    {
+      "slug": "twin-blade-mirror-alley",
+      "name": "Twin Blade Mirror Alley",
+      "listing_name": "Twin Blade Mirror Alley",
+      "series": "new-concepts",
+      "series_name": "New concepts",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "live",
+      "tags": [
+        "new-concepts"
+      ],
+      "hook": "Two blades in a wet alley.",
+      "scene": "Two blades in a wet alley"
+    },
+    {
+      "slug": "void-lotus-mecha-cradle",
+      "name": "Void Lotus",
+      "listing_name": "Void Lotus",
+      "series": "new-concepts",
+      "series_name": "New concepts",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "live",
+      "tags": [
+        "new-concepts"
+      ],
+      "hook": "A lotus in the machine cradle.",
+      "scene": "A lotus in the machine cradle"
+    },
+    {
+      "slug": "void-king",
+      "name": "Void King",
+      "listing_name": "Blackletter: Void King",
+      "series": "gothic-blackletter",
+      "series_name": "Blackletter",
+      "templates": {},
+      "etsy": {},
+      "collection": "gothic-blackletter",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "gothic-blackletter"
+      ],
+      "hook": "Crown. Thorns. Void.",
+      "scene": "A gothic crown, crossed daggers, and a thorny ring around VOID KING, printed on a white tee"
+    },
+    {
+      "slug": "ash-iron",
+      "name": "Ash & Iron",
+      "listing_name": "Blackletter: Ash & Iron",
+      "series": "gothic-blackletter",
+      "series_name": "Blackletter",
+      "templates": {},
+      "etsy": {},
+      "collection": "gothic-blackletter",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "gothic-blackletter"
+      ],
+      "hook": "Strike while the forge still smokes.",
+      "scene": "A hammer and anvil under ASH & IRON, printed on a white tee"
+    },
+    {
+      "slug": "night-warden",
+      "name": "Night Warden",
+      "listing_name": "Blackletter: Night Warden",
+      "series": "gothic-blackletter",
+      "series_name": "Blackletter",
+      "templates": {},
+      "etsy": {},
+      "collection": "gothic-blackletter",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "gothic-blackletter"
+      ],
+      "hook": "Keep the dark.",
+      "scene": "A hooded warden with wings and a crescent over NIGHT WARDEN, printed on a white tee"
+    },
+    {
+      "slug": "grave-shift",
+      "name": "Grave Shift",
+      "listing_name": "Blackletter: Grave Shift",
+      "series": "gothic-blackletter",
+      "series_name": "Blackletter",
+      "templates": {},
+      "etsy": {},
+      "collection": "gothic-blackletter",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "gothic-blackletter"
+      ],
+      "hook": "Time runs. The gate waits.",
+      "scene": "A cathedral gate, hourglasses, and scythes around GRAVE SHIFT, printed on a white tee"
+    },
+    {
+      "slug": "as-high-as-fuel",
+      "name": "As High As The Price Of Fuel",
+      "listing_name": "As High As Fuel: As High As The Price Of Fuel",
+      "series": "fuel",
+      "series_name": "As High As Fuel",
+      "templates": {},
+      "etsy": {},
+      "collection": "stoner",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "fuel"
+      ],
+      "hook": "Still cheaper than filling the tank.",
+      "scene": "A green-hoodie character and the line As High As The Price Of Fuel, printed on a white tee"
+    },
+    {
+      "slug": "fuel-pump",
+      "name": "Fuel",
+      "listing_name": "As High As Fuel: Fuel",
+      "series": "fuel",
+      "series_name": "As High As Fuel",
+      "templates": {},
+      "etsy": {},
+      "collection": "stoner",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "fuel"
+      ],
+      "hook": "As high as the pump.",
+      "scene": "A gas pump and a capped character under AS HIGH AS THE PRICE OF FUEL, printed on a black tee"
+    },
+    {
+      "slug": "fuel-gauge",
+      "name": "The Price of Fuel",
+      "listing_name": "As High As Fuel: The Price of Fuel",
+      "series": "fuel",
+      "series_name": "As High As Fuel",
+      "templates": {},
+      "etsy": {},
+      "collection": "stoner",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "fuel"
+      ],
+      "hook": "The needle is up.",
+      "scene": "A fuel gauge under AS HIGH AS THE PRICE OF FUEL, printed on a navy tee"
+    },
+    {
+      "slug": "fuel-stoner",
+      "name": "Stoner",
+      "listing_name": "As High As Fuel: Stoner",
+      "series": "fuel",
+      "series_name": "As High As Fuel",
+      "templates": {},
+      "etsy": {},
+      "collection": "stoner",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "fuel"
+      ],
+      "hook": "Stoner. As high as the price of fuel.",
+      "scene": "STONER over AS HIGH AS THE PRICE OF FUEL, printed on a forest tee"
+    },
+    {
+      "slug": "fuel-prices",
+      "name": "Pump Prices",
+      "listing_name": "As High As Fuel: Pump Prices",
+      "series": "fuel",
+      "series_name": "As High As Fuel",
+      "templates": {},
+      "etsy": {},
+      "collection": "stoner",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "live",
+      "tags": [
+        "fuel"
+      ],
+      "hook": "The board keeps climbing.",
+      "scene": "A pump price board beside AS HIGH AS THE PRICE OF FUEL, printed on a heather tee"
     }
   ]
 }

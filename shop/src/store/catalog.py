@@ -125,13 +125,15 @@ def settle(lines: list[dict], country: str = "AU") -> dict:
 
 def public_product(catalog: dict, copy: dict, product: dict) -> dict:
     slug = product["slug"]
-    template = copy["blurb_template"]
     scene = product.get("scene", "")
     fabrics = []
     held = []
+    blurbs = {}
     for fabric_id in product_fabrics(catalog, product):
         fabric = catalog["fabrics"][fabric_id]
         base, premium = fabric_price(catalog, product, fabric_id)
+        template_key = "blurb_template_dtg" if fabric.get("kind") == "dtg" else "blurb_template"
+        template = copy.get(template_key) or copy["blurb_template"]
         row = {
             "id": fabric_id,
             "label": fabric["label"],
@@ -142,13 +144,15 @@ def public_product(catalog: dict, copy: dict, product: dict) -> dict:
             "sizes": fabric.get("sizes") or catalog["sizes"],
             "premiums_cents": fabric.get("premiums_cents") or {},
             "etsy_url": product.get("etsy", {}).get(fabric_id),
-            "mockup": mockup_url(slug, fabric_id),
+            "mockup": mockup_url(slug, fabric_id, product),
         }
+        if fabric.get("size_note"):
+            row["size_note"] = fabric["size_note"]
+        blurbs[fabric_id] = blurb(template, scene, fabric["phrase"])
         if fabric_is_orderable(fabric):
             fabrics.append(row)
         else:
             held.append(row)
-    blurbs = {item["id"]: blurb(template, scene, item["phrase"]) for item in fabrics + held}
     image = next((item["mockup"] for item in fabrics if item["mockup"]), None) or image_url(slug)
     return {
         "slug": slug,
@@ -167,8 +171,11 @@ def public_product(catalog: dict, copy: dict, product: dict) -> dict:
     }
 
 
-def mockup_url(slug: str, fabric_id: str) -> str | None:
-    for filename in (f"{slug}-aop-{fabric_id}.jpg", f"{slug}-{fabric_id}.jpg"):
+def mockup_url(slug: str, fabric_id: str, product: dict | None = None) -> str | None:
+    named = ((product or {}).get("mockups") or {}).get(fabric_id)
+    filenames = [named] if named else []
+    filenames.extend((f"{slug}-aop-{fabric_id}.jpg", f"{slug}-{fabric_id}.jpg"))
+    for filename in filenames:
         if (PUBLIC_PATH / "mockups" / filename).is_file():
             return f"/mockups/{filename}"
     return None
@@ -344,7 +351,7 @@ def price_line(catalog: dict, slug: str, fabric: str, size: str, qty: int) -> di
         "qty": qty,
         "unit_cents": unit,
         "line_cents": unit * qty,
-        "printful_product_id": fabric_row["printful_product_id"],
+        "printful_product_id": fabric_row.get("printful_product_id"),
         "template_id": template,
     }
 
