@@ -37,13 +37,12 @@
         "neon-cyberpunk": 11,
         "ronin-rain": 12,
         "crimson-sun": 10,
-        "quiet-rain": 10
+        "quiet-rain": 10,
+        "gothic-blackletter": 10,
+        "fuel": 10
       },
-      "short": {
-        "gothic-blackletter": 4,
-        "fuel": 1
-      },
-      "priority": ["gothic-blackletter", "fuel"]
+      "short": {},
+      "priority": []
     }
   },
   "offer": {
@@ -162,7 +161,7 @@
       "status": "preview",
       "sub": "Gothic industrial type.",
       "intro": "Gothic industrial type.",
-      "detail": "Chest print, AU$47. Four ready designs. Not featured until this lane is closer to 10.",
+      "detail": "Chest print, AU$47. Ten preview cards. Not featured until Jason clears this lane.",
       "fabric": "chest"
     },
     {
@@ -170,11 +169,11 @@
       "landing": "as-high-as-fuel",
       "name": "As High As Fuel",
       "label": "As High As Fuel",
-      "status": "upcoming",
+      "status": "preview",
       "sub": "slow burns & night drives",
       "example": "As High As Fuel",
       "intro": "slow burns & night drives",
-      "detail": "One design so far: As High As The Price Of Fuel, white and heather. Not the storefront. More Fuel designs when they are supplied.",
+      "detail": "Chest print, AU$47. Ten preview cards. As High As The Price Of Fuel is white and heather only. Not featured until Jason clears this lane.",
       "fabric": "chest"
     },
     {
@@ -1046,8 +1045,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
-      "surface": "single",
+      "status": "preview",
       "tags": [
         "fuel"
       ],
@@ -1146,7 +1144,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "gothic-blackletter"
       ],
@@ -1165,7 +1163,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "gothic-blackletter"
       ],
@@ -1184,7 +1182,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "gothic-blackletter"
       ],
@@ -1203,7 +1201,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "gothic-blackletter"
       ],
@@ -1222,7 +1220,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "gothic-blackletter"
       ],
@@ -1241,7 +1239,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "gothic-blackletter"
       ],
@@ -1260,7 +1258,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "fuel"
       ],
@@ -1279,7 +1277,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "fuel"
       ],
@@ -1298,7 +1296,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "fuel"
       ],
@@ -1317,7 +1315,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "fuel"
       ],
@@ -1336,7 +1334,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "fuel"
       ],
@@ -1355,7 +1353,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "fuel"
       ],
@@ -1374,7 +1372,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "fuel"
       ],
@@ -1393,7 +1391,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "fuel"
       ],
@@ -1412,7 +1410,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "upcoming",
+      "status": "preview",
       "tags": [
         "fuel"
       ],

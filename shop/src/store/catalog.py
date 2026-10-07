@@ -79,7 +79,7 @@ def fabric_is_orderable(fabric: dict) -> bool:
 
 
 COLLECTION_FLOOR = 10
-# Gothic and Fuel are still short of ready art. Keep them off featured.
+# Gothic and Fuel stay preview until Jason clears them. Never featured from stored live.
 OFF_FEATURED_COLLECTIONS = {"gothic-blackletter", "fuel"}
 
 
@@ -101,9 +101,11 @@ def presented_collection_status(
     collection_id: str = "",
     floor: int = COLLECTION_FLOOR,
 ) -> str:
-    """A thin lane is not the public storefront. Fuel and gothic stay off featured while short."""
+    """A thin lane is not the public storefront. Fuel and gothic stay off featured."""
     if collection_id in OFF_FEATURED_COLLECTIONS and count < floor and status != "hidden":
         return "upcoming" if collection_id == "fuel" else "preview"
+    if collection_id in OFF_FEATURED_COLLECTIONS and status == "live":
+        return "preview"
     if status == "live" and count < floor:
         return "ready"
     return status
