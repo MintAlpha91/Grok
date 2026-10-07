@@ -143,7 +143,8 @@ class CopyAndPriceTests(unittest.TestCase):
             self.assertTrue((ROOT / "public" / url.lstrip("/")).is_file())
             self.assertEqual(design["image"], url)
         originals = [item for item in full_bleed if (ROOT / "public" / "mockups" / f"{item['slug']}-aop-cotton.jpg").is_file()]
-        self.assertGreaterEqual(len(originals), 8)
+        self.assertEqual(len(originals), 7)
+        self.assertNotIn("starbound-nebula-queen", {item["slug"] for item in full_bleed})
         chest = [item for item in public["products"] if item["collection"] == "chest-dtg"]
         self.assertEqual(len(chest), 8)
         for design in chest:
@@ -186,30 +187,36 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(public["shop"]["drops_title"], "New drops")
         self.assertEqual(public["shop"]["intro"], "First wave is live. Collections still opening.")
         self.assertEqual(public["shop"]["more"], "More designs coming.")
-        self.assertEqual(stoner["count"], 5)
-        self.assertEqual(stoner["status"], "live")
+        self.assertEqual(stoner["count"], 0)
+        self.assertEqual(stoner["status"], "upcoming")
         self.assertEqual(stoner["example"], "As High As Fuel")
         self.assertEqual(stoner["landing"], "as-high-as-fuel")
         gothic = next(item for item in public["collections"] if item["id"] == "gothic-blackletter")
         self.assertEqual(gothic["landing"], "blackletter")
         self.assertEqual(gothic["label"], "Blackletter")
-        self.assertEqual(gothic["status"], "live")
-        self.assertEqual(gothic["count"], 4)
+        self.assertEqual(gothic["status"], "upcoming")
+        self.assertEqual(gothic["count"], 0)
         self.assertEqual(next(item["label"] for item in public["collections"] if item["id"] == "aop"), "Full Bleed")
         brush = next(item for item in public["collections"] if item["id"] == "brush-smoke")
         self.assertEqual(brush["label"], "Brush & Smoke")
-        self.assertEqual(brush["status"], "live")
-        self.assertEqual(brush["count"], 4)
+        self.assertEqual(brush["status"], "upcoming")
+        self.assertEqual(brush["count"], 0)
         chest_lane = next(item for item in public["collections"] if item["id"] == "chest-dtg")
         self.assertEqual(chest_lane["status"], "live")
         self.assertEqual(chest_lane["count"], 8)
         bio = next(item for item in public["collections"] if item["id"] == "biomechanical")
-        self.assertEqual(bio["status"], "live")
-        self.assertEqual(bio["count"], 1)
+        self.assertEqual(bio["status"], "upcoming")
+        self.assertEqual(bio["count"], 0)
+        self.assertEqual(aop["count"], 21)
+        public_slugs = {item["slug"] for item in public["products"]}
+        self.assertIn("astral-fox-empress", public_slugs)
+        self.assertIn("chest-starbound-nebula-queen", public_slugs)
+        for held in ("starbound-nebula-queen", "quiet-blade", "void-king", "half-machine-skull", "as-high-as-fuel"):
+            self.assertNotIn(held, public_slugs)
         self.assertEqual(stoner["sub"], "slow burns & night drives")
         self.assertEqual(
             [item["label"] for item in public["series"]],
-            ["Ronin Rain", "Quiet Rain", "Starbound", "Crimson Sun", "Crimson Oni", "Neon Cyberpunk", "Brush & Smoke", "Biomechanical", "New concepts", "Blackletter", "As High As Fuel"],
+            ["Ronin Rain", "Quiet Rain", "Starbound", "Crimson Sun", "Crimson Oni", "Neon Cyberpunk", "New concepts"],
         )
         script = (ROOT / "public" / "js" / "app.js").read_text(encoding="utf-8")
         html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
@@ -237,12 +244,10 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertIn("Original Rogers Inc Designs artwork.", poly)
         self.assertNotIn("Elemental Wood", poly)
         public = public_catalog(checkout_public())
-        blade = next(item for item in public["products"] if item["slug"] == "quiet-blade")
-        self.assertIn("Chest print.", blade["blurbs"]["chest"])
-        self.assertNotIn("full-bleed", blade["blurbs"]["chest"])
-        king = next(item for item in public["products"] if item["slug"] == "void-king")
-        self.assertTrue(king["image"].endswith("/void-king-chest.jpg"))
-        self.assertEqual(king["fabrics"][0]["price_cents"], 4700)
+        chest = next(item for item in public["products"] if item["slug"] == "chest-crimson-sun-last-ronin")
+        self.assertIn("Chest print.", chest["blurbs"]["chest"])
+        self.assertNotIn("full-bleed", chest["blurbs"]["chest"])
+        self.assertEqual(chest["fabrics"][0]["price_cents"], 4700)
 
     def test_quote_uses_server_prices_not_client_prices(self):
         quote = quote_lines([
@@ -280,12 +285,12 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(public["addons"][0]["status"], "held")
         chest_quote = quote_lines([{"slug": "chest-crimson-sun-last-ronin", "fabric": "chest", "size": "M", "qty": 1}])
         self.assertEqual(chest_quote["lines"][0]["unit_cents"], 4700)
-        chest_2xl = quote_lines([{"slug": "half-machine-skull", "fabric": "chest", "size": "3XL", "qty": 1}])
+        chest_2xl = quote_lines([{"slug": "chest-crimson-sun-last-ronin", "fabric": "chest", "size": "3XL", "qty": 1}])
         self.assertEqual(chest_2xl["lines"][0]["unit_cents"], 5400)
-        gothic_quote = quote_lines([{"slug": "void-king", "fabric": "chest", "size": "M", "qty": 1}])
-        self.assertEqual(gothic_quote["lines"][0]["unit_cents"], 4700)
-        fuel_quote = quote_lines([{"slug": "as-high-as-fuel", "fabric": "chest", "size": "2XL", "qty": 1}])
-        self.assertEqual(fuel_quote["lines"][0]["unit_cents"], 5100)
+        with self.assertRaises(ShopError):
+            quote_lines([{"slug": "void-king", "fabric": "chest", "size": "M", "qty": 1}])
+        with self.assertRaises(ShopError):
+            quote_lines([{"slug": "starbound-nebula-queen", "fabric": "poly", "size": "M", "qty": 1}])
         with self.assertRaises(ShopError):
             quote_lines([{"slug": "crimson-sun-last-ronin", "fabric": "cotton", "size": "M", "qty": 1}])
         with self.assertRaises(ShopError):
@@ -569,7 +574,7 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(catalog["products"][0]["held_fabrics"][0]["id"], "cotton")
         self.assertIn("no shirt will be printed", catalog["checkout"]["demo_lead"])
         view = self.post("/api/checkout", {
-            "lines": [{"slug": "starbound-nebula-queen", "fabric": "poly", "size": "XS", "qty": 1}],
+            "lines": [{"slug": "crimson-sun-last-ronin", "fabric": "poly", "size": "XS", "qty": 1}],
             "customer": {
                 "name": "Ada Rogers",
                 "email": "ada@example.com",

@@ -135,45 +135,41 @@
       "landing": "blackletter",
       "name": "Blackletter",
       "label": "Blackletter",
-      "status": "live",
+      "status": "upcoming",
       "sub": "Gothic industrial type.",
       "intro": "Gothic industrial type.",
-      "detail": "Chest print, AU$47. White tees.",
-      "fabric": "chest"
+      "detail": "Nothing in this lane is on sale yet."
     },
     {
       "id": "stoner",
       "landing": "as-high-as-fuel",
       "name": "As High As Fuel",
       "label": "As High As Fuel",
-      "status": "live",
+      "status": "upcoming",
       "sub": "slow burns & night drives",
       "example": "As High As Fuel",
       "intro": "slow burns & night drives",
-      "detail": "Chest print, AU$47. As High As The Price Of Fuel, and the fuel art that sits with it.",
-      "fabric": "chest"
+      "detail": "Nothing in this lane is on sale yet."
     },
     {
       "id": "brush-smoke",
       "landing": "brush-and-smoke",
       "name": "Brush & Smoke",
       "label": "Brush & Smoke",
-      "status": "live",
+      "status": "upcoming",
       "sub": "Calligraphy and brush ink.",
       "intro": "Calligraphy and brush ink.",
-      "detail": "Chest print, AU$47. White tees.",
-      "fabric": "chest"
+      "detail": "Nothing in this lane is on sale yet."
     },
     {
       "id": "biomechanical",
       "landing": "biomechanical",
       "name": "Biomechanical",
       "label": "Biomechanical",
-      "status": "live",
-      "fabric": "chest",
+      "status": "upcoming",
       "sub": "Half machine",
       "intro": "Collector chest print.",
-      "detail": "Half Machine Skull. Chest print, AU$47."
+      "detail": "Nothing in this lane is on sale yet."
     },
     {
       "id": "living-screens",
@@ -332,7 +328,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "live",
+      "status": "held",
       "tags": [
         "starbound-sirens"
       ],
@@ -551,7 +547,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "brush-smoke"
       ],
@@ -570,7 +566,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "brush-smoke"
       ],
@@ -589,7 +585,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "brush-smoke"
       ],
@@ -608,7 +604,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "brush-smoke"
       ],
@@ -627,7 +623,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "biomechanical"
       ],
@@ -870,7 +866,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "gothic-blackletter"
       ],
@@ -889,7 +885,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "gothic-blackletter"
       ],
@@ -908,7 +904,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "gothic-blackletter"
       ],
@@ -927,7 +923,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "gothic-blackletter"
       ],
@@ -946,7 +942,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "fuel"
       ],
@@ -965,7 +961,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "fuel"
       ],
@@ -984,7 +980,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "fuel"
       ],
@@ -1003,7 +999,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "fuel"
       ],
@@ -1022,7 +1018,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "fuel"
       ],
