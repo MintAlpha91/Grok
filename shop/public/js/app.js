@@ -312,10 +312,12 @@ function renderShop(catalog, route) {
   const knownSeries = seriesInView.some((item) => item.id === route.series);
   const series = route.series === "all" || !knownSeries ? "all" : route.series;
   const products = series === "all" ? inCollection : inCollection.filter((item) => item.series === series);
+  const selectedSeries = series === "all" ? null : catalog.series.find((item) => item.id === series);
   const intro = [];
   if (selected && selected.sub) intro.push(selected.sub);
   if (selected && selected.intro) intro.push(selected.intro);
   if (selected && selected.detail) intro.push(selected.detail);
+  if (selectedSeries && selectedSeries.blurb) intro.push(selectedSeries.blurb);
   if (!selected) {
     intro.push(catalog.shop.intro);
     intro.push(catalog.shop.collection);

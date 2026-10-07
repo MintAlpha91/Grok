@@ -115,9 +115,9 @@
       "label": "Full Bleed",
       "status": "live",
       "fabric": "poly",
-      "sub": "First wave",
-      "intro": "Full bleed. Edge to edge.",
-      "detail": "Polyester hits with colour and wraps the shirt. AU$65, 2XL +AU$4. Cotton is a softer hand, matte, AU$71, and opens after the first sales."
+      "sub": "AOP Heroes",
+      "intro": "All-over print tees that wrap the full scene edge to edge — original anime art cut for cloth, designed in Australia.",
+      "detail": "Polyester AU$65, 2XL +AU$4. Cotton AU$71 opens after the first sales."
     },
     {
       "id": "chest-dtg",
@@ -178,10 +178,10 @@
       "landing": "living-screens",
       "name": "Living Screens",
       "label": "Living Screens",
-      "status": "upcoming",
-      "sub": "Digital wallpaper packs.",
-      "intro": "Digital wallpaper packs.",
-      "detail": "Same scene. Wear it or wallpaper it. Packs are not on sale until the files are up."
+      "status": "live",
+      "sub": "Wallpapers",
+      "intro": "Phone and desktop wallpaper packs built for real screens — same worlds as the tees, ready the moment you download.",
+      "detail": "The pack files are not on this site yet, so nothing here can be downloaded."
     },
     {
       "id": "night-shift",
@@ -198,32 +198,38 @@
     {
       "id": "ronin-rain",
       "label": "Ronin Rain",
-      "collection": "aop"
+      "collection": "aop",
+      "blurb": "Lone blades in wet streets — ronin weather, empty armour, and the long walk home."
     },
     {
       "id": "quiet-rain",
       "label": "Quiet Rain",
-      "collection": "aop"
+      "collection": "aop",
+      "blurb": "Soft weather, sharp silence — umbrellas, windows, and streets that hush instead of shout."
     },
     {
       "id": "starbound-sirens",
       "label": "Starbound",
-      "collection": "aop"
+      "collection": "aop",
+      "blurb": "Starfields and siren light — cosmic queens and deep-space glow without the franchise labels."
     },
     {
       "id": "crimson-sun",
       "label": "Crimson Sun",
-      "collection": "aop"
+      "collection": "aop",
+      "blurb": "Blood-red skies, steel, and standing ground — a pack and print lane for heat and last stands."
     },
     {
       "id": "oni-mask",
       "label": "Crimson Oni",
-      "collection": "aop"
+      "collection": "aop",
+      "blurb": "Masks that don’t sleep — shrine light, crimson vigil, and faces that watch the night."
     },
     {
       "id": "neon-cyberpunk",
       "label": "Neon Cyberpunk",
-      "collection": "aop"
+      "collection": "aop",
+      "blurb": "City veins and electric rain — night drives, alleys, and neon that never quite turns off."
     },
     {
       "id": "brush-smoke",

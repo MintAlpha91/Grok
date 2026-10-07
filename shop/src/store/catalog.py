@@ -313,6 +313,7 @@ def public_collections(catalog: dict) -> list[dict]:
 
 def public_series(catalog: dict) -> list[dict]:
     labels = {item["id"]: item.get("label") or item["id"] for item in catalog.get("series", [])}
+    blurbs = {item["id"]: item.get("blurb", "") for item in catalog.get("series", [])}
     collections = {item["id"]: item.get("collection") for item in catalog.get("series", [])}
     hidden = {item["id"] for item in catalog.get("collections", []) if item.get("status") == "hidden"}
     seen = []
@@ -330,6 +331,7 @@ def public_series(catalog: dict) -> list[dict]:
             {
                 "id": series_id,
                 "label": labels.get(series_id) or product.get("series_name") or series_id,
+                "blurb": blurbs.get(series_id, ""),
                 "collection": product.get("collection") or collections.get(series_id),
             }
         )
