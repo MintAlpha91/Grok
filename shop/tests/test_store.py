@@ -309,6 +309,9 @@ class CopyAndPriceTests(unittest.TestCase):
                 "too-high-to-care",
                 "gas-money-went-to-this",
                 "budget-went-up-in-smoke",
+                "running-on-fumes",
+                "empty-tank-full-heart",
+                "high-mileage-low-motivation",
                 "premium-grade-only",
                 "check-engine-chill-mode",
                 "slow-lane-high-life",
@@ -317,6 +320,9 @@ class CopyAndPriceTests(unittest.TestCase):
                 "blood-covenant",
                 "iron-psalm",
                 "wraith-march",
+                "bone-chapel",
+                "hex-altar",
+                "pale-reign",
             ),
         }
         for lane, slugs in received_print.items():
@@ -329,12 +335,11 @@ class CopyAndPriceTests(unittest.TestCase):
                 self.assertEqual(path.read_bytes()[25], 2)
                 self.assertNotIn(filename, json.dumps(public))
         missing_print = (
-            "bone-chapel",
-            "hex-altar",
-            "pale-reign",
-            "running-on-fumes",
-            "empty-tank-full-heart",
-            "high-mileage-low-motivation",
+            "void-king",
+            "ash-iron",
+            "night-warden",
+            "grave-shift",
+            "as-high-as-fuel",
         )
         for slug in missing_print:
             self.assertNotIn("print_ready", stored_slugs[slug])

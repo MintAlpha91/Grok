@@ -1231,7 +1231,8 @@
         "gothic-blackletter"
       ],
       "hook": "Bone chapel.",
-      "scene": "Skulls and candles under BONE CHAPEL, printed on a white tee"
+      "scene": "Skulls and candles under BONE CHAPEL, printed on a white tee",
+      "print_ready": "gothic/Rogers-Inc-Designs-bone-chapel-front-4500x5400.png"
     },
     {
       "slug": "hex-altar",
@@ -1250,7 +1251,8 @@
         "gothic-blackletter"
       ],
       "hook": "Hex altar.",
-      "scene": "A stone altar in a thorn ring under HEX ALTAR, printed on a white tee"
+      "scene": "A stone altar in a thorn ring under HEX ALTAR, printed on a white tee",
+      "print_ready": "gothic/Rogers-Inc-Designs-hex-altar-front-4500x5400.png"
     },
     {
       "slug": "pale-reign",
@@ -1269,7 +1271,8 @@
         "gothic-blackletter"
       ],
       "hook": "Pale reign.",
-      "scene": "A cracked moon and crown over PALE REIGN, printed on a white tee"
+      "scene": "A cracked moon and crown over PALE REIGN, printed on a white tee",
+      "print_ready": "gothic/Rogers-Inc-Designs-pale-reign-front-4500x5400.png"
     },
     {
       "slug": "too-high-to-care",
@@ -1348,7 +1351,8 @@
         "fuel"
       ],
       "hook": "Running on fumes and good vibes.",
-      "scene": "RUNNING ON FUMES AND GOOD VIBES across the chest of a white tee"
+      "scene": "RUNNING ON FUMES AND GOOD VIBES across the chest of a white tee",
+      "print_ready": "fuel/Rogers-Inc-Designs-running-on-fumes-front-4500x5400.png"
     },
     {
       "slug": "empty-tank-full-heart",
@@ -1367,7 +1371,8 @@
         "fuel"
       ],
       "hook": "Empty tank. Full heart.",
-      "scene": "EMPTY TANK FULL HEART across the chest of a white tee"
+      "scene": "EMPTY TANK FULL HEART across the chest of a white tee",
+      "print_ready": "fuel/Rogers-Inc-Designs-empty-tank-full-heart-front-4500x5400.png"
     },
     {
       "slug": "high-mileage-low-motivation",
@@ -1386,7 +1391,8 @@
         "fuel"
       ],
       "hook": "High mileage. Low motivation.",
-      "scene": "HIGH MILEAGE LOW MOTIVATION across the chest of a white tee"
+      "scene": "HIGH MILEAGE LOW MOTIVATION across the chest of a white tee",
+      "print_ready": "fuel/Rogers-Inc-Designs-high-mileage-low-motivation-front-4500x5400.png"
     },
     {
       "slug": "premium-grade-only",
