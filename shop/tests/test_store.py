@@ -154,10 +154,14 @@ class CopyAndPriceTests(unittest.TestCase):
             self.assertTrue((ROOT / "public" / url.lstrip("/")).is_file())
             self.assertEqual(design["image"], url)
         originals = [item for item in full_bleed if (ROOT / "public" / "mockups" / f"{item['slug']}-aop-cotton.jpg").is_file()]
-        self.assertEqual(len(originals), 7)
-        self.assertNotIn("starbound-nebula-queen", {item["slug"] for item in full_bleed})
+        self.assertEqual(len(originals), 8)
+        nebula = next(item for item in full_bleed if item["slug"] == "starbound-nebula-queen")
+        self.assertEqual(nebula["status"], "live")
+        self.assertEqual(nebula["series"], "starbound-sirens")
+        self.assertEqual(nebula["fabrics"][0]["price_cents"], 6500)
+        self.assertEqual(nebula["fabrics"][0]["mockup"], "/mockups/starbound-nebula-queen-aop-poly.jpg")
         chest = [item for item in public["products"] if item["collection"] == "chest-dtg"]
-        self.assertEqual(len(chest), 7)
+        self.assertEqual(len(chest), 8)
         for design in chest:
             self.assertEqual([item["id"] for item in design["fabrics"]], ["chest"])
             self.assertEqual(design["fabrics"][0]["price_cents"], 4700)
@@ -247,11 +251,11 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(brush["count"], 4)
         chest_lane = next(item for item in public["collections"] if item["id"] == "chest-dtg")
         self.assertEqual(chest_lane["status"], "ready")
-        self.assertEqual(chest_lane["count"], 7)
+        self.assertEqual(chest_lane["count"], 8)
         bio = next(item for item in public["collections"] if item["id"] == "biomechanical")
         self.assertEqual(bio["status"], "preview")
         self.assertEqual(bio["count"], 1)
-        self.assertEqual(aop["count"], 21)
+        self.assertEqual(aop["count"], 22)
         self.assertEqual(aop["status"], "live")
         featured = [item["slug"] for item in public["products"] if item["collection"] == "aop" and item["status"] == "live"]
         self.assertEqual(sorted(featured), [
@@ -263,6 +267,7 @@ class CopyAndPriceTests(unittest.TestCase):
             "quiet-rain-window-seat",
             "ronin-ghost-armour",
             "ronin-last-stand",
+            "starbound-nebula-queen",
         ])
         fills = (
             "quiet-rain-ramen-steam-alley",
@@ -280,12 +285,12 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertIn("blood-covenant", public_slugs)
         self.assertIn("too-high-to-care", public_slugs)
         self.assertIn("astral-fox-empress", public_slugs)
-        self.assertNotIn("starbound-nebula-queen", public_slugs)
+        self.assertIn("starbound-nebula-queen", public_slugs)
         self.assertIn("quiet-blade", public_slugs)
         self.assertIn("half-machine-skull", public_slugs)
         self.assertEqual(len([item for item in public["products"] if item["collection"] == "fuel"]), 10)
         self.assertTrue(all(item["status"] == "live" for item in public["products"] if item["collection"] in {"fuel", "gothic-blackletter"}))
-        self.assertNotIn("chest-starbound-nebula-queen", public_slugs)
+        self.assertIn("chest-starbound-nebula-queen", public_slugs)
         for held in ("fuel-pump",):
             self.assertNotIn(held, public_slugs)
         fuel_card = next(item for item in public["products"] if item["slug"] == "as-high-as-fuel")
@@ -434,10 +439,12 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(slogan["lines"][0]["unit_cents"], 4700)
         with self.assertRaises(ShopError):
             quote_lines([{"slug": "fuel-pump", "fabric": "chest", "size": "M", "qty": 1}])
-        with self.assertRaises(ShopError):
-            quote_lines([{"slug": "starbound-nebula-queen", "fabric": "poly", "size": "M", "qty": 1}])
-        with self.assertRaises(ShopError):
-            quote_lines([{"slug": "chest-starbound-nebula-queen", "fabric": "chest", "size": "M", "qty": 1}])
+        nebula_quote = quote_lines([{"slug": "starbound-nebula-queen", "fabric": "poly", "size": "M", "qty": 1}])
+        self.assertEqual(nebula_quote["lines"][0]["unit_cents"], 6500)
+        nebula_2xl = quote_lines([{"slug": "starbound-nebula-queen", "fabric": "poly", "size": "2XL", "qty": 1}])
+        self.assertEqual(nebula_2xl["lines"][0]["unit_cents"], 6900)
+        nebula_chest = quote_lines([{"slug": "chest-starbound-nebula-queen", "fabric": "chest", "size": "M", "qty": 1}])
+        self.assertEqual(nebula_chest["lines"][0]["unit_cents"], 4700)
         wallpaper = quote_lines([{"slug": "wallpaper-crimson-the-last-ronin", "fabric": "wallpaper", "size": "Download", "qty": 1}])
         self.assertEqual(wallpaper["lines"][0]["unit_cents"], 1200)
         quiet_wall = quote_lines([{"slug": "wallpaper-quiet-ramen-steam-alley", "fabric": "wallpaper", "size": "Download", "qty": 1}])
