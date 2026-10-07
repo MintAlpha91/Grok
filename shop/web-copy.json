@@ -1,0 +1,96 @@
+{
+  "_meta": {
+    "source": "Marketing site copy pack, 7 Oct 2026, brand Rogers Inc Designs",
+    "site_brand": "Rogers Inc Designs",
+    "etsy_shop_name": "Elemental Wood",
+    "status": "draft for build — not live",
+    "scenes": "One-sentence scenes are carried from the Etsy listing pack into Marketing's product blurb template. Edit designs.*.scene to replace them.",
+    "contact_email": null,
+    "remake_window_confirmed": null,
+    "remake_window_draft": "within 7 days of delivery"
+  },
+  "seo": {
+    "title": "Rogers Inc Designs — All-Over Print Anime Tees",
+    "meta": "Rogers Inc Designs — original anime all-over print tees from Australia. Neon, ronin, oni, quiet rain, and stars. Free shipping in Australia."
+  },
+  "home": {
+    "headline": "Wear the whole scene.",
+    "sub": "All-over print anime tees from Rogers Inc — neon rain, empty armour, twin blades, red sun. Printed edge to edge. Designed in Australia.",
+    "cta_primary": "Shop the tees",
+    "cta_secondary": "See the series",
+    "alt": "Art on every inch. Free shipping in Australia."
+  },
+  "about": "Rogers Inc Designs is the brand. Elemental Wood is our Etsy shop name for the same art — original anime-style art made in Australia. We start with wallpapers and all-over print tees: dark streets, neon rain, oni masks, quiet nights, and stars. No franchise art. Every tee is printed, cut and sewn to order, so the print can sit a little differently at the seams from shirt to shirt. That’s the point of a full-bleed piece.",
+  "shop": {
+    "intro": "Eight designs. Two fabrics. One full-bleed print.",
+    "fabrics": "Pick polyester for bright colour that holds up, or soft cotton for a matte everyday feel. Free shipping within Australia.",
+    "collection": "Tradition × tech. Magenta and cyan on black. Streetwear gallery energy."
+  },
+  "series": [
+    {"id": "crimson-sun", "label": "Crimson Sun — The Last Ronin"},
+    {"id": "oni-mask", "label": "Oni Mask — Crimson Oni Vigil"},
+    {"id": "quiet-rain", "label": "Quiet Rain — Umbrella Crossing · Window Seat"},
+    {"id": "starbound-sirens", "label": "Starbound Sirens — Nebula Queen"},
+    {"id": "neon-cyberpunk", "label": "Neon Cyberpunk — Dual Blade Alley"},
+    {"id": "ronin-rain", "label": "Ronin Rain — Ghost Armour · Last Stand at the Gate"}
+  ],
+  "blurb_template": "{scene}. Printed edge to edge on a {fabric} all-over print tee. Original Rogers Inc Designs artwork. Made to order. Free shipping in Australia.",
+  "size_note": "Sizes XS–2XL. 2XL is +AU$4. Check the size guide before you order — each shirt is printed, cut and sewn to order.",
+  "size_chart_gap": "A measurement chart is not on this page yet. Compare with a tee you already wear.",
+  "designs": {
+    "crimson-sun-last-ronin": {
+      "hook": "Black. Red. Nothing else.",
+      "scene": "A lone ronin stands against a blood-red sun, with red filling the shirt right up to the collar"
+    },
+    "oni-mask-crimson-oni": {
+      "hook": "Pick your mask.",
+      "scene": "The Crimson Oni is a horned Japanese demon mask in gold and blood red"
+    },
+    "quiet-rain-umbrella-crossing": {
+      "hook": "Rain on the crossing. Nowhere to be.",
+      "scene": "A lone figure with a clear umbrella stands on a rain-soaked crosswalk, with purple city lights glowing in the wet street"
+    },
+    "quiet-rain-window-seat": {
+      "hook": "Steaming ramen. Cold rain. Window seat.",
+      "scene": "A girl in a hoodie sits by a rain-streaked window with a steaming bowl of ramen and the city lights beyond"
+    },
+    "starbound-nebula-queen": {
+      "hook": "Every galaxy needs a queen.",
+      "scene": "A crowned queen with a golden halo sits on a throne of crystal against a pink and indigo nebula"
+    },
+    "neon-dual-blade-alley": {
+      "hook": "Magenta in one hand. Cyan in the other.",
+      "scene": "A hooded, masked fighter crouches low in a flooded, rain-soaked alley with a glowing magenta blade in one hand and a cyan blade in the other, both fully in view"
+    },
+    "ronin-ghost-armour": {
+      "hook": "No one's inside. It's still on guard.",
+      "scene": "An empty suit of samurai armour stands front and centre, glowing magenta and cyan in a rain-soaked back alley"
+    },
+    "ronin-last-stand": {
+      "hook": "Nowhere left to retreat.",
+      "scene": "A straw-hatted ronin stands large in the foreground as a rank of shadowed warriors gathers beneath a torii gate, with a neon city glowing through the rain behind them"
+    }
+  },
+  "shipping": "Free shipping within Australia on all tees. Orders are made to order with our print partner, then posted to you. Allow production time before the parcel is on the road — we’ll email when it ships. International shipping isn’t offered yet.",
+  "delivery": "Because every tee is made to order, please allow about 5–12 business days for printing and Australian delivery once the order is confirmed. Times can vary with the print partner and Australia Post.",
+  "returns": "These tees are made to order, so we can’t take returns for change of mind or wrong size once production has started. If your order arrives damaged or with a clear print fault, email us within 7 days of delivery with photos and your order number and we’ll sort a remake or refund under Australian Consumer Law. Nothing in this policy limits your rights under the Australian Consumer Law.",
+  "returns_contact_gap": "The contact email for print faults is not on this site yet.",
+  "checkout": {
+    "stripe": "Pay securely by card. You’ll get an order confirmation by email.",
+    "payid": "Checkout will show PayID details. Your order is held until payment clears, then we send it to print.",
+    "demo_lead": "This shop is in demo mode. You can walk through checkout, but no payment will be taken and no shirt will be printed or shipped.",
+    "demo_emphasis": "no payment will be taken and no shirt will be printed or shipped.",
+    "demo_tail": "Place a real order once payments are switched on, or buy the matching designs on our Etsy shop meanwhile.",
+    "international": "International shipping isn’t offered yet.",
+    "off": "Payments are not switched on. No payment will be taken and no shirt will be printed."
+  },
+  "fulfillment_note": "Printful fulfilment is started from the order record after payment — not instant auto-push until that pipeline is live.",
+  "footer": [
+    "Rogers Inc Designs · designed in Australia",
+    "GST included in Australian prices",
+    "Free shipping in Australia",
+    "Made to order — check the size guide"
+  ],
+  "etsy_link_label": "Elemental Wood on Etsy",
+  "etsy_listing_url": "https://www.etsy.com/listing/4589600597"
+}

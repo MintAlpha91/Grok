@@ -1,0 +1,95 @@
+{
+  "currency": "AUD",
+  "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
+  "premium_sizes": ["2XL"],
+  "fabrics": {
+    "poly": {
+      "label": "Polyester",
+      "phrase": "polyester",
+      "price_cents": 6900,
+      "price_2xl_cents": 7300,
+      "printful_product_id": 257
+    },
+    "cotton": {
+      "label": "Cotton",
+      "phrase": "cotton",
+      "price_cents": 7500,
+      "price_2xl_cents": 7900,
+      "printful_product_id": 1414
+    }
+  },
+  "designs": [
+    {
+      "slug": "crimson-sun-last-ronin",
+      "name": "The Last Ronin",
+      "listing_name": "Crimson Sun: The Last Ronin",
+      "series": "crimson-sun",
+      "series_name": "Crimson Sun",
+      "templates": {"poly": 108436673, "cotton": 108436823},
+      "etsy": {"poly": "https://www.etsy.com/listing/4589600597"}
+    },
+    {
+      "slug": "oni-mask-crimson-oni",
+      "name": "Crimson Oni Vigil",
+      "listing_name": "Oni Mask: Crimson Oni Vigil",
+      "series": "oni-mask",
+      "series_name": "Oni Mask",
+      "templates": {},
+      "etsy": {}
+    },
+    {
+      "slug": "quiet-rain-umbrella-crossing",
+      "name": "Umbrella Crossing",
+      "listing_name": "Quiet Rain: Umbrella Crossing",
+      "series": "quiet-rain",
+      "series_name": "Quiet Rain",
+      "templates": {},
+      "etsy": {}
+    },
+    {
+      "slug": "quiet-rain-window-seat",
+      "name": "Window Seat",
+      "listing_name": "Quiet Rain: Window Seat",
+      "series": "quiet-rain",
+      "series_name": "Quiet Rain",
+      "templates": {},
+      "etsy": {}
+    },
+    {
+      "slug": "starbound-nebula-queen",
+      "name": "Nebula Queen",
+      "listing_name": "Starbound Sirens: Nebula Queen",
+      "series": "starbound-sirens",
+      "series_name": "Starbound Sirens",
+      "templates": {},
+      "etsy": {}
+    },
+    {
+      "slug": "neon-dual-blade-alley",
+      "name": "Dual Blade Alley",
+      "listing_name": "Neon Cyberpunk: Dual Blade Alley",
+      "series": "neon-cyberpunk",
+      "series_name": "Neon Cyberpunk",
+      "templates": {},
+      "etsy": {}
+    },
+    {
+      "slug": "ronin-ghost-armour",
+      "name": "Ghost Armour",
+      "listing_name": "Ronin Rain: Ghost Armour",
+      "series": "ronin-rain",
+      "series_name": "Ronin Rain",
+      "templates": {},
+      "etsy": {}
+    },
+    {
+      "slug": "ronin-last-stand",
+      "name": "Last Stand at the Gate",
+      "listing_name": "Ronin Rain: Last Stand at the Gate",
+      "series": "ronin-rain",
+      "series_name": "Ronin Rain",
+      "templates": {},
+      "etsy": {}
+    }
+  ]
+}
