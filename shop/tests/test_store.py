@@ -173,9 +173,10 @@ class CopyAndPriceTests(unittest.TestCase):
     def test_lanes_are_data_not_a_fixed_page(self):
         public = public_catalog(checkout_public())
         ids = [item["id"] for item in public["collections"]]
-        self.assertEqual(ids, ["aop", "chest-dtg", "gothic-blackletter", "stoner", "brush-smoke", "biomechanical", "living-screens", "night-shift"])
+        self.assertEqual(ids, ["aop", "chest-dtg", "gothic-blackletter", "brush-smoke", "biomechanical", "living-screens", "night-shift"])
         aop = next(item for item in public["collections"] if item["id"] == "aop")
-        stoner = next(item for item in public["collections"] if item["id"] == "stoner")
+        self.assertNotIn("stoner", ids)
+        self.assertNotIn("As High As Fuel", json.dumps(public))
         self.assertEqual(aop["count"], len([item for item in public["products"] if item["collection"] == "aop"]))
         self.assertEqual(aop["sub"], "First wave")
         self.assertEqual(aop["intro"], "Full bleed. Edge to edge.")
@@ -187,9 +188,9 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(public["shop"]["drops_title"], "New drops")
         self.assertEqual(public["shop"]["intro"], "First wave is live. Collections still opening.")
         self.assertEqual(public["shop"]["more"], "More designs coming.")
-        self.assertEqual(stoner["count"], 0)
-        self.assertEqual(stoner["status"], "upcoming")
-        self.assertEqual(stoner["example"], "As High As Fuel")
+        stored = load_catalog()
+        stoner = next(item for item in stored["collections"] if item["id"] == "stoner")
+        self.assertEqual(stoner["status"], "hidden")
         self.assertEqual(stoner["landing"], "as-high-as-fuel")
         gothic = next(item for item in public["collections"] if item["id"] == "gothic-blackletter")
         self.assertEqual(gothic["landing"], "blackletter")
@@ -214,6 +215,7 @@ class CopyAndPriceTests(unittest.TestCase):
         for held in ("starbound-nebula-queen", "quiet-blade", "void-king", "half-machine-skull", "as-high-as-fuel"):
             self.assertNotIn(held, public_slugs)
         self.assertEqual(stoner["sub"], "slow burns & night drives")
+        self.assertTrue(all(item.get("status") == "held" for item in stored["products"] if item.get("collection") == "stoner"))
         self.assertEqual(
             [item["label"] for item in public["series"]],
             ["Ronin Rain", "Quiet Rain", "Starbound", "Crimson Sun", "Crimson Oni", "Neon Cyberpunk", "New concepts"],
@@ -569,7 +571,8 @@ class ServerTests(unittest.TestCase):
         self.assertNotIn("Eight designs", self.get("/api/catalog")[1])
         self.assertIn("More designs coming.", self.get("/api/catalog")[1])
         self.assertIn("gothic-blackletter", [item["id"] for item in catalog["collections"]])
-        self.assertIn("as-high-as-fuel", [item["landing"] for item in catalog["collections"]])
+        self.assertNotIn("as-high-as-fuel", [item["landing"] for item in catalog["collections"]])
+        self.assertNotIn("As High As Fuel", self.get("/api/catalog")[1])
         self.assertEqual(catalog["products"][0]["fabrics"][0]["id"], "poly")
         self.assertEqual(catalog["products"][0]["held_fabrics"][0]["id"], "cotton")
         self.assertIn("no shirt will be printed", catalog["checkout"]["demo_lead"])

@@ -277,6 +277,8 @@ def public_collections(catalog: dict) -> list[dict]:
         counts[collection_id] = counts.get(collection_id, 0) + 1
     rows = []
     for item in catalog["collections"]:
+        if item.get("status") == "hidden":
+            continue
         rows.append(
             {
                 "id": item["id"],
@@ -298,10 +300,13 @@ def public_collections(catalog: dict) -> list[dict]:
 def public_series(catalog: dict) -> list[dict]:
     labels = {item["id"]: item.get("label") or item["id"] for item in catalog.get("series", [])}
     collections = {item["id"]: item.get("collection") for item in catalog.get("series", [])}
+    hidden = {item["id"] for item in catalog.get("collections", []) if item.get("status") == "hidden"}
     seen = []
     rows = []
     for product in catalog["products"]:
         if product.get("status", "live") != "live":
+            continue
+        if product.get("collection") in hidden:
             continue
         series_id = product.get("series")
         if not series_id or series_id in seen:
