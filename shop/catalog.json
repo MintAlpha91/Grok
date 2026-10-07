@@ -136,7 +136,7 @@
       "landing": "aop",
       "name": "Full Bleed",
       "label": "Full Bleed",
-      "status": "ready",
+      "status": "live",
       "fabric": "poly",
       "sub": "AOP Heroes",
       "intro": "All-over print tees that wrap the full scene edge to edge — original anime art cut for cloth, designed in Australia.",
@@ -421,7 +421,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "preview",
+      "status": "held",
       "tags": [
         "starbound-sirens"
       ],
@@ -570,7 +570,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "held",
       "tags": [
         "starbound-sirens"
       ],
