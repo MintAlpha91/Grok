@@ -93,22 +93,43 @@ class CopyAndPriceTests(unittest.TestCase):
     def test_each_design_has_poly_and_cotton_mockups(self):
         catalog = load_catalog()
         public = public_catalog(checkout_public())
-        self.assertEqual(len(public["designs"]), 8)
-        for design in public["designs"]:
+        live = [item for item in catalog["products"] if item.get("status", "live") == "live"]
+        self.assertEqual(len(public["products"]), 8)
+        self.assertEqual(len(live), 8)
+        for design in public["products"]:
             by_id = {item["id"]: item for item in design["fabrics"]}
             for fabric_id in ("poly", "cotton"):
                 url = by_id[fabric_id]["mockup"]
                 self.assertEqual(url, f"/mockups/{design['slug']}-aop-{fabric_id}.jpg")
                 self.assertTrue((ROOT / "public" / url.lstrip("/")).is_file())
             self.assertEqual(design["image"], by_id["poly"]["mockup"])
-        self.assertEqual(len(catalog["designs"]), 8)
+
+    def test_lanes_are_data_not_a_fixed_page(self):
+        public = public_catalog(checkout_public())
+        ids = [item["id"] for item in public["collections"]]
+        self.assertEqual(ids, ["aop", "gothic-blackletter", "stoner", "calligraphy"])
+        aop = next(item for item in public["collections"] if item["id"] == "aop")
+        stoner = next(item for item in public["collections"] if item["id"] == "stoner")
+        self.assertEqual(aop["count"], 8)
+        self.assertEqual(aop["status"], "live")
+        self.assertEqual(stoner["count"], 0)
+        self.assertEqual(stoner["status"], "upcoming")
+        self.assertEqual(stoner["example"], "As High As Fuel")
+        script = (ROOT / "public" / "js" / "app.js").read_text(encoding="utf-8")
+        html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("catalog.products", script)
+        self.assertIn("catalog.collections", script)
+        self.assertNotIn("crimson-sun-last-ronin", script)
+        self.assertNotIn("crimson-sun-last-ronin", html)
 
     def test_hooks_and_blurb_template(self):
         copy = load_copy()
-        self.assertEqual(copy["designs"]["crimson-sun-last-ronin"]["hook"], "Black. Red. Nothing else.")
-        self.assertEqual(copy["designs"]["ronin-ghost-armour"]["hook"], "No one's inside. It's still on guard.")
-        poly = blurb(copy, "quiet-rain-window-seat", "polyester")
-        cotton = blurb(copy, "quiet-rain-window-seat", "cotton")
+        products = {item["slug"]: item for item in load_catalog()["products"]}
+        self.assertEqual(products["crimson-sun-last-ronin"]["hook"], "Black. Red. Nothing else.")
+        self.assertEqual(products["ronin-ghost-armour"]["hook"], "No one's inside. It's still on guard.")
+        scene = products["quiet-rain-window-seat"]["scene"]
+        poly = blurb(copy["blurb_template"], scene, "polyester")
+        cotton = blurb(copy["blurb_template"], scene, "cotton")
         self.assertIn("Printed edge to edge on a polyester all-over print tee.", poly)
         self.assertIn("Printed edge to edge on a cotton all-over print tee.", cotton)
         self.assertIn("Original Rogers Inc Designs artwork.", poly)
@@ -266,8 +287,9 @@ class ServerTests(unittest.TestCase):
         self.assertNotIn("Elemental Wood", body)
         catalog = json.loads(self.get("/api/catalog")[1])
         self.assertEqual(catalog["checkout"]["mode"], "demo")
-        self.assertEqual(catalog["designs"][0]["fabrics"][0]["price_cents"], 6900)
-        self.assertEqual(len(catalog["designs"]), 8)
+        self.assertEqual(catalog["products"][0]["fabrics"][0]["price_cents"], 6900)
+        self.assertEqual(len(catalog["products"]), 8)
+        self.assertIn("gothic-blackletter", [item["id"] for item in catalog["collections"]])
         self.assertIn("no shirt will be printed", catalog["checkout"]["demo_lead"])
         view = self.post("/api/checkout", {
             "lines": [{"slug": "starbound-nebula-queen", "fabric": "poly", "size": "XS", "qty": 1}],

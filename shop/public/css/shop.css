@@ -147,6 +147,12 @@ p { margin: 0; }
   align-items: flex-end;
   background: var(--bg-2);
 }
+.series a {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 6px;
+}
 .series a:hover, .filters a:hover, .filters a[aria-current="true"] {
   border-color: var(--cyan);
   color: var(--cyan);
@@ -165,6 +171,7 @@ p { margin: 0; }
 .card .hook { color: var(--muted); min-height: 3em; }
 .card .meta { font-size: 0.92rem; }
 .series-name { color: var(--magenta); font-size: 0.78rem; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; }
+.lane-status { color: var(--muted); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
 
 .art {
   position: relative;

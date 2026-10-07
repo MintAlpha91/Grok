@@ -36,9 +36,13 @@ def load_catalog() -> dict:
         got = (fabric["price_cents"], fabric["price_2xl_cents"])
         if got != locked:
             raise ShopError(f"Locked price mismatch for {fabric_id}.", 500)
-    slugs = [item["slug"] for item in data["designs"]]
+    products = data.get("products") or data.get("designs") or []
+    data["products"] = products
+    slugs = [item["slug"] for item in products]
     if len(slugs) != len(set(slugs)):
-        raise ShopError("Duplicate design slug.", 500)
+        raise ShopError("Duplicate product slug.", 500)
+    if "collections" not in data:
+        raise ShopError("Catalog is missing collections.", 500)
     return data
 
 
@@ -46,48 +50,66 @@ def load_copy() -> dict:
     return load_json(COPY_PATH)
 
 
-def blurb(copy: dict, slug: str, fabric_phrase: str) -> str:
-    scene = copy["designs"][slug]["scene"].rstrip(".")
-    return copy["blurb_template"].format(scene=scene, fabric=fabric_phrase)
+def blurb(template: str, scene: str, fabric_phrase: str) -> str:
+    return template.format(scene=scene.rstrip("."), fabric=fabric_phrase)
 
 
-def public_design(catalog: dict, copy: dict, design: dict) -> dict:
-    slug = design["slug"]
-    words = copy["designs"][slug]
+def product_fabrics(catalog: dict, product: dict) -> list[str]:
+    listed = product.get("fabrics")
+    if listed:
+        return list(listed)
+    return [fabric_id for fabric_id in ("poly", "cotton") if fabric_id in catalog["fabrics"]]
+
+
+def fabric_price(catalog: dict, product: dict, fabric_id: str) -> tuple[int, int]:
+    override = (product.get("prices") or {}).get(fabric_id) or {}
+    shared = catalog["fabrics"][fabric_id]
+    base = override.get("price_cents", shared["price_cents"])
+    premium = override.get("price_2xl_cents", shared["price_2xl_cents"])
+    return base, premium
+
+
+def public_product(catalog: dict, copy: dict, product: dict) -> dict:
+    slug = product["slug"]
+    template = copy["blurb_template"]
+    scene = product.get("scene", "")
     fabrics = []
-    for fabric_id in ("poly", "cotton"):
+    for fabric_id in product_fabrics(catalog, product):
         fabric = catalog["fabrics"][fabric_id]
+        base, premium = fabric_price(catalog, product, fabric_id)
         fabrics.append(
             {
                 "id": fabric_id,
                 "label": fabric["label"],
                 "phrase": fabric["phrase"],
-                "price_cents": fabric["price_cents"],
-                "price_2xl_cents": fabric["price_2xl_cents"],
-                "etsy_url": design.get("etsy", {}).get(fabric_id),
+                "price_cents": base,
+                "price_2xl_cents": premium,
+                "etsy_url": product.get("etsy", {}).get(fabric_id),
                 "mockup": mockup_url(slug, fabric_id),
             }
         )
+    blurbs = {item["id"]: blurb(template, scene, item["phrase"]) for item in fabrics}
+    image = next((item["mockup"] for item in fabrics if item["mockup"]), None) or image_url(slug)
     return {
         "slug": slug,
-        "name": design["name"],
-        "listing_name": design["listing_name"],
-        "series": design["series"],
-        "series_name": design["series_name"],
-        "hook": words["hook"],
-        "blurbs": {
-            "poly": blurb(copy, slug, "polyester"),
-            "cotton": blurb(copy, slug, "cotton"),
-        },
+        "name": product["name"],
+        "listing_name": product["listing_name"],
+        "collection": product.get("collection"),
+        "series": product.get("series"),
+        "series_name": product.get("series_name") or product.get("series") or "",
+        "tags": product.get("tags") or [],
+        "status": product.get("status", "live"),
+        "hook": product.get("hook", ""),
+        "blurbs": blurbs,
         "fabrics": fabrics,
-        "image": mockup_url(slug, "poly") or image_url(slug),
+        "image": image,
     }
 
 
 def mockup_url(slug: str, fabric_id: str) -> str | None:
-    filename = f"{slug}-aop-{fabric_id}.jpg"
-    if (PUBLIC_PATH / "mockups" / filename).is_file():
-        return f"/mockups/{filename}"
+    for filename in (f"{slug}-aop-{fabric_id}.jpg", f"{slug}-{fabric_id}.jpg"):
+        if (PUBLIC_PATH / "mockups" / filename).is_file():
+            return f"/mockups/{filename}"
     return None
 
 
@@ -110,7 +132,8 @@ def public_catalog(checkout: dict) -> dict:
         "home": buyer_copy["home"],
         "about": buyer_copy["about"],
         "shop": buyer_copy["shop"],
-        "series": buyer_copy["series"],
+        "collections": public_collections(catalog),
+        "series": public_series(catalog),
         "size_note": buyer_copy["size_note"],
         "size_chart_gap": buyer_copy["size_chart_gap"],
         "shipping": buyer_copy["shipping"],
@@ -121,36 +144,84 @@ def public_catalog(checkout: dict) -> dict:
         "etsy_link_label": buyer_copy["etsy_link_label"],
         "etsy_listing_url": buyer_copy["etsy_listing_url"],
         "checkout": checkout,
-        "designs": [public_design(catalog, copy, item) for item in catalog["designs"]],
+        "products": [
+            public_product(catalog, copy, item)
+            for item in catalog["products"]
+            if item.get("status", "live") == "live"
+        ],
     }
 
 
-def find_design(catalog: dict, slug: str) -> dict:
-    for design in catalog["designs"]:
-        if design["slug"] == slug:
-            return design
+def public_collections(catalog: dict) -> list[dict]:
+    counts: dict[str, int] = {}
+    for product in catalog["products"]:
+        if product.get("status", "live") != "live":
+            continue
+        collection_id = product.get("collection")
+        counts[collection_id] = counts.get(collection_id, 0) + 1
+    rows = []
+    for item in catalog["collections"]:
+        rows.append(
+            {
+                "id": item["id"],
+                "name": item["name"],
+                "label": item.get("label") or item["name"],
+                "status": item.get("status", "live"),
+                "intro": item.get("intro", ""),
+                "detail": item.get("detail", ""),
+                "example": item.get("example", ""),
+                "count": counts.get(item["id"], 0),
+            }
+        )
+    return rows
+
+
+def public_series(catalog: dict) -> list[dict]:
+    labels = {item["id"]: item.get("label") or item["id"] for item in catalog.get("series", [])}
+    collections = {item["id"]: item.get("collection") for item in catalog.get("series", [])}
+    seen = []
+    rows = []
+    for product in catalog["products"]:
+        if product.get("status", "live") != "live":
+            continue
+        series_id = product.get("series")
+        if not series_id or series_id in seen:
+            continue
+        seen.append(series_id)
+        rows.append(
+            {
+                "id": series_id,
+                "label": labels.get(series_id) or product.get("series_name") or series_id,
+                "collection": product.get("collection") or collections.get(series_id),
+            }
+        )
+    return rows
+
+
+def find_product(catalog: dict, slug: str) -> dict:
+    for product in catalog["products"]:
+        if product["slug"] == slug and product.get("status", "live") == "live":
+            return product
     raise ShopError("That design is not in the shop.")
 
 
 def price_line(catalog: dict, slug: str, fabric: str, size: str, qty: int) -> dict:
-    design = find_design(catalog, slug)
-    if fabric not in catalog["fabrics"]:
-        raise ShopError("Choose polyester or cotton.")
+    product = find_product(catalog, slug)
+    if fabric not in product_fabrics(catalog, product):
+        raise ShopError("Choose a fabric for this tee.")
     if size not in catalog["sizes"]:
         raise ShopError("Choose a size from XS to 2XL.")
     if isinstance(qty, bool) or not isinstance(qty, int) or qty < 1 or qty > 4:
         raise ShopError("Quantity is limited to 4 of each tee.")
     fabric_row = catalog["fabrics"][fabric]
-    if size in catalog["premium_sizes"]:
-        unit = fabric_row["price_2xl_cents"]
-    else:
-        unit = fabric_row["price_cents"]
-    template = design.get("templates", {}).get(fabric)
+    base, premium = fabric_price(catalog, product, fabric)
+    unit = premium if size in catalog["premium_sizes"] else base
+    template = product.get("templates", {}).get(fabric)
     return {
         "slug": slug,
-        "name": design["name"],
-        "listing_name": design["listing_name"],
-        "series_name": design["series_name"],
+        "name": product["name"],
+        "listing_name": product["listing_name"],
+        "series_name": product.get("series_name") or "",
         "fabric": fabric,
         "fabric_label": fabric_row["label"],
         "size": size,

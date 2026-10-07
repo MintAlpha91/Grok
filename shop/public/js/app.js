@@ -63,7 +63,7 @@ async function api(path, body) {
 }
 
 function designBySlug(slug) {
-  return state.catalog.designs.find((item) => item.slug === slug);
+  return state.catalog.products.find((item) => item.slug === slug);
 }
 
 function fabricRow(design, fabricId) {
@@ -106,7 +106,13 @@ function parseRoute() {
   const product = path.match(/^\/product\/([a-z0-9-]+)$/);
   const order = path.match(/^\/order\/(RID-[A-F0-9]{8})$/i);
   if (path === "/" || path === "") return { name: "home" };
-  if (path === "/shop") return { name: "shop", series: url.searchParams.get("series") || "all" };
+  if (path === "/shop") {
+    return {
+      name: "shop",
+      collection: url.searchParams.get("collection") || "all",
+      series: url.searchParams.get("series") || "all",
+    };
+  }
   if (product) {
     return {
       name: "product",
@@ -188,10 +194,13 @@ function pageHead(title, paragraphs) {
 
 function renderHome(catalog) {
   setTitle(catalog.seo.title, catalog.seo.meta);
-  const series = el("section", { class: "series wrap", id: "series" }, catalog.series.map((item) => (
-    el("a", { href: `/shop?series=${item.id}` }, item.label)
+  const series = el("section", { class: "series wrap", id: "series" }, catalog.collections.map((item) => (
+    el("a", { href: `/shop?collection=${item.id}` }, [
+      item.label,
+      item.status === "upcoming" ? el("span", { class: "lane-status" }, "Coming") : null,
+    ])
   )));
-  const grid = el("section", { class: "grid wrap" }, catalog.designs.map(card));
+  const grid = el("section", { class: "grid wrap" }, catalog.products.map(card));
   return [
     el("section", { class: "hero wrap" }, [
       el("img", { class: "hero-banner", src: "/brand/banner.png", alt: "Rogers Inc Designs" }),
@@ -210,35 +219,67 @@ function renderHome(catalog) {
 }
 
 function card(design) {
-  const poly = fabricRow(design, "poly");
-  const cotton = fabricRow(design, "cotton");
+  const prices = design.fabrics.map((item) => `${item.label} ${money(item.price_cents)}`).join(" · ");
   return el("a", { class: "card", href: `/product/${design.slug}` }, [
     art(design),
     el("p", { class: "series-name" }, design.series_name),
     el("h2", {}, design.name),
     el("p", { class: "hook" }, design.hook),
-    el("p", { class: "meta" }, `Polyester ${money(poly.price_cents)} · Cotton ${money(cotton.price_cents)}`),
+    el("p", { class: "meta" }, prices),
   ]);
+}
+
+function shopHref(collection, series) {
+  const params = new URLSearchParams();
+  if (collection && collection !== "all") params.set("collection", collection);
+  if (series && series !== "all") params.set("series", series);
+  const query = params.toString();
+  return query ? `/shop?${query}` : "/shop";
 }
 
 function renderShop(catalog, route) {
   setTitle("Shop — Rogers Inc Designs", catalog.seo.meta);
-  const known = catalog.series.some((item) => item.id === route.series);
-  const series = route.series === "all" || !known ? "all" : route.series;
-  const designs = series === "all" ? catalog.designs : catalog.designs.filter((item) => item.series === series);
-  const filters = el("nav", { class: "filters wrap", "aria-label": "Series" }, [
-    el("a", { href: "/shop", "aria-current": series === "all" ? "true" : null }, "All"),
-    ...catalog.series.map((item) => el("a", {
-      href: `/shop?series=${item.id}`,
-      "aria-current": series === item.id ? "true" : null,
-    }, item.label)),
+  const knownCollection = catalog.collections.some((item) => item.id === route.collection);
+  const collection = route.collection === "all" || !knownCollection ? "all" : route.collection;
+  const selected = catalog.collections.find((item) => item.id === collection);
+  const inCollection = collection === "all"
+    ? catalog.products
+    : catalog.products.filter((item) => item.collection === collection);
+  const seriesInView = catalog.series.filter((item) => collection === "all" || item.collection === collection);
+  const knownSeries = seriesInView.some((item) => item.id === route.series);
+  const series = route.series === "all" || !knownSeries ? "all" : route.series;
+  const products = series === "all" ? inCollection : inCollection.filter((item) => item.series === series);
+  const intro = [];
+  if (selected && selected.intro) intro.push(selected.intro);
+  if (selected && selected.detail) intro.push(selected.detail);
+  if (!selected) intro.push(catalog.shop.collection);
+  const collectionFilters = el("nav", { class: "filters wrap", "aria-label": "Collections" }, [
+    el("a", { href: shopHref("all", "all"), "aria-current": collection === "all" ? "true" : null }, "All"),
+    ...catalog.collections.map((item) => el("a", {
+      href: shopHref(item.id, "all"),
+      "aria-current": collection === item.id ? "true" : null,
+    }, item.status === "upcoming" ? `${item.label} · Coming` : item.label)),
   ]);
-  const empty = designs.length ? null : el("p", { class: "empty wrap" }, "That series is not in the shop.");
+  const seriesFilters = seriesInView.length > 1
+    ? el("nav", { class: "filters wrap", "aria-label": "Series" }, [
+      el("a", { href: shopHref(collection, "all"), "aria-current": series === "all" ? "true" : null }, "All series"),
+      ...seriesInView.map((item) => el("a", {
+        href: shopHref(collection, item.id),
+        "aria-current": series === item.id ? "true" : null,
+      }, item.label)),
+    ])
+    : null;
+  const empty = products.length ? null : el("p", { class: "empty wrap" }, (
+    selected && selected.example
+      ? `Nothing in this lane yet. Example: ${selected.example}.`
+      : "Nothing in this lane yet."
+  ));
   return [
-    pageHead("Shop", [catalog.shop.intro, catalog.shop.fabrics, catalog.shop.collection]),
-    filters,
+    pageHead("Shop", intro),
+    collectionFilters,
+    seriesFilters,
     empty,
-    el("section", { class: "grid wrap" }, designs.map(card)),
+    el("section", { class: "grid wrap" }, products.map(card)),
   ];
 }
 
