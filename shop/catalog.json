@@ -31,19 +31,19 @@
       "source": "Design inventory",
       "at_floor": {
         "full-bleed": 22,
-        "living-screens": 48,
+        "living-screens": 57,
         "oni-mask": 11,
         "starbound-sirens": 11,
         "neon-cyberpunk": 11,
-        "ronin-rain": 12
+        "ronin-rain": 12,
+        "crimson-sun": 10,
+        "quiet-rain": 10
       },
       "short": {
-        "crimson-sun": 5,
-        "quiet-rain": 6,
         "gothic-blackletter": 4,
         "fuel": 1
       },
-      "priority": ["crimson-sun", "quiet-rain", "gothic-blackletter", "fuel"]
+      "priority": ["gothic-blackletter", "fuel"]
     }
   },
   "offer": {
@@ -205,7 +205,7 @@
       "status": "upcoming",
       "sub": "Wallpapers",
       "intro": "Phone and desktop wallpaper packs built for real screens — same worlds as the tees, ready the moment you download.",
-      "detail": "Design counts 48 ready packs. The files are not on this site yet, so nothing here can be downloaded."
+      "detail": "Design counts 57 ready packs. The files are not on this site yet, so nothing here can be downloaded."
     },
     {
       "id": "night-shift",
@@ -296,7 +296,7 @@
         "poly": "https://www.etsy.com/listing/4589600597"
       },
       "collection": "aop",
-      "status": "preview",
+      "status": "live",
       "tags": [
         "crimson-sun"
       ],
@@ -332,7 +332,7 @@
         "poly": "https://www.etsy.com/listing/4589643322"
       },
       "collection": "aop",
-      "status": "preview",
+      "status": "live",
       "tags": [
         "quiet-rain"
       ],
@@ -350,12 +350,68 @@
         "poly": "https://www.etsy.com/listing/4589648070"
       },
       "collection": "aop",
-      "status": "preview",
+      "status": "live",
       "tags": [
         "quiet-rain"
       ],
       "hook": "Soft weather, sharp silence.",
       "scene": "A girl in a hoodie sits by a rain-streaked window with a steaming bowl of ramen and the city lights beyond"
+    },
+    {
+      "slug": "quiet-rain-ramen-steam-alley",
+      "name": "Ramen Steam Alley",
+      "listing_name": "Quiet Rain: Ramen Steam Alley",
+      "series": "quiet-rain",
+      "series_name": "Quiet Rain",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "upcoming",
+      "tags": ["quiet-rain"],
+      "hook": "Steam in the alley. Rain on the bricks.",
+      "scene": "Ramen steam in a rainy alley. Print-ready. The mockup is not on this site yet."
+    },
+    {
+      "slug": "quiet-rain-bus-stop-downpour",
+      "name": "Bus Stop Downpour",
+      "listing_name": "Quiet Rain: Bus Stop Downpour",
+      "series": "quiet-rain",
+      "series_name": "Quiet Rain",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "upcoming",
+      "tags": ["quiet-rain"],
+      "hook": "A downpour at the stop.",
+      "scene": "A bus stop in a downpour. Print-ready. The mockup is not on this site yet."
+    },
+    {
+      "slug": "quiet-rain-vending-glow-puddle",
+      "name": "Vending Glow Puddle",
+      "listing_name": "Quiet Rain: Vending Glow Puddle",
+      "series": "quiet-rain",
+      "series_name": "Quiet Rain",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "upcoming",
+      "tags": ["quiet-rain"],
+      "hook": "Machine light in the puddle.",
+      "scene": "A vending machine glowing into a puddle. Print-ready. The mockup is not on this site yet."
+    },
+    {
+      "slug": "quiet-rain-quiet-lantern-bridge",
+      "name": "Quiet Lantern Bridge",
+      "listing_name": "Quiet Rain: Quiet Lantern Bridge",
+      "series": "quiet-rain",
+      "series_name": "Quiet Rain",
+      "templates": {},
+      "etsy": {},
+      "collection": "aop",
+      "status": "upcoming",
+      "tags": ["quiet-rain"],
+      "hook": "Lanterns on a quiet bridge.",
+      "scene": "Lanterns along a quiet bridge in the rain. Print-ready. The mockup is not on this site yet."
     },
     {
       "slug": "starbound-nebula-queen",
@@ -439,7 +495,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "live",
       "tags": [
         "crimson-sun"
       ],
@@ -477,7 +533,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "live",
       "tags": [
         "quiet-rain"
       ],
@@ -496,7 +552,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "live",
       "tags": [
         "quiet-rain"
       ],

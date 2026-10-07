@@ -79,8 +79,7 @@ def fabric_is_orderable(fabric: dict) -> bool:
 
 
 COLLECTION_FLOOR = 10
-# Design inventory: these lanes are short of ready art. Keep them off featured.
-SHORT_SERIES = {"crimson-sun", "quiet-rain"}
+# Gothic and Fuel are still short of ready art. Keep them off featured.
 OFF_FEATURED_COLLECTIONS = {"gothic-blackletter", "fuel"}
 
 
@@ -113,9 +112,7 @@ def presented_collection_status(
 def presented_product_status(product: dict) -> str:
     """Short series and off-featured lanes are preview cards, not the featured list."""
     status = product.get("status", "live")
-    if status == "live" and (
-        product.get("series") in SHORT_SERIES or product.get("collection") in OFF_FEATURED_COLLECTIONS
-    ):
+    if status == "live" and product.get("collection") in OFF_FEATURED_COLLECTIONS:
         return "preview"
     return status
 

@@ -234,16 +234,27 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertNotEqual(aop["status"], "live")
         featured = [item["slug"] for item in public["products"] if item["collection"] == "aop" and item["status"] == "live"]
         self.assertEqual(sorted(featured), [
+            "crimson-sun-last-ronin",
             "kitsune-neon-nine-tail-shrine",
             "neon-dual-blade-alley",
             "oni-mask-crimson-oni",
+            "quiet-rain-umbrella-crossing",
+            "quiet-rain-window-seat",
             "ronin-ghost-armour",
             "ronin-last-stand",
         ])
-        for short in ("crimson-sun-last-ronin", "quiet-rain-umbrella-crossing", "quiet-rain-window-seat"):
-            card = next(item for item in public["products"] if item["slug"] == short)
-            self.assertEqual(card["status"], "preview")
+        fills = (
+            "quiet-rain-ramen-steam-alley",
+            "quiet-rain-bus-stop-downpour",
+            "quiet-rain-vending-glow-puddle",
+            "quiet-rain-quiet-lantern-bridge",
+        )
+        stored_slugs = {item["slug"]: item for item in stored["products"]}
         public_slugs = {item["slug"] for item in public["products"]}
+        for slug in fills:
+            self.assertEqual(stored_slugs[slug]["status"], "upcoming")
+            self.assertEqual(stored_slugs[slug]["series"], "quiet-rain")
+            self.assertNotIn(slug, public_slugs)
         self.assertIn("kitsune-neon-nine-tail-shrine", public_slugs)
         self.assertNotIn("blood-covenant", public_slugs)
         self.assertIn("astral-fox-empress", public_slugs)
@@ -325,10 +336,11 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(catalog["fabrics"]["cotton"]["price_cents"], 7100)
         self.assertEqual(catalog["fabrics"]["chest"]["price_cents"], 4700)
         self.assertEqual(catalog["pricing"]["wave1_cents"], {"hoodie": 7500, "aop_beanie": 4900, "flexfit": 5500})
-        self.assertEqual(catalog["pricing"]["ready_art"]["short"]["gothic-blackletter"], 4)
-        self.assertEqual(catalog["pricing"]["ready_art"]["short"]["fuel"], 1)
-        self.assertEqual(catalog["pricing"]["ready_art"]["at_floor"]["full-bleed"], 22)
-        self.assertEqual(catalog["pricing"]["ready_art"]["priority"][0], "crimson-sun")
+        self.assertEqual(catalog["pricing"]["ready_art"]["short"], {"gothic-blackletter": 4, "fuel": 1})
+        self.assertEqual(catalog["pricing"]["ready_art"]["at_floor"]["crimson-sun"], 10)
+        self.assertEqual(catalog["pricing"]["ready_art"]["at_floor"]["quiet-rain"], 10)
+        self.assertEqual(catalog["pricing"]["ready_art"]["at_floor"]["living-screens"], 57)
+        self.assertEqual(catalog["pricing"]["ready_art"]["priority"], ["gothic-blackletter", "fuel"])
         public_body = json.dumps(public_catalog(checkout_public()))
         self.assertNotIn("etsy_cents", public_body)
         self.assertIn("Official store", public_body)
