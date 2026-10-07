@@ -102,7 +102,7 @@ class CopyAndPriceTests(unittest.TestCase):
         for design in public["products"]:
             self.assertEqual([item["id"] for item in design["fabrics"]], ["poly"])
             self.assertEqual([item["id"] for item in design["held_fabrics"]], ["cotton"])
-            self.assertEqual(design["held_fabrics"][0]["price_cents"], 7500)
+            self.assertEqual(design["held_fabrics"][0]["price_cents"], 7100)
             url = design["fabrics"][0]["mockup"]
             self.assertEqual(url, f"/mockups/{design['slug']}-aop-poly.jpg")
             self.assertTrue((ROOT / "public" / url.lstrip("/")).is_file())
@@ -159,10 +159,10 @@ class CopyAndPriceTests(unittest.TestCase):
             {"slug": "crimson-sun-last-ronin", "fabric": "poly", "size": "M", "qty": 1, "unit_cents": 1},
             {"slug": "quiet-rain-window-seat", "fabric": "poly", "size": "2XL", "qty": 1, "price_cents": 1},
         ])
-        self.assertEqual(quote["lines"][0]["unit_cents"], 6900)
-        self.assertEqual(quote["lines"][1]["unit_cents"], 7300)
-        self.assertEqual(quote["total_cents"], 14200)
-        self.assertEqual(quote["gst_cents"], 1291)
+        self.assertEqual(quote["lines"][0]["unit_cents"], 6500)
+        self.assertEqual(quote["lines"][1]["unit_cents"], 6900)
+        self.assertEqual(quote["total_cents"], 13400)
+        self.assertEqual(quote["gst_cents"], 1218)
         self.assertEqual(quote["goods_cents"], quote["total_cents"])
         self.assertNotEqual(quote["total_cents"], quote["goods_cents"] + quote["gst_cents"])
         self.assertEqual(quote["shipping_cents"], 0)
@@ -170,10 +170,16 @@ class CopyAndPriceTests(unittest.TestCase):
 
     def test_launch_ladder_holds_cotton_chest_and_wallpapers(self):
         catalog = load_catalog()
-        self.assertEqual(catalog["pricing"]["story"], "parity")
-        self.assertEqual(catalog["pricing"]["held_undercuts_cents"]["poly"], 6500)
-        self.assertEqual(catalog["pricing"]["held_undercuts_cents"]["chest"], 4700)
-        self.assertNotEqual(catalog["fabrics"]["poly"]["price_cents"], 6500)
+        self.assertEqual(catalog["pricing"]["story"], "official-store")
+        self.assertEqual(catalog["pricing"]["etsy_cents"]["poly"], 6900)
+        self.assertEqual(catalog["pricing"]["etsy_cents"]["cotton"], 7500)
+        self.assertEqual(catalog["pricing"]["etsy_cents"]["chest"], 4900)
+        self.assertEqual(catalog["fabrics"]["poly"]["price_cents"], 6500)
+        self.assertEqual(catalog["fabrics"]["cotton"]["price_cents"], 7100)
+        self.assertEqual(catalog["fabrics"]["chest"]["price_cents"], 4700)
+        public_body = json.dumps(public_catalog(checkout_public()))
+        self.assertNotIn("etsy_cents", public_body)
+        self.assertIn("Official store", public_body)
         chest = catalog["fabrics"]["chest"]
         self.assertEqual(chest["status"], "lane")
         self.assertNotIn("4XL", chest["sizes"])
@@ -253,9 +259,9 @@ class CheckoutTests(unittest.TestCase):
         self.assertIn("no payment will be taken and no shirt will be printed or shipped", view["notice"]["text"])
         saved = json.loads(next(self.orders.glob("*.json")).read_text(encoding="utf-8"))
         self.assertEqual(saved["lines"][0]["printful_product_id"], 257)
-        self.assertEqual(saved["lines"][0]["line_cents"], 13800)
-        self.assertEqual(view["gst_cents"], 1255)
-        self.assertEqual(view["total_cents"], 13800)
+        self.assertEqual(saved["lines"][0]["line_cents"], 13000)
+        self.assertEqual(view["gst_cents"], 1182)
+        self.assertEqual(view["total_cents"], 13000)
         self.assertNotIn("printful_product_id", view["lines"][0])
         self.assertIn("not instant auto-push", saved["internal_note"])
 
@@ -288,11 +294,11 @@ class CheckoutTests(unittest.TestCase):
                 "fabric_label": "Polyester",
                 "size": "2XL",
                 "qty": 1,
-                "unit_cents": 7300,
+                "unit_cents": 6900,
             }],
         }
         fields = dict(stripe_fields(order, "https://shop.example"))
-        self.assertEqual(fields["line_items[0][price_data][unit_amount]"], "7300")
+        self.assertEqual(fields["line_items[0][price_data][unit_amount]"], "6900")
         self.assertEqual(fields["line_items[0][price_data][currency]"], "aud")
         self.assertIn("Crimson Sun: The Last Ronin", fields["line_items[0][price_data][product_data][name]"])
 
@@ -340,7 +346,7 @@ class ServerTests(unittest.TestCase):
         self.assertNotIn("Elemental Wood", body)
         catalog = json.loads(self.get("/api/catalog")[1])
         self.assertEqual(catalog["checkout"]["mode"], "demo")
-        self.assertEqual(catalog["products"][0]["fabrics"][0]["price_cents"], 6900)
+        self.assertEqual(catalog["products"][0]["fabrics"][0]["price_cents"], 6500)
         self.assertEqual(len(catalog["products"]), 8)
         self.assertIn("gothic-blackletter", [item["id"] for item in catalog["collections"]])
         self.assertIn("as-high-as-fuel", [item["landing"] for item in catalog["collections"]])
@@ -361,7 +367,7 @@ class ServerTests(unittest.TestCase):
         self.assertFalse(view["payment_taken"])
         self.assertFalse(view["print_or_ship"])
         loaded = json.loads(self.get(f"/api/orders/{view['id']}")[1])
-        self.assertEqual(loaded["total_cents"], 6900)
+        self.assertEqual(loaded["total_cents"], 6500)
         status, leaked = self.get("/catalog.json")
         self.assertEqual(status, 200)
         self.assertNotIn("printful_product_id", leaked)

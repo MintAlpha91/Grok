@@ -10,13 +10,13 @@ CATALOG_PATH = ROOT / "catalog.json"
 COPY_PATH = ROOT / "web-copy.json"
 PUBLIC_PATH = ROOT / "public"
 
-# GST-inclusive parity with the Etsy ladder. Undercuts stay off.
-# Poly AU$69 (2XL +AU$4). Cotton AU$75 (2XL +AU$4), after first sales.
-# Chest DTG AU$49 (2XL +AU$4, 3XL +AU$7). No 4XL or 5XL in v1.
+# Official-store prices, GST-inclusive. Etsy stays higher. Do not list Etsy amounts here.
+# Poly AU$65 (2XL +AU$4). Cotton AU$71 (2XL +AU$4), after first sales.
+# Chest DTG AU$47 (2XL +AU$4, 3XL +AU$7). No 4XL or 5XL in v1.
 LOCKED_PRICES = {
-    "poly": {"price_cents": 6900, "premiums_cents": {"2XL": 400}, "price_2xl_cents": 7300},
-    "cotton": {"price_cents": 7500, "premiums_cents": {"2XL": 400}, "price_2xl_cents": 7900},
-    "chest": {"price_cents": 4900, "premiums_cents": {"2XL": 400, "3XL": 700}},
+    "poly": {"price_cents": 6500, "premiums_cents": {"2XL": 400}, "price_2xl_cents": 6900},
+    "cotton": {"price_cents": 7100, "premiums_cents": {"2XL": 400}, "price_2xl_cents": 7500},
+    "chest": {"price_cents": 4700, "premiums_cents": {"2XL": 400, "3XL": 700}},
 }
 
 STATES = ("NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT")
@@ -42,9 +42,9 @@ def load_catalog() -> dict:
             raise ShopError(f"Locked size premium mismatch for {fabric_id}.", 500)
         if "price_2xl_cents" in locked and fabric.get("price_2xl_cents") != locked["price_2xl_cents"]:
             raise ShopError(f"Locked 2XL price mismatch for {fabric_id}.", 500)
-        undercut = (data.get("pricing") or {}).get("held_undercuts_cents") or {}
-        if undercut.get(fabric_id) == fabric["price_cents"]:
-            raise ShopError(f"Undercut is live for {fabric_id}.", 500)
+        etsy = (data.get("pricing") or {}).get("etsy_cents") or {}
+        if etsy.get(fabric_id) == fabric["price_cents"]:
+            raise ShopError(f"Etsy price is listed on the site for {fabric_id}.", 500)
     products = data.get("products") or data.get("designs") or []
     data["products"] = products
     slugs = [item["slug"] for item in products]
@@ -219,10 +219,10 @@ def public_catalog(checkout: dict) -> dict:
 def data_offer(catalog: dict) -> dict:
     offer = catalog.get("offer") or {}
     return {
-        "story": (catalog.get("pricing") or {}).get("story", "parity"),
+        "story": (catalog.get("pricing") or {}).get("story", "official-store"),
         "hero_fabric": offer.get("hero_fabric", "poly"),
         "hero_line": offer.get("hero_line", ""),
-        "parity_line": offer.get("parity_line", ""),
+        "story_line": offer.get("story_line") or offer.get("parity_line") or "",
     }
 
 

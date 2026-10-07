@@ -281,7 +281,8 @@ function renderShop(catalog, route) {
   if (selected && selected.detail) intro.push(selected.detail);
   if (!selected) {
     intro.push(catalog.shop.collection);
-    if (catalog.offer && catalog.offer.parity_line) intro.push(catalog.offer.parity_line);
+    const story = catalog.offer && (catalog.offer.story_line || catalog.offer.parity_line);
+    if (story) intro.push(story);
   }
   const collectionFilters = el("nav", { class: "filters wrap", "aria-label": "Collections" }, [
     el("a", { href: shopHref("all", "all"), "aria-current": collection === "all" ? "true" : null }, "All"),

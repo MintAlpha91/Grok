@@ -14,17 +14,18 @@
   "pricing": {
     "gst": "inclusive",
     "gst_share": "1/11",
-    "story": "parity",
-    "story_note": "Official store matches the Etsy ladder. Do not sell the same SKU cheaper here. AU$47 chest and AU$65 poly stay off until Marketing confirms an undercut.",
-    "held_undercuts_cents": {
-      "chest": 4700,
-      "poly": 6500
+    "story": "official-store",
+    "story_note": "Official store — no Etsy fees. Site prices are the undercut. Do not show the Etsy amount on the same SKU.",
+    "etsy_cents": {
+      "chest": 4900,
+      "poly": 6900,
+      "cotton": 7500
     }
   },
   "offer": {
     "hero_fabric": "poly",
-    "hero_line": "Full-bleed polyester, AU$69.",
-    "parity_line": "Same prices as the Etsy ladder. This shop does not list the same tee for less."
+    "hero_line": "Full-bleed polyester, AU$65.",
+    "story_line": "Official store — no Etsy fees."
   },
   "addons": [
     {
@@ -43,8 +44,8 @@
       "kind": "aop",
       "role": "hero",
       "status": "live",
-      "price_cents": 6900,
-      "price_2xl_cents": 7300,
+      "price_cents": 6500,
+      "price_2xl_cents": 6900,
       "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
       "premiums_cents": {"2XL": 400},
       "printful_product_id": 257
@@ -55,8 +56,8 @@
       "kind": "aop",
       "role": "premium",
       "status": "after_first_sales",
-      "price_cents": 7500,
-      "price_2xl_cents": 7900,
+      "price_cents": 7100,
+      "price_2xl_cents": 7500,
       "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
       "premiums_cents": {"2XL": 400},
       "printful_product_id": 1414
@@ -67,7 +68,7 @@
       "kind": "dtg",
       "role": "entry",
       "status": "lane",
-      "price_cents": 4900,
+      "price_cents": 4700,
       "sizes": ["XS", "S", "M", "L", "XL", "2XL", "3XL"],
       "premiums_cents": {"2XL": 400, "3XL": 700},
       "omit_sizes": ["4XL", "5XL"]
@@ -82,7 +83,7 @@
       "status": "live",
       "fabric": "poly",
       "intro": "Eight designs. Full bleed. Edge to edge.",
-      "detail": "Polyester hits with colour and wraps the shirt. AU$69, 2XL +AU$4. Cotton is a softer hand, matte, AU$75, and opens after the first sales."
+      "detail": "Polyester hits with colour and wraps the shirt. AU$65, 2XL +AU$4. Cotton is a softer hand, matte, AU$71, and opens after the first sales."
     },
     {
       "id": "chest-dtg",
@@ -92,7 +93,7 @@
       "status": "upcoming",
       "fabric": "chest",
       "example": "City rain. Neon veins.",
-      "intro": "One collector lane. Chest print, AU$49.",
+      "intro": "One collector lane. Chest print, AU$47.",
       "detail": "Neon and Ronin Rain, when the first chest design is in. Nothing in this lane is on sale yet."
     },
     {
