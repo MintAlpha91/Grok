@@ -189,7 +189,15 @@ class CopyAndPriceTests(unittest.TestCase):
         ):
             self.assertNotIn(banned, public_body)
         chest = [item for item in public["products"] if item["collection"] == "chest-dtg"]
-        self.assertEqual(len(chest), 7)
+        self.assertEqual(len(chest), 10)
+        ready_chest = {
+            "chest-kitsune-neon-nine-tail-shrine",
+            "chest-tengu-storm-chrome-crow",
+            "chest-astral-fox-empress",
+        }
+        for design in chest:
+            if design["slug"] in ready_chest:
+                self.assertEqual(design["status"], "ready")
         for design in chest:
             self.assertEqual([item["id"] for item in design["fabrics"]], ["chest"])
             self.assertEqual(design["fabrics"][0]["price_cents"], 4700)
@@ -279,7 +287,7 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(brush["count"], 4)
         chest_lane = next(item for item in public["collections"] if item["id"] == "chest-dtg")
         self.assertEqual(chest_lane["status"], "ready")
-        self.assertEqual(chest_lane["count"], 7)
+        self.assertEqual(chest_lane["count"], 10)
         bio = next(item for item in public["collections"] if item["id"] == "biomechanical")
         self.assertEqual(bio["status"], "preview")
         self.assertEqual(bio["count"], 1)
@@ -356,6 +364,10 @@ class CopyAndPriceTests(unittest.TestCase):
                 "bone-chapel",
                 "hex-altar",
                 "pale-reign",
+                "void-king",
+                "ash-iron",
+                "night-warden",
+                "grave-shift",
             ),
         }
         for lane, slugs in received_print.items():
@@ -367,13 +379,24 @@ class CopyAndPriceTests(unittest.TestCase):
                 self.assertEqual(png_size(path), (4500, 5400))
                 self.assertEqual(path.read_bytes()[25], 2)
                 self.assertNotIn(filename, json.dumps(public))
-        missing_print = (
-            "void-king",
-            "ash-iron",
-            "night-warden",
-            "grave-shift",
-            "as-high-as-fuel",
-        )
+        fuel_front = "Rogers-Inc-Designs-as-high-as-fuel-front-4500x5400.png"
+        fuel_front_path = ROOT / "print-ready" / "fuel" / fuel_front
+        self.assertEqual(stored_slugs["as-high-as-fuel"]["print_ready"], f"fuel/{fuel_front}")
+        self.assertEqual(png_size(fuel_front_path), (4500, 5400))
+        self.assertNotIn(fuel_front, json.dumps(public))
+        fuel_dark = ROOT / "print-ready" / "fuel" / "Rogers-Inc-Designs-as-high-as-fuel-dark-front-4500x5400.png"
+        self.assertEqual(png_size(fuel_dark), (4500, 5400))
+        self.assertNotIn("as-high-as-fuel-dark", json.dumps(public))
+        pending_chest_print = {
+            "chest-kitsune-neon-nine-tail-shrine": "chest/Rogers-Inc-Designs-kitsune-neon-nine-tail-shrine-front-4500x5400.png",
+            "chest-tengu-storm-chrome-crow": "chest/Rogers-Inc-Designs-tengu-storm-chrome-crow-front-4500x5400.png",
+            "chest-astral-fox-empress": "chest/Rogers-Inc-Designs-astral-fox-empress-front-4500x5400.png",
+        }
+        for slug, relative in pending_chest_print.items():
+            self.assertEqual(stored_slugs[slug]["status"], "ready")
+            self.assertEqual(stored_slugs[slug]["print_ready"], relative)
+            self.assertFalse((ROOT / "print-ready" / relative).is_file())
+        missing_print = ()
         for slug in missing_print:
             self.assertNotIn("print_ready", stored_slugs[slug])
             self.assertFalse((ROOT / "print-ready").joinpath(f"fuel/Rogers-Inc-Designs-{slug}-front-4500x5400.png").is_file())
@@ -473,6 +496,13 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(nebula_2xl["lines"][0]["unit_cents"], 6900)
         with self.assertRaises(ShopError):
             quote_lines([{"slug": "chest-starbound-nebula-queen", "fabric": "chest", "size": "M", "qty": 1}])
+        for slug in (
+            "chest-kitsune-neon-nine-tail-shrine",
+            "chest-tengu-storm-chrome-crow",
+            "chest-astral-fox-empress",
+        ):
+            with self.assertRaises(ShopError):
+                quote_lines([{"slug": slug, "fabric": "chest", "size": "M", "qty": 1}])
         with self.assertRaises(ShopError):
             quote_lines([{"slug": "starbound-nebula-queen", "fabric": "cotton", "size": "M", "qty": 1}])
         wallpaper = quote_lines([{"slug": "wallpaper-crimson-the-last-ronin", "fabric": "wallpaper", "size": "Download", "qty": 1}])

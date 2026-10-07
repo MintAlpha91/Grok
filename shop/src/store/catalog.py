@@ -89,10 +89,13 @@ def shop_visible(product: dict) -> bool:
 
 
 def catalog_listed(product: dict) -> bool:
-    """Shop cards, including one upcoming design that cannot be ordered."""
+    """Shop cards, including ready-to-list designs that cannot be ordered yet."""
     if shop_visible(product):
         return True
-    return product.get("status") == "upcoming" and product.get("surface") == "single"
+    status = product.get("status")
+    if status == "ready":
+        return True
+    return status == "upcoming" and product.get("surface") == "single"
 
 
 def presented_collection_status(

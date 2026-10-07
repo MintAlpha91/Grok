@@ -15,7 +15,7 @@
     "gst": "inclusive",
     "gst_share": "1/11",
     "story": "official-store",
-    "story_note": "Official store — no Etsy fees. Site prices are the undercut. Do not show the Etsy amount on the same SKU.",
+    "story_note": "Official store \u2014 no Etsy fees. Site prices are the undercut. Do not show the Etsy amount on the same SKU.",
     "etsy_cents": {
       "chest": 4900,
       "poly": 6900,
@@ -48,7 +48,7 @@
   "offer": {
     "hero_fabric": "poly",
     "hero_line": "Full-bleed polyester, AU$65.",
-    "story_line": "Official store — no Etsy fees."
+    "story_line": "Official store \u2014 no Etsy fees."
   },
   "addons": [
     {
@@ -127,7 +127,7 @@
         "4XL",
         "5XL"
       ],
-      "size_note": "Sizes XS–3XL. 2XL is +AU$4. 3XL is +AU$7. Check the size guide before you order — each shirt is printed, cut and sewn to order."
+      "size_note": "Sizes XS\u20133XL. 2XL is +AU$4. 3XL is +AU$7. Check the size guide before you order \u2014 each shirt is printed, cut and sewn to order."
     },
     "wallpaper": {
       "label": "Wallpaper",
@@ -152,7 +152,7 @@
       "status": "live",
       "fabric": "poly",
       "sub": "AOP Heroes",
-      "intro": "All-over print tees that wrap the full scene edge to edge — original anime art cut for cloth, designed in Australia.",
+      "intro": "All-over print tees that wrap the full scene edge to edge \u2014 original anime art cut for cloth, designed in Australia.",
       "detail": "Polyester AU$65, 2XL +AU$4. Cotton AU$71 opens after the first sales."
     },
     {
@@ -163,7 +163,7 @@
       "status": "ready",
       "fabric": "chest",
       "intro": "Chest print, AU$47.",
-      "detail": "The same scenes, printed on the chest of a black tee. 2XL is +AU$4. 3XL is +AU$7.",
+      "detail": "The same scenes, printed on the chest of a black tee. AU$47 GST. 2XL is +AU$4. 3XL is +AU$7. 10 ready cards (Nebula Queen chest still held).",
       "sub": "Black tees"
     },
     {
@@ -216,7 +216,7 @@
       "label": "Living Screens",
       "status": "live",
       "sub": "Wallpapers",
-      "intro": "Phone and desktop wallpaper packs built for real screens — same worlds as the tees, ready the moment you download.",
+      "intro": "Phone and desktop wallpaper packs built for real screens \u2014 same worlds as the tees, ready the moment you download.",
       "detail": "Crimson Sun has 9 scene cards. Quiet Rain has 8, including the four fills. Oni, Ronin Rain, Starbound, and Neon Cyberpunk use the collage and desktop images from the preview zip. Pack price AU$12. The AU$10 add-on with a tee stays held.",
       "fabric": "wallpaper"
     },
@@ -236,37 +236,37 @@
       "id": "ronin-rain",
       "label": "Ronin Rain",
       "collection": "aop",
-      "blurb": "Lone blades in wet streets — ronin weather, empty armour, and the long walk home."
+      "blurb": "Lone blades in wet streets \u2014 ronin weather, empty armour, and the long walk home."
     },
     {
       "id": "quiet-rain",
       "label": "Quiet Rain",
       "collection": "aop",
-      "blurb": "Soft weather, sharp silence — umbrellas, windows, and streets that hush instead of shout."
+      "blurb": "Soft weather, sharp silence \u2014 umbrellas, windows, and streets that hush instead of shout."
     },
     {
       "id": "starbound-sirens",
       "label": "Starbound",
       "collection": "aop",
-      "blurb": "Starfields and siren light — cosmic queens and deep-space glow without the franchise labels."
+      "blurb": "Starfields and siren light \u2014 cosmic queens and deep-space glow without the franchise labels."
     },
     {
       "id": "crimson-sun",
       "label": "Crimson Sun",
       "collection": "aop",
-      "blurb": "Blood-red skies, steel, and standing ground — a pack and print lane for heat and last stands."
+      "blurb": "Blood-red skies, steel, and standing ground \u2014 a pack and print lane for heat and last stands."
     },
     {
       "id": "oni-mask",
       "label": "Crimson Oni",
       "collection": "aop",
-      "blurb": "Masks that don’t sleep — shrine light, crimson vigil, and faces that watch the night."
+      "blurb": "Masks that don\u2019t sleep \u2014 shrine light, crimson vigil, and faces that watch the night."
     },
     {
       "id": "neon-cyberpunk",
       "label": "Neon Cyberpunk",
       "collection": "aop",
-      "blurb": "City veins and electric rain — night drives, alleys, and neon that never quite turns off."
+      "blurb": "City veins and electric rain \u2014 night drives, alleys, and neon that never quite turns off."
     },
     {
       "id": "brush-smoke",
@@ -518,7 +518,7 @@
     {
       "slug": "chest-crimson-sun-last-ronin",
       "name": "The Last Ronin",
-      "listing_name": "Crimson Sun: The Last Ronin — chest print",
+      "listing_name": "Crimson Sun: The Last Ronin \u2014 chest print",
       "series": "crimson-sun",
       "series_name": "Crimson Sun",
       "templates": {},
@@ -537,7 +537,7 @@
     {
       "slug": "chest-oni-mask-crimson-oni",
       "name": "Crimson Oni Vigil",
-      "listing_name": "Oni Mask: Crimson Oni Vigil — chest print",
+      "listing_name": "Oni Mask: Crimson Oni Vigil \u2014 chest print",
       "series": "oni-mask",
       "series_name": "Crimson Oni",
       "templates": {},
@@ -556,7 +556,7 @@
     {
       "slug": "chest-quiet-rain-umbrella-crossing",
       "name": "Umbrella Crossing",
-      "listing_name": "Quiet Rain: Umbrella Crossing — chest print",
+      "listing_name": "Quiet Rain: Umbrella Crossing \u2014 chest print",
       "series": "quiet-rain",
       "series_name": "Quiet Rain",
       "templates": {},
@@ -575,7 +575,7 @@
     {
       "slug": "chest-quiet-rain-window-seat",
       "name": "Window Seat",
-      "listing_name": "Quiet Rain: Window Seat — chest print",
+      "listing_name": "Quiet Rain: Window Seat \u2014 chest print",
       "series": "quiet-rain",
       "series_name": "Quiet Rain",
       "templates": {},
@@ -594,7 +594,7 @@
     {
       "slug": "chest-starbound-nebula-queen",
       "name": "Nebula Queen",
-      "listing_name": "Starbound Sirens: Nebula Queen — chest print",
+      "listing_name": "Starbound Sirens: Nebula Queen \u2014 chest print",
       "series": "starbound-sirens",
       "series_name": "Starbound",
       "templates": {},
@@ -613,7 +613,7 @@
     {
       "slug": "chest-neon-dual-blade-alley",
       "name": "Dual Blade Alley",
-      "listing_name": "Neon Cyberpunk: Dual Blade Alley — chest print",
+      "listing_name": "Neon Cyberpunk: Dual Blade Alley \u2014 chest print",
       "series": "neon-cyberpunk",
       "series_name": "Neon Cyberpunk",
       "templates": {},
@@ -632,7 +632,7 @@
     {
       "slug": "chest-ronin-ghost-armour",
       "name": "Ghost Armour",
-      "listing_name": "Ronin Rain: Ghost Armour — chest print",
+      "listing_name": "Ronin Rain: Ghost Armour \u2014 chest print",
       "series": "ronin-rain",
       "series_name": "Ronin Rain",
       "templates": {},
@@ -651,7 +651,7 @@
     {
       "slug": "chest-ronin-last-stand",
       "name": "Last Stand at the Gate",
-      "listing_name": "Ronin Rain: Last Stand at the Gate — chest print",
+      "listing_name": "Ronin Rain: Last Stand at the Gate \u2014 chest print",
       "series": "ronin-rain",
       "series_name": "Ronin Rain",
       "templates": {},
@@ -1005,7 +1005,8 @@
         "gothic-blackletter"
       ],
       "hook": "Crown. Thorns. Void.",
-      "scene": "A gothic crown, crossed daggers, and a thorny ring around VOID KING, printed on a white tee"
+      "scene": "A gothic crown, crossed daggers, and a thorny ring around VOID KING, printed on a white tee",
+      "print_ready": "gothic/Rogers-Inc-Designs-void-king-front-4500x5400.png"
     },
     {
       "slug": "ash-iron",
@@ -1024,7 +1025,8 @@
         "gothic-blackletter"
       ],
       "hook": "Strike while the forge still smokes.",
-      "scene": "A hammer and anvil under ASH & IRON, printed on a white tee"
+      "scene": "A hammer and anvil under ASH & IRON, printed on a white tee",
+      "print_ready": "gothic/Rogers-Inc-Designs-ash-iron-front-4500x5400.png"
     },
     {
       "slug": "night-warden",
@@ -1043,7 +1045,8 @@
         "gothic-blackletter"
       ],
       "hook": "Keep the dark.",
-      "scene": "A hooded warden with wings and a crescent over NIGHT WARDEN, printed on a white tee"
+      "scene": "A hooded warden with wings and a crescent over NIGHT WARDEN, printed on a white tee",
+      "print_ready": "gothic/Rogers-Inc-Designs-night-warden-front-4500x5400.png"
     },
     {
       "slug": "grave-shift",
@@ -1062,7 +1065,8 @@
         "gothic-blackletter"
       ],
       "hook": "Time runs. The gate waits.",
-      "scene": "A cathedral gate, hourglasses, and scythes around GRAVE SHIFT, printed on a white tee"
+      "scene": "A cathedral gate, hourglasses, and scythes around GRAVE SHIFT, printed on a white tee",
+      "print_ready": "gothic/Rogers-Inc-Designs-grave-shift-front-4500x5400.png"
     },
     {
       "slug": "as-high-as-fuel",
@@ -1087,7 +1091,8 @@
       "gallery": [
         "as-high-as-fuel-chest.jpg",
         "as-high-as-fuel-heather.jpg"
-      ]
+      ],
+      "print_ready": "fuel/Rogers-Inc-Designs-as-high-as-fuel-front-4500x5400.png"
     },
     {
       "slug": "fuel-pump",
@@ -2079,6 +2084,69 @@
       "gallery": [
         "pack-skyline-silhouette-preview.jpg"
       ]
+    },
+    {
+      "slug": "chest-kitsune-neon-nine-tail-shrine",
+      "name": "Nine-Tail Shrine",
+      "listing_name": "Neon Kitsune: Nine-Tail Shrine \u2014 chest print",
+      "series": "neon-cyberpunk",
+      "series_name": "Neon Cyberpunk",
+      "templates": {},
+      "etsy": {},
+      "collection": "chest-dtg",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "ready",
+      "tags": [
+        "neon-cyberpunk",
+        "kitsune"
+      ],
+      "hook": "Nine tails. Neon shrine.",
+      "scene": "A neon kitsune with nine tails at an electric torii shrine",
+      "print_ready": "chest/Rogers-Inc-Designs-kitsune-neon-nine-tail-shrine-front-4500x5400.png"
+    },
+    {
+      "slug": "chest-tengu-storm-chrome-crow",
+      "name": "Chrome Crow Storm",
+      "listing_name": "Tengu Storm: Chrome Crow \u2014 chest print",
+      "series": "ronin-rain",
+      "series_name": "Ronin Rain",
+      "templates": {},
+      "etsy": {},
+      "collection": "chest-dtg",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "ready",
+      "tags": [
+        "ronin-rain",
+        "tengu"
+      ],
+      "hook": "Chrome crow. Storm tengu.",
+      "scene": "A chrome tengu crow cutting through purple storm lightning",
+      "print_ready": "chest/Rogers-Inc-Designs-tengu-storm-chrome-crow-front-4500x5400.png"
+    },
+    {
+      "slug": "chest-astral-fox-empress",
+      "name": "Astral Fox Empress",
+      "listing_name": "Starbound: Astral Fox Empress \u2014 chest print",
+      "series": "starbound-sirens",
+      "series_name": "Starbound",
+      "templates": {},
+      "etsy": {},
+      "collection": "chest-dtg",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "ready",
+      "tags": [
+        "starbound-sirens",
+        "fox"
+      ],
+      "hook": "Crown of the astral fox.",
+      "scene": "An astral fox empress crowned in pink blossoms against a violet nebula",
+      "print_ready": "chest/Rogers-Inc-Designs-astral-fox-empress-front-4500x5400.png"
     }
   ]
 }
