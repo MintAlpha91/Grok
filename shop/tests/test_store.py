@@ -189,9 +189,16 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(aop["sub"], "AOP Heroes")
         self.assertEqual(aop["intro"], "All-over print tees that wrap the full scene edge to edge — original anime art cut for cloth, designed in Australia.")
         screens = next(item for item in public["collections"] if item["id"] == "living-screens")
-        self.assertEqual(screens["status"], "upcoming")
-        self.assertEqual(screens["count"], 0)
+        self.assertEqual(screens["status"], "live")
+        self.assertGreaterEqual(screens["count"], 10)
         self.assertIn("wallpaper packs", screens["intro"])
+        screen_cards = [item for item in public["products"] if item["collection"] == "living-screens"]
+        self.assertEqual(len(screen_cards), screens["count"])
+        self.assertEqual(len([item for item in screen_cards if item["series"] == "crimson-sun"]), 9)
+        self.assertEqual(len([item for item in screen_cards if item["series"] == "quiet-rain"]), 8)
+        self.assertTrue(all(item["status"] == "live" and item["image"] for item in screen_cards))
+        self.assertIn("wallpaper-quiet-ramen-steam-alley", {item["slug"] for item in screen_cards})
+        self.assertIn("wallpaper-crimson-the-last-ronin", {item["slug"] for item in screen_cards})
         rain = next(item for item in public["series"] if item["id"] == "quiet-rain")
         self.assertIn("Soft weather, sharp silence", rain["blurb"])
         self.assertEqual(aop["status"], "live")
@@ -284,7 +291,7 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertTrue(all(item.get("status") == "held" for item in stored["products"] if item["slug"] in {"fuel-pump", "fuel-gauge", "fuel-stoner", "fuel-prices"}))
         self.assertEqual(
             [item["label"] for item in public["series"]],
-            ["Ronin Rain", "Quiet Rain", "Crimson Sun", "Crimson Oni", "Neon Cyberpunk", "Brush & Smoke", "Biomechanical", "New concepts", "Blackletter", "As High As Fuel"],
+            ["Ronin Rain", "Quiet Rain", "Starbound", "Crimson Sun", "Crimson Oni", "Neon Cyberpunk", "Brush & Smoke", "Biomechanical", "New concepts", "Blackletter", "As High As Fuel"],
         )
         script = (ROOT / "public" / "js" / "app.js").read_text(encoding="utf-8")
         html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
@@ -375,6 +382,10 @@ class CopyAndPriceTests(unittest.TestCase):
             quote_lines([{"slug": "starbound-nebula-queen", "fabric": "poly", "size": "M", "qty": 1}])
         with self.assertRaises(ShopError):
             quote_lines([{"slug": "chest-starbound-nebula-queen", "fabric": "chest", "size": "M", "qty": 1}])
+        wallpaper = quote_lines([{"slug": "wallpaper-crimson-the-last-ronin", "fabric": "wallpaper", "size": "Download", "qty": 1}])
+        self.assertEqual(wallpaper["lines"][0]["unit_cents"], 1200)
+        quiet_wall = quote_lines([{"slug": "wallpaper-quiet-ramen-steam-alley", "fabric": "wallpaper", "size": "Download", "qty": 1}])
+        self.assertEqual(quiet_wall["lines"][0]["unit_cents"], 1200)
         fox = quote_lines([{"slug": "astral-fox-empress", "fabric": "poly", "size": "M", "qty": 1}])
         self.assertEqual(fox["lines"][0]["unit_cents"], 6500)
         blade = quote_lines([{"slug": "quiet-blade", "fabric": "chest", "size": "M", "qty": 1}])

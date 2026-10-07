@@ -17,6 +17,8 @@ LOCKED_PRICES = {
     "poly": {"price_cents": 6500, "premiums_cents": {"2XL": 400}, "price_2xl_cents": 6900},
     "cotton": {"price_cents": 7100, "premiums_cents": {"2XL": 400}, "price_2xl_cents": 7500},
     "chest": {"price_cents": 4700, "premiums_cents": {"2XL": 400, "3XL": 700}},
+    # Pack price from the Crimson Sun and Quiet Rain pack.json files. GST inclusive.
+    "wallpaper": {"price_cents": 1200, "premiums_cents": {}},
 }
 
 STATES = ("NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT")
@@ -173,12 +175,18 @@ def public_product(catalog: dict, copy: dict, product: dict) -> dict:
     for fabric_id in product_fabrics(catalog, product):
         fabric = catalog["fabrics"][fabric_id]
         base, premium = fabric_price(catalog, product, fabric_id)
-        template_key = "blurb_template_dtg" if fabric.get("kind") == "dtg" else "blurb_template"
+        if fabric.get("kind") == "dtg":
+            template_key = "blurb_template_dtg"
+        elif fabric.get("kind") == "digital":
+            template_key = "blurb_template_wallpaper"
+        else:
+            template_key = "blurb_template"
         template = copy.get(template_key) or copy["blurb_template"]
         row = {
             "id": fabric_id,
             "label": fabric["label"],
             "phrase": fabric["phrase"],
+            "kind": fabric.get("kind", ""),
             "status": fabric.get("status", "live"),
             "price_cents": base,
             "price_2xl_cents": premium,

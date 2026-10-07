@@ -322,7 +322,10 @@ function renderShop(catalog, route) {
   const inCollection = collection === "all"
     ? catalog.products
     : catalog.products.filter((item) => item.collection === collection);
-  const seriesInView = catalog.series.filter((item) => collection === "all" || item.collection === collection);
+  const seriesInView = catalog.series.filter((item) => {
+    if (collection === "all") return true;
+    return catalog.products.some((product) => product.collection === collection && product.series === item.id);
+  });
   const knownSeries = seriesInView.some((item) => item.id === route.series);
   const series = route.series === "all" || !knownSeries ? "all" : route.series;
   const products = series === "all" ? inCollection : inCollection.filter((item) => item.series === series);
@@ -399,8 +402,9 @@ function renderProduct(catalog, route) {
   setTitle(`${design.name} — Rogers Inc Designs`, `${design.hook} Free shipping in Australia.`);
   const fabric = design.fabrics.some((item) => item.id === route.fabric) ? route.fabric : design.fabrics[0].id;
   const selected = fabricRow(design, fabric);
+  const digital = selected && selected.kind === "digital";
   const sizes = selected.sizes || catalog.sizes;
-  const size = sizes.includes(route.size) ? route.size : "";
+  const size = digital ? "Download" : (sizes.includes(route.size) ? route.size : "");
   const price = unitCents(design, fabric, size || "M");
   const shown = size ? price : selected.price_cents;
   const extra = size && selected.premiums_cents ? selected.premiums_cents[size] : 0;
@@ -419,8 +423,8 @@ function renderProduct(catalog, route) {
     ])
   )));
   const form = el("form", { id: "buy" }, [
-    el("fieldset", { class: "choice" }, [el("legend", {}, "Fabric"), fabricPills]),
-    el("fieldset", { class: "choice" }, [el("legend", {}, "Size"), sizePills]),
+    el("fieldset", { class: "choice" }, [el("legend", {}, digital ? "Format" : "Fabric"), fabricPills]),
+    digital ? null : el("fieldset", { class: "choice" }, [el("legend", {}, "Size"), sizePills]),
     el("p", { class: "price", id: "price", "aria-live": "polite" }, money(shown)),
     el("p", { class: "note" }, extra ? `${size} is +${money(extra)}.` : catalog.footer[2]),
     el("label", { class: "qty" }, ["Quantity", el("input", { name: "qty", type: "number", min: "1", max: "4", value: "1" })]),
@@ -440,7 +444,7 @@ function renderProduct(catalog, route) {
     event.preventDefault();
     if (design.status === "upcoming") return;
     const data = new FormData(form);
-    const chosen = data.get("size");
+    const chosen = digital ? "Download" : data.get("size");
     const added = document.getElementById("added");
     if (!chosen) {
       added.textContent = "Choose a size.";
@@ -481,11 +485,13 @@ function renderProduct(catalog, route) {
       el("p", { class: "hook" }, design.hook),
       el("p", { class: "blurb" }, design.blurbs[fabric]),
       design.status === "upcoming" ? null : form,
-      el("p", { class: "note" }, [
-        (selected.size_note || catalog.size_note).split("size guide")[0],
-        el("a", { href: "/shipping#size-guide" }, "size guide"),
-        (selected.size_note || catalog.size_note).split("size guide")[1] || "",
-      ]),
+      digital
+        ? el("p", { class: "note" }, selected.size_note || "Digital wallpaper. No shirt size.")
+        : el("p", { class: "note" }, [
+          (selected.size_note || catalog.size_note).split("size guide")[0],
+          el("a", { href: "/shipping#size-guide" }, "size guide"),
+          (selected.size_note || catalog.size_note).split("size guide")[1] || "",
+        ]),
       etsy,
       ...held,
       ...addons,
