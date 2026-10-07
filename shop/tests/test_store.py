@@ -17,6 +17,7 @@ from store.catalog import (  # noqa: E402
     LOCKED_PRICES,
     ShopError,
     blurb,
+    catalog_listed,
     load_catalog,
     load_copy,
     presented_collection_status,
@@ -130,7 +131,7 @@ class CopyAndPriceTests(unittest.TestCase):
     def test_each_design_has_poly_and_cotton_mockups(self):
         catalog = load_catalog()
         public = public_catalog(checkout_public())
-        visible = [item for item in catalog["products"] if item.get("status", "live") in {"live", "preview"}]
+        visible = [item for item in catalog["products"] if catalog_listed(item)]
         self.assertEqual(len(public["products"]), len(visible))
         self.assertGreaterEqual(len(public["products"]), 8)
         full_bleed = [item for item in public["products"] if item["collection"] == "aop"]
@@ -204,8 +205,9 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(public["shop"]["more"], "More designs coming.")
         stored = load_catalog()
         fuel = next(item for item in public["collections"] if item["id"] == "fuel")
-        self.assertEqual(fuel["status"], "preview")
-        self.assertEqual(fuel["count"], 10)
+        self.assertEqual(fuel["status"], "upcoming")
+        self.assertNotEqual(fuel["status"], "live")
+        self.assertEqual(fuel["count"], 1)
         self.assertEqual(fuel["landing"], "as-high-as-fuel")
         self.assertEqual(fuel["label"], "As High As Fuel")
         gothic = next(item for item in public["collections"] if item["id"] == "gothic-blackletter")
@@ -228,13 +230,17 @@ class CopyAndPriceTests(unittest.TestCase):
         public_slugs = {item["slug"] for item in public["products"]}
         self.assertIn("kitsune-neon-nine-tail-shrine", public_slugs)
         self.assertIn("blood-covenant", public_slugs)
-        self.assertIn("too-high-to-care", public_slugs)
+        self.assertNotIn("too-high-to-care", public_slugs)
         self.assertIn("chest-starbound-nebula-queen", public_slugs)
         self.assertNotIn("astral-fox-empress", public_slugs)
         for held in ("starbound-nebula-queen", "quiet-blade", "half-machine-skull", "fuel-pump"):
             self.assertNotIn(held, public_slugs)
         fuel_card = next(item for item in public["products"] if item["slug"] == "as-high-as-fuel")
-        self.assertEqual(fuel_card["status"], "preview")
+        self.assertEqual(fuel_card["status"], "upcoming")
+        self.assertEqual(
+            [item["slug"] for item in public["products"] if item["collection"] == "fuel"],
+            ["as-high-as-fuel"],
+        )
         self.assertEqual(fuel_card["gallery"], [
             "/mockups/as-high-as-fuel-chest.jpg",
             "/mockups/as-high-as-fuel-heather.jpg",
@@ -316,8 +322,10 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(chest_2xl["lines"][0]["unit_cents"], 5400)
         preview_quote = quote_lines([{"slug": "void-king", "fabric": "chest", "size": "M", "qty": 1}])
         self.assertEqual(preview_quote["lines"][0]["unit_cents"], 4700)
-        fuel_quote = quote_lines([{"slug": "as-high-as-fuel", "fabric": "chest", "size": "M", "qty": 1}])
-        self.assertEqual(fuel_quote["lines"][0]["unit_cents"], 4700)
+        with self.assertRaises(ShopError):
+            quote_lines([{"slug": "as-high-as-fuel", "fabric": "chest", "size": "M", "qty": 1}])
+        with self.assertRaises(ShopError):
+            quote_lines([{"slug": "too-high-to-care", "fabric": "chest", "size": "M", "qty": 1}])
         with self.assertRaises(ShopError):
             quote_lines([{"slug": "fuel-pump", "fabric": "chest", "size": "M", "qty": 1}])
         with self.assertRaises(ShopError):

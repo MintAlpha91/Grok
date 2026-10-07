@@ -146,11 +146,11 @@
       "landing": "as-high-as-fuel",
       "name": "As High As Fuel",
       "label": "As High As Fuel",
-      "status": "preview",
+      "status": "upcoming",
       "sub": "slow burns & night drives",
       "example": "As High As Fuel",
       "intro": "slow burns & night drives",
-      "detail": "Chest print, AU$47. Preview until this lane is cleared. As High As The Price Of Fuel is shown in white and heather.",
+      "detail": "One design so far: As High As The Price Of Fuel, white and heather. Not the storefront. More Fuel designs when they are supplied.",
       "fabric": "chest"
     },
     {
@@ -966,7 +966,8 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
+      "surface": "single",
       "tags": [
         "fuel"
       ],
@@ -1179,7 +1180,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "fuel"
       ],
@@ -1198,7 +1199,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "fuel"
       ],
@@ -1217,7 +1218,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "fuel"
       ],
@@ -1236,7 +1237,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "fuel"
       ],
@@ -1255,7 +1256,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "fuel"
       ],
@@ -1274,7 +1275,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "fuel"
       ],
@@ -1293,7 +1294,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "fuel"
       ],
@@ -1312,7 +1313,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "fuel"
       ],
@@ -1331,7 +1332,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "fuel"
       ],

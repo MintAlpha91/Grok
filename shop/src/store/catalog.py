@@ -86,6 +86,13 @@ def shop_visible(product: dict) -> bool:
     return product.get("status", "live") in {"live", "preview"}
 
 
+def catalog_listed(product: dict) -> bool:
+    """Shop cards, including one upcoming design that cannot be ordered."""
+    if shop_visible(product):
+        return True
+    return product.get("status") == "upcoming" and product.get("surface") == "single"
+
+
 def presented_collection_status(status: str, count: int, floor: int = COLLECTION_FLOOR) -> str:
     """A thin lane is ready to list, not the public storefront."""
     if status == "live" and count < floor:
@@ -242,7 +249,7 @@ def public_catalog(checkout: dict) -> dict:
         "products": [
             public_product(catalog, copy, item)
             for item in catalog["products"]
-            if shop_visible(item)
+            if catalog_listed(item)
         ],
     }
 
@@ -295,7 +302,7 @@ def public_fabrics(catalog: dict) -> list[dict]:
 def public_collections(catalog: dict) -> list[dict]:
     counts: dict[str, int] = {}
     for product in catalog["products"]:
-        if not shop_visible(product):
+        if not catalog_listed(product):
             continue
         collection_id = product.get("collection")
         counts[collection_id] = counts.get(collection_id, 0) + 1
@@ -331,7 +338,7 @@ def public_series(catalog: dict) -> list[dict]:
     seen = []
     rows = []
     for product in catalog["products"]:
-        if not shop_visible(product):
+        if not catalog_listed(product):
             continue
         if product.get("collection") in hidden:
             continue

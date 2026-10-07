@@ -299,6 +299,7 @@ function card(design) {
     el("p", { class: "hook" }, design.hook),
     el("p", { class: "meta" }, prices),
     design.status === "preview" ? el("p", { class: "meta" }, "Preview") : null,
+    design.status === "upcoming" ? el("p", { class: "meta" }, "Coming") : null,
   ]);
 }
 
@@ -434,6 +435,7 @@ function renderProduct(catalog, route) {
   });
   form.addEventListener("submit", (event) => {
     event.preventDefault();
+    if (design.status === "upcoming") return;
     const data = new FormData(form);
     const chosen = data.get("size");
     const added = document.getElementById("added");
@@ -472,9 +474,10 @@ function renderProduct(catalog, route) {
       el("p", { class: "series-name" }, design.series_name),
       el("h1", {}, design.name),
       design.status === "preview" ? el("p", { class: "note" }, "Preview. Held for go-live until this lane is cleared.") : null,
+      design.status === "upcoming" ? el("p", { class: "note" }, "Coming. One design so far. This lane is not the storefront until it has at least 10.") : null,
       el("p", { class: "hook" }, design.hook),
       el("p", { class: "blurb" }, design.blurbs[fabric]),
-      form,
+      design.status === "upcoming" ? null : form,
       el("p", { class: "note" }, [
         (selected.size_note || catalog.size_note).split("size guide")[0],
         el("a", { href: "/shipping#size-guide" }, "size guide"),
