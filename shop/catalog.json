@@ -32,6 +32,7 @@
       "name": "Matching wallpapers",
       "status": "held",
       "with_shirt_cents": 1000,
+      "line": "Same scene. Wear it or wallpaper it.",
       "note": "AU$10 with a tee, inside the AU$8–12 band, about 15% under a tee plus the wallpaper pack bought separately. The files are not on this site yet, so the add-on cannot be ordered."
     }
   ],
@@ -76,12 +77,12 @@
     {
       "id": "aop",
       "landing": "aop",
-      "name": "All-over print",
-      "label": "AOP wave",
+      "name": "Full Bleed",
+      "label": "Full Bleed",
       "status": "live",
       "fabric": "poly",
-      "intro": "Eight designs. Full-bleed polyester. Printed edge to edge.",
-      "detail": "Polyester is AU$69 (2XL AU$73). Free shipping in Australia. Cotton is AU$75 and opens after the first sales."
+      "intro": "Eight designs. Full bleed. Edge to edge.",
+      "detail": "Polyester hits with colour and wraps the shirt. AU$69, 2XL +AU$4. Cotton is a softer hand, matte, AU$75, and opens after the first sales."
     },
     {
       "id": "chest-dtg",
@@ -90,17 +91,19 @@
       "label": "Chest print",
       "status": "upcoming",
       "fabric": "chest",
+      "example": "City rain. Neon veins.",
       "intro": "One collector lane. Chest print, AU$49.",
-      "detail": "The first design is not in the catalog yet."
+      "detail": "Neon and Ronin Rain, when the first chest design is in. Nothing in this lane is on sale yet."
     },
     {
       "id": "gothic-blackletter",
-      "landing": "gothic-blackletter",
-      "name": "Gothic blackletter",
-      "label": "Gothic blackletter tees",
+      "landing": "blackletter",
+      "name": "Blackletter",
+      "label": "Blackletter",
       "status": "upcoming",
-      "intro": "Gothic blackletter tees.",
-      "detail": "A collection page for blackletter lettering, search, and gifts. Nothing in this lane is on sale yet."
+      "sub": "Gothic industrial type.",
+      "intro": "Gothic industrial type.",
+      "detail": "Heavy type, cut for cloth. Nothing in this lane is on sale yet."
     },
     {
       "id": "stoner",
@@ -108,49 +111,71 @@
       "name": "As High As Fuel",
       "label": "As High As Fuel",
       "status": "upcoming",
+      "sub": "slow burns & night drives",
       "example": "As High As Fuel",
-      "intro": "As High As Fuel.",
-      "detail": "The stoner line, on its own page for search and gifts. Nothing in this lane is on sale yet."
+      "intro": "slow burns & night drives",
+      "detail": "The stoner line. Nothing in this lane is on sale yet."
     },
     {
       "id": "calligraphy",
-      "landing": "calligraphy",
-      "name": "Calligraphy and brush",
-      "label": "Calligraphy and brush",
+      "landing": "brush-and-smoke",
+      "name": "Brush & Smoke",
+      "label": "Brush & Smoke",
       "status": "upcoming",
-      "intro": "Calligraphy and brush.",
-      "detail": "Brush lettering, when those designs are ready. Nothing in this lane is on sale yet."
+      "sub": "Calligraphy and brush ink.",
+      "intro": "Calligraphy and brush ink.",
+      "detail": "Ink and smoke. Nothing in this lane is on sale yet."
+    },
+    {
+      "id": "living-screens",
+      "landing": "living-screens",
+      "name": "Living Screens",
+      "label": "Living Screens",
+      "status": "upcoming",
+      "sub": "Digital wallpaper packs.",
+      "intro": "Digital wallpaper packs.",
+      "detail": "Same scene. Wear it or wallpaper it. Packs are not on sale until the files are up."
+    },
+    {
+      "id": "night-shift",
+      "landing": "night-shift",
+      "name": "Night Shift",
+      "label": "Night Shift",
+      "status": "upcoming",
+      "sub": "Seasonal after-dark drops.",
+      "intro": "Seasonal after-dark drops.",
+      "detail": "A seasonal lane. Not an adults-only shop. Nothing here yet."
     }
   ],
   "series": [
     {
-      "id": "crimson-sun",
-      "label": "Crimson Sun — The Last Ronin",
-      "collection": "aop"
-    },
-    {
-      "id": "oni-mask",
-      "label": "Oni Mask — Crimson Oni Vigil",
+      "id": "ronin-rain",
+      "label": "Ronin Rain",
       "collection": "aop"
     },
     {
       "id": "quiet-rain",
-      "label": "Quiet Rain — Umbrella Crossing · Window Seat",
+      "label": "Quiet Rain",
       "collection": "aop"
     },
     {
       "id": "starbound-sirens",
-      "label": "Starbound Sirens — Nebula Queen",
+      "label": "Starbound",
+      "collection": "aop"
+    },
+    {
+      "id": "crimson-sun",
+      "label": "Crimson Sun",
+      "collection": "aop"
+    },
+    {
+      "id": "oni-mask",
+      "label": "Crimson Oni",
       "collection": "aop"
     },
     {
       "id": "neon-cyberpunk",
-      "label": "Neon Cyberpunk — Dual Blade Alley",
-      "collection": "aop"
-    },
-    {
-      "id": "ronin-rain",
-      "label": "Ronin Rain — Ghost Armour · Last Stand at the Gate",
+      "label": "Neon Cyberpunk",
       "collection": "aop"
     }
   ],
@@ -173,7 +198,7 @@
       "tags": [
         "crimson-sun"
       ],
-      "hook": "Black. Red. Nothing else.",
+      "hook": "Last man standing under a blood-red sky.",
       "scene": "A lone ronin stands against a blood-red sun, with red filling the shirt right up to the collar"
     },
     {
@@ -181,7 +206,7 @@
       "name": "Crimson Oni Vigil",
       "listing_name": "Oni Mask: Crimson Oni Vigil",
       "series": "oni-mask",
-      "series_name": "Oni Mask",
+      "series_name": "Crimson Oni",
       "templates": {},
       "etsy": {},
       "collection": "aop",
@@ -189,7 +214,7 @@
       "tags": [
         "oni-mask"
       ],
-      "hook": "Pick your mask.",
+      "hook": "The mask doesn't sleep. Neither should you.",
       "scene": "The Crimson Oni is a horned Japanese demon mask in gold and blood red"
     },
     {
@@ -205,7 +230,7 @@
       "tags": [
         "quiet-rain"
       ],
-      "hook": "Rain on the crossing. Nowhere to be.",
+      "hook": "Soft weather, sharp silence.",
       "scene": "A lone figure with a clear umbrella stands on a rain-soaked crosswalk, with purple city lights glowing in the wet street"
     },
     {
@@ -221,7 +246,7 @@
       "tags": [
         "quiet-rain"
       ],
-      "hook": "Steaming ramen. Cold rain. Window seat.",
+      "hook": "Soft weather, sharp silence.",
       "scene": "A girl in a hoodie sits by a rain-streaked window with a steaming bowl of ramen and the city lights beyond"
     },
     {
@@ -229,7 +254,7 @@
       "name": "Nebula Queen",
       "listing_name": "Starbound Sirens: Nebula Queen",
       "series": "starbound-sirens",
-      "series_name": "Starbound Sirens",
+      "series_name": "Starbound",
       "templates": {},
       "etsy": {},
       "collection": "aop",
@@ -237,7 +262,7 @@
       "tags": [
         "starbound-sirens"
       ],
-      "hook": "Every galaxy needs a queen.",
+      "hook": "Starbound royalty, zero apology.",
       "scene": "A crowned queen with a golden halo sits on a throne of crystal against a pink and indigo nebula"
     },
     {
@@ -253,7 +278,7 @@
       "tags": [
         "neon-cyberpunk"
       ],
-      "hook": "Magenta in one hand. Cyan in the other.",
+      "hook": "Two blades. One alley. Nowhere left to hide.",
       "scene": "A hooded, masked fighter crouches low in a flooded, rain-soaked alley with a glowing magenta blade in one hand and a cyan blade in the other, both fully in view"
     },
     {
@@ -269,7 +294,7 @@
       "tags": [
         "ronin-rain"
       ],
-      "hook": "No one's inside. It's still on guard.",
+      "hook": "Empty steel that still walks.",
       "scene": "An empty suit of samurai armour stands front and centre, glowing magenta and cyan in a rain-soaked back alley"
     },
     {
@@ -285,7 +310,7 @@
       "tags": [
         "ronin-rain"
       ],
-      "hook": "Nowhere left to retreat.",
+      "hook": "Hold the line or lose the night.",
       "scene": "A straw-hatted ronin stands large in the foreground as a rank of shadowed warriors gathers beneath a torii gate, with a neon city glowing through the rain behind them"
     }
   ]

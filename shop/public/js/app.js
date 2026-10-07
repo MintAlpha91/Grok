@@ -87,7 +87,7 @@ function art(design, fabricId) {
   if (src) {
     const label = fabric ? fabric.label : "Polyester";
     return el("div", { class: `art art-${design.slug}` }, [
-      el("img", { src, alt: `${design.name}, ${label} all-over print tee` }),
+      el("img", { src, alt: `${design.name}, ${label} tee` }),
     ]);
   }
   return el("div", { class: `art art-${design.slug}`, "aria-hidden": "true" }, [
@@ -199,11 +199,30 @@ function pageHead(title, paragraphs) {
   ]);
 }
 
+function heroKicker(lines) {
+  const copy = lines && lines.length ? lines : [];
+  const kicker = el("p", { class: "kicker" }, copy[0] || "");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reduce && copy.length > 1) {
+    let index = 0;
+    const timer = window.setInterval(() => {
+      if (!kicker.isConnected) {
+        window.clearInterval(timer);
+        return;
+      }
+      index = (index + 1) % copy.length;
+      kicker.textContent = copy[index];
+    }, 4200);
+  }
+  return kicker;
+}
+
 function renderHome(catalog) {
   setTitle(catalog.seo.title, catalog.seo.meta);
   const series = el("section", { class: "series wrap", id: "series" }, catalog.collections.map((item) => (
     el("a", { href: collectionPath(item) }, [
       item.label,
+      item.sub ? el("span", { class: "lane-sub" }, item.sub) : null,
       item.status === "upcoming" ? el("span", { class: "lane-status" }, "Coming") : null,
     ])
   )));
@@ -211,7 +230,7 @@ function renderHome(catalog) {
   return [
     el("section", { class: "hero wrap" }, [
       el("img", { class: "hero-banner", src: "/brand/banner.png", alt: "Rogers Inc Designs" }),
-      el("p", { class: "kicker" }, catalog.shop.collection),
+      heroKicker(catalog.home.rotating),
       el("h1", {}, catalog.home.headline),
       el("p", { class: "sub" }, catalog.home.sub),
       el("div", { class: "actions" }, [
@@ -313,7 +332,7 @@ function renderCollection(catalog, route) {
     item.example ? `Nothing in this lane yet. Example: ${item.example}.` : "Nothing in this lane yet."
   ));
   return [
-    pageHead(item.name, [item.intro, item.detail].filter(Boolean)),
+    pageHead(item.name, [item.sub, item.intro, item.detail].filter((text, index, list) => text && list.indexOf(text) === index)),
     ladder || omitted ? el("section", { class: "prose wrap" }, [ladder, omitted].filter(Boolean)) : null,
     empty,
     el("section", { class: "grid wrap" }, products.map(card)),
@@ -388,7 +407,10 @@ function renderProduct(catalog, route) {
     const when = item.status === "after_first_sales" ? "after the first sales" : "not on sale yet";
     return el("p", { class: "note" }, `${item.label} · ${money(item.price_cents)} · ${when}.`);
   });
-  const addons = (catalog.addons || []).map((item) => el("p", { class: "note" }, item.note));
+  const addons = (catalog.addons || []).flatMap((item) => [
+    item.line ? el("p", { class: "hook" }, item.line) : null,
+    item.note ? el("p", { class: "note" }, item.note) : null,
+  ]);
 
   return [el("article", { class: "product wrap" }, [
     art(design, fabric),

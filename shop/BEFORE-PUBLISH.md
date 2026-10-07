@@ -12,7 +12,7 @@ Also still open:
 - This server stores the order. It does not send the “we’ll email when it ships” message itself.
 - Shirt photos are the Printful mockups in `public/mockups/{slug}-aop-poly.jpg` and `{slug}-aop-cotton.jpg`. Pin crops for six designs are in the same folder.
 - Scene sentences live on each product in `catalog.json`. They were carried from the Etsy listing pack into Marketing’s blurb template. Marketing can replace `products.*.scene`.
-- The first live collection is the AOP wave. Gothic blackletter, stoner, and calligraphy are upcoming collections in the same file. “As High As Fuel” is an example on the stoner lane, not a product.
+- The live collection nav label is Full Bleed. Blackletter, As High As Fuel, Brush & Smoke, Living Screens, and Night Shift are upcoming collection pages. “As High As Fuel” is the stoner lane, not a priced product. Night Shift is seasonal, not an adults-only lane.
 - Remove `<meta name="robots" content="noindex">` when payments are on and the shop should be indexed. Demo and off modes keep the shop out of search.
 
 Demo checkout does not charge a card and does not send anything to print.

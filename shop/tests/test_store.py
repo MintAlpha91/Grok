@@ -65,7 +65,7 @@ class CopyAndPriceTests(unittest.TestCase):
     def test_brand_is_rogers_inc_and_elemental_wood_is_etsy_only(self):
         copy = load_copy()
         public = json.dumps(public_catalog(checkout_public()), ensure_ascii=False)
-        self.assertEqual(copy["seo"]["title"], "Rogers Inc Designs — All-Over Print Anime Tees")
+        self.assertEqual(copy["seo"]["title"], "Rogers Inc Designs — Full-Bleed Anime Tees")
         self.assertTrue(copy["seo"]["meta"].startswith("Rogers Inc Designs —"))
         self.assertTrue(copy["about"].startswith("Rogers Inc Designs is the brand."))
         self.assertIn("Elemental Wood is our Etsy shop name", copy["about"])
@@ -76,13 +76,13 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertNotIn("Elemental Wood", copy["home"]["sub"])
         self.assertNotIn("Elemental Wood", " ".join(copy["footer"]))
         self.assertNotIn("Elemental Wood", copy["shop"]["intro"])
-        self.assertIn("Wear the whole scene.", public)
+        self.assertIn("Wear the scene. Own the night.", public)
         self.assertIsNone(copy["_meta"]["contact_email"])
         self.assertIsNone(copy["_meta"]["remake_window_confirmed"])
 
     def test_homepage_html_uses_rogers_inc_title(self):
         html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
-        self.assertIn("Rogers Inc Designs — All-Over Print Anime Tees", html)
+        self.assertIn("Rogers Inc Designs — Full-Bleed Anime Tees", html)
         self.assertIn('src="/brand/logo.png"', html)
         self.assertIn('src="/brand/mini-banner.png"', html)
         self.assertIn("Rogers Inc", html)
@@ -113,7 +113,7 @@ class CopyAndPriceTests(unittest.TestCase):
     def test_lanes_are_data_not_a_fixed_page(self):
         public = public_catalog(checkout_public())
         ids = [item["id"] for item in public["collections"]]
-        self.assertEqual(ids, ["aop", "chest-dtg", "gothic-blackletter", "stoner", "calligraphy"])
+        self.assertEqual(ids, ["aop", "chest-dtg", "gothic-blackletter", "stoner", "calligraphy", "living-screens", "night-shift"])
         aop = next(item for item in public["collections"] if item["id"] == "aop")
         stoner = next(item for item in public["collections"] if item["id"] == "stoner")
         self.assertEqual(aop["count"], 8)
@@ -123,7 +123,15 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertEqual(stoner["example"], "As High As Fuel")
         self.assertEqual(stoner["landing"], "as-high-as-fuel")
         gothic = next(item for item in public["collections"] if item["id"] == "gothic-blackletter")
-        self.assertEqual(gothic["landing"], "gothic-blackletter")
+        self.assertEqual(gothic["landing"], "blackletter")
+        self.assertEqual(gothic["label"], "Blackletter")
+        self.assertEqual(next(item["label"] for item in public["collections"] if item["id"] == "aop"), "Full Bleed")
+        self.assertEqual(next(item["label"] for item in public["collections"] if item["id"] == "calligraphy"), "Brush & Smoke")
+        self.assertEqual(stoner["sub"], "slow burns & night drives")
+        self.assertEqual(
+            [item["label"] for item in public["series"]],
+            ["Ronin Rain", "Quiet Rain", "Starbound", "Crimson Sun", "Crimson Oni", "Neon Cyberpunk"],
+        )
         script = (ROOT / "public" / "js" / "app.js").read_text(encoding="utf-8")
         html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
         self.assertIn("catalog.products", script)
@@ -135,13 +143,14 @@ class CopyAndPriceTests(unittest.TestCase):
     def test_hooks_and_blurb_template(self):
         copy = load_copy()
         products = {item["slug"]: item for item in load_catalog()["products"]}
-        self.assertEqual(products["crimson-sun-last-ronin"]["hook"], "Black. Red. Nothing else.")
-        self.assertEqual(products["ronin-ghost-armour"]["hook"], "No one's inside. It's still on guard.")
+        self.assertEqual(products["crimson-sun-last-ronin"]["hook"], "Last man standing under a blood-red sky.")
+        self.assertEqual(products["ronin-ghost-armour"]["hook"], "Empty steel that still walks.")
+        self.assertEqual(products["neon-dual-blade-alley"]["hook"], "Two blades. One alley. Nowhere left to hide.")
         scene = products["quiet-rain-window-seat"]["scene"]
         poly = blurb(copy["blurb_template"], scene, "polyester")
         cotton = blurb(copy["blurb_template"], scene, "cotton")
-        self.assertIn("Printed edge to edge on a polyester all-over print tee.", poly)
-        self.assertIn("Printed edge to edge on a cotton all-over print tee.", cotton)
+        self.assertIn("Printed edge to edge on a polyester full-bleed tee.", poly)
+        self.assertIn("Printed edge to edge on a cotton full-bleed tee.", cotton)
         self.assertIn("Original Rogers Inc Designs artwork.", poly)
         self.assertNotIn("Elemental Wood", poly)
 
@@ -327,7 +336,7 @@ class ServerTests(unittest.TestCase):
     def test_catalog_and_demo_checkout_round_trip(self):
         status, body = self.get("/")
         self.assertEqual(status, 200)
-        self.assertIn("Rogers Inc Designs — All-Over Print Anime Tees", body)
+        self.assertIn("Rogers Inc Designs — Full-Bleed Anime Tees", body)
         self.assertNotIn("Elemental Wood", body)
         catalog = json.loads(self.get("/api/catalog")[1])
         self.assertEqual(catalog["checkout"]["mode"], "demo")

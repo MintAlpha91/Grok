@@ -8,26 +8,34 @@
     "contact_email": null,
     "remake_window_confirmed": null,
     "remake_window_draft": "within 7 days of delivery",
-    "catalog": "Lanes and products are catalog.json. The first live lane is the AOP wave."
+    "catalog": "Lanes and products are catalog.json. The live lane nav label is Full Bleed.",
+    "voice": "Writer pack, 7 Oct 2026. Marketing may refine. Default hero lead is fixed. rotating lines cycle under it."
   },
   "seo": {
-    "title": "Rogers Inc Designs — All-Over Print Anime Tees",
-    "meta": "Rogers Inc Designs — original anime all-over print tees from Australia. Neon, ronin, oni, quiet rain, and stars. Free shipping in Australia."
+    "title": "Rogers Inc Designs — Full-Bleed Anime Tees",
+    "meta": "Rogers Inc Designs — original anime art for people who actually wear it. Full-bleed tees from Australia. Free shipping in Australia."
   },
   "home": {
-    "headline": "Wear the whole scene.",
-    "sub": "All-over print anime tees from Rogers Inc — neon rain, empty armour, twin blades, red sun. Printed edge to edge. Designed in Australia.",
+    "headline": "Wear the scene. Own the night.",
+    "sub": "Original anime art for people who actually wear it.",
+    "tagline_alt": "Full-print tees and digital packs — made here, not licensed.",
+    "rotating": [
+      "Original art. Full-bleed. Built to wear.",
+      "From the screen to the street — Rogers Inc Designs.",
+      "Dark ink. Brick heat. No franchise filler.",
+      "Wallpaper energy, cut for cloth."
+    ],
     "cta_primary": "Shop the tees",
     "cta_secondary": "See the series",
-    "alt": "Art on every inch. Free shipping in Australia."
+    "alt": "Free shipping in Australia."
   },
-  "about": "Rogers Inc Designs is the brand. Elemental Wood is our Etsy shop name for the same art — original anime-style art made in Australia. We start with wallpapers and all-over print tees: dark streets, neon rain, oni masks, quiet nights, and stars. No franchise art. Every tee is printed, cut and sewn to order, so the print can sit a little differently at the seams from shirt to shirt. That’s the point of a full-bleed piece.",
+  "about": "Rogers Inc Designs is the brand. Elemental Wood is our Etsy shop name for the same art — original anime-style art made in Australia. Dark ink, brick heat, no franchise filler. Tees are printed, cut and sewn to order, so a full-bleed piece can sit a little differently at the seams.",
   "shop": {
-    "intro": "Eight designs. Two fabrics. One full-bleed print.",
-    "fabrics": "Pick polyester for bright colour that holds up, or soft cotton for a matte everyday feel. Free shipping within Australia.",
-    "collection": "Tradition × tech. Magenta and cyan on black. Streetwear gallery energy."
+    "intro": "Eight designs. Full bleed. Edge to edge.",
+    "fabrics": "Polyester hits with colour and wraps the shirt. Cotton is a softer hand, matte, and opens after the first sales.",
+    "collection": "Original anime art for people who actually wear it."
   },
-  "blurb_template": "{scene}. Printed edge to edge on a {fabric} all-over print tee. Original Rogers Inc Designs artwork. Made to order. Free shipping in Australia.",
+  "blurb_template": "{scene}. Printed edge to edge on a {fabric} full-bleed tee. Original Rogers Inc Designs artwork. Made to order. Free shipping in Australia.",
   "size_note": "Sizes XS–2XL. 2XL is +AU$4. Check the size guide before you order — each shirt is printed, cut and sewn to order.",
   "size_chart_gap": "A measurement chart is not on this page yet. Compare with a tee you already wear.",
   "shipping": "Free shipping within Australia on all tees. Orders are made to order with our print partner, then posted to you. Allow production time before the parcel is on the road — we’ll email when it ships. Overseas postage is charged separately and is not switched on. Free shipping is Australia only.",

@@ -235,6 +235,7 @@ def public_addons(catalog: dict) -> list[dict]:
                 "name": item["name"],
                 "status": item.get("status", "held"),
                 "with_shirt_cents": item["with_shirt_cents"],
+                "line": item.get("line", ""),
                 "note": item.get("note", ""),
             }
         )
@@ -275,6 +276,7 @@ def public_collections(catalog: dict) -> list[dict]:
                 "name": item["name"],
                 "label": item.get("label") or item["name"],
                 "status": item.get("status", "live"),
+                "sub": item.get("sub", ""),
                 "intro": item.get("intro", ""),
                 "detail": item.get("detail", ""),
                 "example": item.get("example", ""),
@@ -305,6 +307,8 @@ def public_series(catalog: dict) -> list[dict]:
                 "collection": product.get("collection") or collections.get(series_id),
             }
         )
+    order = {item["id"]: index for index, item in enumerate(catalog.get("series", []))}
+    rows.sort(key=lambda row: order.get(row["id"], 100))
     return rows
 
 
