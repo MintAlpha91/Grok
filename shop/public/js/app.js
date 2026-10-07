@@ -76,10 +76,13 @@ function unitCents(design, fabricId, size) {
   return size === "2XL" ? fabric.price_2xl_cents : fabric.price_cents;
 }
 
-function art(design) {
-  if (design.image) {
+function art(design, fabricId) {
+  const fabric = fabricRow(design, fabricId || "poly");
+  const src = (fabric && fabric.mockup) || design.image;
+  if (src) {
+    const label = fabric ? fabric.label : "Polyester";
     return el("div", { class: `art art-${design.slug}` }, [
-      el("img", { src: design.image, alt: "" }),
+      el("img", { src, alt: `${design.name}, ${label} all-over print tee` }),
     ]);
   }
   return el("div", { class: `art art-${design.slug}`, "aria-hidden": "true" }, [
@@ -303,7 +306,7 @@ function renderProduct(catalog, route) {
   ]) : null;
 
   return [el("article", { class: "product wrap" }, [
-    art(design),
+    art(design, fabric),
     el("div", {}, [
       el("p", { class: "series-name" }, design.series_name),
       el("h1", {}, design.name),

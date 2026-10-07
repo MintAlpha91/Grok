@@ -90,6 +90,19 @@ class CopyAndPriceTests(unittest.TestCase):
         for name in ("logo.png", "banner.png", "mini-banner.png"):
             self.assertTrue((ROOT / "public" / "brand" / name).is_file())
 
+    def test_each_design_has_poly_and_cotton_mockups(self):
+        catalog = load_catalog()
+        public = public_catalog(checkout_public())
+        self.assertEqual(len(public["designs"]), 8)
+        for design in public["designs"]:
+            by_id = {item["id"]: item for item in design["fabrics"]}
+            for fabric_id in ("poly", "cotton"):
+                url = by_id[fabric_id]["mockup"]
+                self.assertEqual(url, f"/mockups/{design['slug']}-aop-{fabric_id}.jpg")
+                self.assertTrue((ROOT / "public" / url.lstrip("/")).is_file())
+            self.assertEqual(design["image"], by_id["poly"]["mockup"])
+        self.assertEqual(len(catalog["designs"]), 8)
+
     def test_hooks_and_blurb_template(self):
         copy = load_copy()
         self.assertEqual(copy["designs"]["crimson-sun-last-ronin"]["hook"], "Black. Red. Nothing else.")

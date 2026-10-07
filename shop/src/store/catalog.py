@@ -65,6 +65,7 @@ def public_design(catalog: dict, copy: dict, design: dict) -> dict:
                 "price_cents": fabric["price_cents"],
                 "price_2xl_cents": fabric["price_2xl_cents"],
                 "etsy_url": design.get("etsy", {}).get(fabric_id),
+                "mockup": mockup_url(slug, fabric_id),
             }
         )
     return {
@@ -79,8 +80,15 @@ def public_design(catalog: dict, copy: dict, design: dict) -> dict:
             "cotton": blurb(copy, slug, "cotton"),
         },
         "fabrics": fabrics,
-        "image": image_url(slug),
+        "image": mockup_url(slug, "poly") or image_url(slug),
     }
+
+
+def mockup_url(slug: str, fabric_id: str) -> str | None:
+    filename = f"{slug}-aop-{fabric_id}.jpg"
+    if (PUBLIC_PATH / "mockups" / filename).is_file():
+        return f"/mockups/{filename}"
+    return None
 
 
 def image_url(slug: str) -> str | None:

@@ -10,7 +10,7 @@ Jason still needs to confirm these. They are not invented on the site.
 Also still open:
 
 - This server stores the order. It does not send the “we’ll email when it ships” message itself.
-- Drop real mockups in `public/art/{slug}.jpg` (or `.png` / `.webp`). Until then the product panels are colour fields, not the artwork.
+- Shirt photos are the Printful mockups in `public/mockups/{slug}-aop-poly.jpg` and `{slug}-aop-cotton.jpg`. Pin crops for six designs are in the same folder.
 - Scene sentences in `web-copy.json` were carried from the Etsy listing pack into Marketing’s blurb template. Marketing can replace `designs.*.scene`.
 - Remove `<meta name="robots" content="noindex">` when payments are on and the shop should be indexed. Demo and off modes keep the shop out of search.
 
