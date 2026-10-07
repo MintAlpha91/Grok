@@ -394,9 +394,12 @@ class CopyAndPriceTests(unittest.TestCase):
             "chest-astral-fox-empress": "chest/Rogers-Inc-Designs-astral-fox-empress-front-4500x5400.png",
         }
         for slug, relative in pending_chest_print.items():
+            path = ROOT / "print-ready" / relative
             self.assertEqual(stored_slugs[slug]["status"], "live")
             self.assertEqual(stored_slugs[slug]["print_ready"], relative)
-            self.assertFalse((ROOT / "print-ready" / relative).is_file())
+            self.assertEqual(png_size(path), (4500, 5400))
+            self.assertEqual(path.read_bytes()[25], 2)
+            self.assertNotIn(path.name, json.dumps(public))
         missing_print = ()
         for slug in missing_print:
             self.assertNotIn("print_ready", stored_slugs[slug])
