@@ -79,6 +79,9 @@ def fabric_is_orderable(fabric: dict) -> bool:
 
 
 COLLECTION_FLOOR = 10
+# Design inventory: these lanes are short of ready art. Keep them off featured.
+SHORT_SERIES = {"crimson-sun", "quiet-rain"}
+OFF_FEATURED_COLLECTIONS = {"gothic-blackletter", "fuel"}
 
 
 def shop_visible(product: dict) -> bool:
@@ -93,10 +96,27 @@ def catalog_listed(product: dict) -> bool:
     return product.get("status") == "upcoming" and product.get("surface") == "single"
 
 
-def presented_collection_status(status: str, count: int, floor: int = COLLECTION_FLOOR) -> str:
-    """A thin lane is ready to list, not the public storefront."""
+def presented_collection_status(
+    status: str,
+    count: int,
+    collection_id: str = "",
+    floor: int = COLLECTION_FLOOR,
+) -> str:
+    """A thin lane is not the public storefront. Fuel and gothic stay off featured while short."""
+    if collection_id in OFF_FEATURED_COLLECTIONS and count < floor and status != "hidden":
+        return "upcoming" if collection_id == "fuel" else "preview"
     if status == "live" and count < floor:
         return "ready"
+    return status
+
+
+def presented_product_status(product: dict) -> str:
+    """Short series and off-featured lanes are preview cards, not the featured list."""
+    status = product.get("status", "live")
+    if status == "live" and (
+        product.get("series") in SHORT_SERIES or product.get("collection") in OFF_FEATURED_COLLECTIONS
+    ):
+        return "preview"
     return status
 
 
@@ -192,7 +212,7 @@ def public_product(catalog: dict, copy: dict, product: dict) -> dict:
         "series": product.get("series"),
         "series_name": product.get("series_name") or product.get("series") or "",
         "tags": product.get("tags") or [],
-        "status": product.get("status", "live"),
+        "status": presented_product_status(product),
         "hook": product.get("hook", ""),
         "blurbs": blurbs,
         "fabrics": fabrics,
@@ -311,7 +331,7 @@ def public_collections(catalog: dict) -> list[dict]:
         if item.get("status") == "hidden":
             continue
         count = counts.get(item["id"], 0)
-        status = presented_collection_status(item.get("status", "live"), count)
+        status = presented_collection_status(item.get("status", "live"), count, item["id"])
         rows.append(
             {
                 "id": item["id"],

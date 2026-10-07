@@ -25,6 +25,25 @@
       "hoodie": 7500,
       "aop_beanie": 4900,
       "flexfit": 5500
+    },
+    "ready_art": {
+      "floor": 10,
+      "source": "Design inventory",
+      "at_floor": {
+        "full-bleed": 22,
+        "living-screens": 48,
+        "oni-mask": 11,
+        "starbound-sirens": 11,
+        "neon-cyberpunk": 11,
+        "ronin-rain": 12
+      },
+      "short": {
+        "crimson-sun": 5,
+        "quiet-rain": 6,
+        "gothic-blackletter": 4,
+        "fuel": 1
+      },
+      "priority": ["crimson-sun", "quiet-rain", "gothic-blackletter", "fuel"]
     }
   },
   "offer": {
@@ -143,7 +162,7 @@
       "status": "preview",
       "sub": "Gothic industrial type.",
       "intro": "Gothic industrial type.",
-      "detail": "Chest print, AU$47. White tees. Preview until this lane is cleared.",
+      "detail": "Chest print, AU$47. Four ready designs. Not featured until this lane is closer to 10.",
       "fabric": "chest"
     },
     {
@@ -186,7 +205,7 @@
       "status": "upcoming",
       "sub": "Wallpapers",
       "intro": "Phone and desktop wallpaper packs built for real screens — same worlds as the tees, ready the moment you download.",
-      "detail": "The pack files are not on this site yet, so nothing here can be downloaded."
+      "detail": "Design counts 48 ready packs. The files are not on this site yet, so nothing here can be downloaded."
     },
     {
       "id": "night-shift",
@@ -277,7 +296,7 @@
         "poly": "https://www.etsy.com/listing/4589600597"
       },
       "collection": "aop",
-      "status": "live",
+      "status": "preview",
       "tags": [
         "crimson-sun"
       ],
@@ -313,7 +332,7 @@
         "poly": "https://www.etsy.com/listing/4589643322"
       },
       "collection": "aop",
-      "status": "live",
+      "status": "preview",
       "tags": [
         "quiet-rain"
       ],
@@ -331,7 +350,7 @@
         "poly": "https://www.etsy.com/listing/4589648070"
       },
       "collection": "aop",
-      "status": "live",
+      "status": "preview",
       "tags": [
         "quiet-rain"
       ],
@@ -347,7 +366,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "held",
+      "status": "preview",
       "tags": [
         "starbound-sirens"
       ],
@@ -420,7 +439,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "preview",
       "tags": [
         "crimson-sun"
       ],
@@ -458,7 +477,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "preview",
       "tags": [
         "quiet-rain"
       ],
@@ -477,7 +496,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "live",
+      "status": "preview",
       "tags": [
         "quiet-rain"
       ],
@@ -1071,7 +1090,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "gothic-blackletter"
       ],
@@ -1090,7 +1109,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "gothic-blackletter"
       ],
@@ -1109,7 +1128,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "gothic-blackletter"
       ],
@@ -1128,7 +1147,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "gothic-blackletter"
       ],
@@ -1147,7 +1166,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "gothic-blackletter"
       ],
@@ -1166,7 +1185,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "preview",
+      "status": "upcoming",
       "tags": [
         "gothic-blackletter"
       ],
