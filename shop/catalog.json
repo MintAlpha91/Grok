@@ -135,21 +135,23 @@
       "landing": "blackletter",
       "name": "Blackletter",
       "label": "Blackletter",
-      "status": "upcoming",
+      "status": "preview",
       "sub": "Gothic industrial type.",
       "intro": "Gothic industrial type.",
-      "detail": "Nothing in this lane is on sale yet."
+      "detail": "Chest print, AU$47. White tees. Preview until this lane is cleared.",
+      "fabric": "chest"
     },
     {
-      "id": "stoner",
+      "id": "fuel",
       "landing": "as-high-as-fuel",
       "name": "As High As Fuel",
       "label": "As High As Fuel",
-      "status": "hidden",
+      "status": "preview",
       "sub": "slow burns & night drives",
       "example": "As High As Fuel",
       "intro": "slow burns & night drives",
-      "detail": "Nothing in this lane is on sale yet."
+      "detail": "Chest print, AU$47. Preview until this lane is cleared. As High As The Price Of Fuel is shown in white and heather.",
+      "fabric": "chest"
     },
     {
       "id": "brush-smoke",
@@ -246,7 +248,7 @@
     {
       "id": "fuel",
       "label": "As High As Fuel",
-      "collection": "stoner"
+      "collection": "fuel"
     }
   ],
   "products": [
@@ -278,7 +280,9 @@
       "series": "oni-mask",
       "series_name": "Crimson Oni",
       "templates": {},
-      "etsy": {},
+      "etsy": {
+        "poly": "https://www.etsy.com/listing/4589629085"
+      },
       "collection": "aop",
       "status": "live",
       "tags": [
@@ -294,7 +298,9 @@
       "series": "quiet-rain",
       "series_name": "Quiet Rain",
       "templates": {},
-      "etsy": {},
+      "etsy": {
+        "poly": "https://www.etsy.com/listing/4589643322"
+      },
       "collection": "aop",
       "status": "live",
       "tags": [
@@ -310,7 +316,9 @@
       "series": "quiet-rain",
       "series_name": "Quiet Rain",
       "templates": {},
-      "etsy": {},
+      "etsy": {
+        "poly": "https://www.etsy.com/listing/4589648070"
+      },
       "collection": "aop",
       "status": "live",
       "tags": [
@@ -342,7 +350,9 @@
       "series": "neon-cyberpunk",
       "series_name": "Neon Cyberpunk",
       "templates": {},
-      "etsy": {},
+      "etsy": {
+        "poly": "https://www.etsy.com/listing/4589672162"
+      },
       "collection": "aop",
       "status": "live",
       "tags": [
@@ -358,7 +368,9 @@
       "series": "ronin-rain",
       "series_name": "Ronin Rain",
       "templates": {},
-      "etsy": {},
+      "etsy": {
+        "poly": "https://www.etsy.com/listing/4589667287"
+      },
       "collection": "aop",
       "status": "live",
       "tags": [
@@ -374,7 +386,9 @@
       "series": "ronin-rain",
       "series_name": "Ronin Rain",
       "templates": {},
-      "etsy": {},
+      "etsy": {
+        "poly": "https://www.etsy.com/listing/4589683278"
+      },
       "collection": "aop",
       "status": "live",
       "tags": [
@@ -639,7 +653,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "live",
+      "status": "upcoming",
       "tags": [
         "new-concepts"
       ],
@@ -655,7 +669,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "live",
+      "status": "upcoming",
       "tags": [
         "new-concepts"
       ],
@@ -671,7 +685,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "live",
+      "status": "upcoming",
       "tags": [
         "new-concepts"
       ],
@@ -680,12 +694,14 @@
     },
     {
       "slug": "kitsune-neon-nine-tail-shrine",
-      "name": "Kitsune Neon Shrine",
-      "listing_name": "Kitsune Neon Shrine",
+      "name": "Nine-Tail Neon Shrine",
+      "listing_name": "Nine-Tail Neon Shrine",
       "series": "new-concepts",
       "series_name": "New concepts",
       "templates": {},
-      "etsy": {},
+      "etsy": {
+        "poly": "https://www.etsy.com/listing/4590217396"
+      },
       "collection": "aop",
       "status": "live",
       "tags": [
@@ -703,7 +719,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "live",
+      "status": "upcoming",
       "tags": [
         "new-concepts"
       ],
@@ -719,7 +735,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "live",
+      "status": "upcoming",
       "tags": [
         "new-concepts"
       ],
@@ -735,7 +751,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "live",
+      "status": "upcoming",
       "tags": [
         "new-concepts"
       ],
@@ -751,7 +767,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "live",
+      "status": "upcoming",
       "tags": [
         "new-concepts"
       ],
@@ -767,7 +783,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "live",
+      "status": "upcoming",
       "tags": [
         "new-concepts"
       ],
@@ -783,7 +799,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "live",
+      "status": "upcoming",
       "tags": [
         "new-concepts"
       ],
@@ -799,7 +815,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "live",
+      "status": "upcoming",
       "tags": [
         "new-concepts"
       ],
@@ -815,7 +831,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "live",
+      "status": "upcoming",
       "tags": [
         "new-concepts"
       ],
@@ -831,7 +847,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "live",
+      "status": "upcoming",
       "tags": [
         "new-concepts"
       ],
@@ -847,7 +863,7 @@
       "templates": {},
       "etsy": {},
       "collection": "aop",
-      "status": "live",
+      "status": "upcoming",
       "tags": [
         "new-concepts"
       ],
@@ -866,7 +882,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "held",
+      "status": "preview",
       "tags": [
         "gothic-blackletter"
       ],
@@ -885,7 +901,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "held",
+      "status": "preview",
       "tags": [
         "gothic-blackletter"
       ],
@@ -904,7 +920,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "held",
+      "status": "preview",
       "tags": [
         "gothic-blackletter"
       ],
@@ -923,7 +939,7 @@
       "fabrics": [
         "chest"
       ],
-      "status": "held",
+      "status": "preview",
       "tags": [
         "gothic-blackletter"
       ],
@@ -937,17 +953,23 @@
       "series": "fuel",
       "series_name": "As High As Fuel",
       "templates": {},
-      "etsy": {},
-      "collection": "stoner",
+      "etsy": {
+        "chest": "https://www.etsy.com/listing/4590224889"
+      },
+      "collection": "fuel",
       "fabrics": [
         "chest"
       ],
-      "status": "held",
+      "status": "preview",
       "tags": [
         "fuel"
       ],
       "hook": "Still cheaper than filling the tank.",
-      "scene": "A green-hoodie character and the line As High As The Price Of Fuel, printed on a white tee"
+      "scene": "A green-hoodie character and the line As High As The Price Of Fuel, printed on a white tee",
+      "gallery": [
+        "as-high-as-fuel-chest.jpg",
+        "as-high-as-fuel-heather.jpg"
+      ]
     },
     {
       "slug": "fuel-pump",
@@ -957,7 +979,7 @@
       "series_name": "As High As Fuel",
       "templates": {},
       "etsy": {},
-      "collection": "stoner",
+      "collection": "fuel",
       "fabrics": [
         "chest"
       ],
@@ -976,7 +998,7 @@
       "series_name": "As High As Fuel",
       "templates": {},
       "etsy": {},
-      "collection": "stoner",
+      "collection": "fuel",
       "fabrics": [
         "chest"
       ],
@@ -995,7 +1017,7 @@
       "series_name": "As High As Fuel",
       "templates": {},
       "etsy": {},
-      "collection": "stoner",
+      "collection": "fuel",
       "fabrics": [
         "chest"
       ],
@@ -1014,7 +1036,7 @@
       "series_name": "As High As Fuel",
       "templates": {},
       "etsy": {},
-      "collection": "stoner",
+      "collection": "fuel",
       "fabrics": [
         "chest"
       ],
@@ -1024,6 +1046,291 @@
       ],
       "hook": "The board keeps climbing.",
       "scene": "A pump price board beside AS HIGH AS THE PRICE OF FUEL, printed on a heather tee"
+    },
+    {
+      "slug": "blood-covenant",
+      "name": "Blood Covenant",
+      "listing_name": "Blackletter: Blood Covenant",
+      "series": "gothic-blackletter",
+      "series_name": "Blackletter",
+      "templates": {},
+      "etsy": {},
+      "collection": "gothic-blackletter",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "gothic-blackletter"
+      ],
+      "hook": "Blood covenant.",
+      "scene": "A thorned chalice under BLOOD COVENANT, printed on a white tee"
+    },
+    {
+      "slug": "iron-psalm",
+      "name": "Iron Psalm",
+      "listing_name": "Blackletter: Iron Psalm",
+      "series": "gothic-blackletter",
+      "series_name": "Blackletter",
+      "templates": {},
+      "etsy": {},
+      "collection": "gothic-blackletter",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "gothic-blackletter"
+      ],
+      "hook": "Iron psalm.",
+      "scene": "A barred gothic gate under IRON PSALM, printed on a white tee"
+    },
+    {
+      "slug": "wraith-march",
+      "name": "Wraith March",
+      "listing_name": "Blackletter: Wraith March",
+      "series": "gothic-blackletter",
+      "series_name": "Blackletter",
+      "templates": {},
+      "etsy": {},
+      "collection": "gothic-blackletter",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "gothic-blackletter"
+      ],
+      "hook": "Wraith march.",
+      "scene": "A horned helm under WRAITH MARCH, printed on a white tee"
+    },
+    {
+      "slug": "bone-chapel",
+      "name": "Bone Chapel",
+      "listing_name": "Blackletter: Bone Chapel",
+      "series": "gothic-blackletter",
+      "series_name": "Blackletter",
+      "templates": {},
+      "etsy": {},
+      "collection": "gothic-blackletter",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "gothic-blackletter"
+      ],
+      "hook": "Bone chapel.",
+      "scene": "Skulls and candles under BONE CHAPEL, printed on a white tee"
+    },
+    {
+      "slug": "hex-altar",
+      "name": "Hex Altar",
+      "listing_name": "Blackletter: Hex Altar",
+      "series": "gothic-blackletter",
+      "series_name": "Blackletter",
+      "templates": {},
+      "etsy": {},
+      "collection": "gothic-blackletter",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "gothic-blackletter"
+      ],
+      "hook": "Hex altar.",
+      "scene": "A stone altar in a thorn ring under HEX ALTAR, printed on a white tee"
+    },
+    {
+      "slug": "pale-reign",
+      "name": "Pale Reign",
+      "listing_name": "Blackletter: Pale Reign",
+      "series": "gothic-blackletter",
+      "series_name": "Blackletter",
+      "templates": {},
+      "etsy": {},
+      "collection": "gothic-blackletter",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "gothic-blackletter"
+      ],
+      "hook": "Pale reign.",
+      "scene": "A cracked moon and crown over PALE REIGN, printed on a white tee"
+    },
+    {
+      "slug": "too-high-to-care",
+      "name": "Too High To Care",
+      "listing_name": "As High As Fuel: Too High To Care",
+      "series": "fuel",
+      "series_name": "As High As Fuel",
+      "templates": {},
+      "etsy": {},
+      "collection": "fuel",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "fuel"
+      ],
+      "hook": "Too high to care.",
+      "scene": "TOO HIGH TO CARE across the chest of a white tee"
+    },
+    {
+      "slug": "gas-money-went-to-this",
+      "name": "Gas Money Went To This",
+      "listing_name": "As High As Fuel: Gas Money Went To This",
+      "series": "fuel",
+      "series_name": "As High As Fuel",
+      "templates": {},
+      "etsy": {},
+      "collection": "fuel",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "fuel"
+      ],
+      "hook": "Gas money went to this.",
+      "scene": "GAS MONEY WENT TO THIS across the chest of a white tee"
+    },
+    {
+      "slug": "budget-went-up-in-smoke",
+      "name": "Budget Went Up In Smoke",
+      "listing_name": "As High As Fuel: Budget Went Up In Smoke",
+      "series": "fuel",
+      "series_name": "As High As Fuel",
+      "templates": {},
+      "etsy": {},
+      "collection": "fuel",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "fuel"
+      ],
+      "hook": "The budget went up in smoke.",
+      "scene": "BUDGET WENT UP IN SMOKE across the chest of a white tee"
+    },
+    {
+      "slug": "running-on-fumes",
+      "name": "Running On Fumes",
+      "listing_name": "As High As Fuel: Running On Fumes",
+      "series": "fuel",
+      "series_name": "As High As Fuel",
+      "templates": {},
+      "etsy": {},
+      "collection": "fuel",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "fuel"
+      ],
+      "hook": "Running on fumes and good vibes.",
+      "scene": "RUNNING ON FUMES AND GOOD VIBES across the chest of a white tee"
+    },
+    {
+      "slug": "empty-tank-full-heart",
+      "name": "Empty Tank Full Heart",
+      "listing_name": "As High As Fuel: Empty Tank Full Heart",
+      "series": "fuel",
+      "series_name": "As High As Fuel",
+      "templates": {},
+      "etsy": {},
+      "collection": "fuel",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "fuel"
+      ],
+      "hook": "Empty tank. Full heart.",
+      "scene": "EMPTY TANK FULL HEART across the chest of a white tee"
+    },
+    {
+      "slug": "high-mileage-low-motivation",
+      "name": "High Mileage Low Motivation",
+      "listing_name": "As High As Fuel: High Mileage Low Motivation",
+      "series": "fuel",
+      "series_name": "As High As Fuel",
+      "templates": {},
+      "etsy": {},
+      "collection": "fuel",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "fuel"
+      ],
+      "hook": "High mileage. Low motivation.",
+      "scene": "HIGH MILEAGE LOW MOTIVATION across the chest of a white tee"
+    },
+    {
+      "slug": "premium-grade-only",
+      "name": "Premium Grade Only",
+      "listing_name": "As High As Fuel: Premium Grade Only",
+      "series": "fuel",
+      "series_name": "As High As Fuel",
+      "templates": {},
+      "etsy": {},
+      "collection": "fuel",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "fuel"
+      ],
+      "hook": "Premium grade only.",
+      "scene": "PREMIUM GRADE ONLY across the chest of a white tee"
+    },
+    {
+      "slug": "check-engine-chill-mode",
+      "name": "Check Engine Chill Mode",
+      "listing_name": "As High As Fuel: Check Engine Chill Mode",
+      "series": "fuel",
+      "series_name": "As High As Fuel",
+      "templates": {},
+      "etsy": {},
+      "collection": "fuel",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "fuel"
+      ],
+      "hook": "Check engine. Chill mode.",
+      "scene": "CHECK ENGINE CHILL MODE across the chest of a white tee"
+    },
+    {
+      "slug": "slow-lane-high-life",
+      "name": "Slow Lane High Life",
+      "listing_name": "As High As Fuel: Slow Lane High Life",
+      "series": "fuel",
+      "series_name": "As High As Fuel",
+      "templates": {},
+      "etsy": {},
+      "collection": "fuel",
+      "fabrics": [
+        "chest"
+      ],
+      "status": "preview",
+      "tags": [
+        "fuel"
+      ],
+      "hook": "Slow lane. High life.",
+      "scene": "SLOW LANE HIGH LIFE across the chest of a white tee"
     }
   ]
 }

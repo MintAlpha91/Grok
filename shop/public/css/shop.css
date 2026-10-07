@@ -216,6 +216,8 @@ p { margin: 0; }
 }
 .art span { position: absolute; display: block; }
 .art img { width: 100%; height: 100%; object-fit: contain; object-position: center; background: #1a1a1a; }
+.gallery { display: flex; gap: 8px; margin-top: 8px; }
+.gallery img { width: 96px; height: 54px; object-fit: cover; border: 1px solid var(--line); background: #1a1a1a; }
 .art-crimson-sun-last-ronin { background: #1a0708; }
 .art-crimson-sun-last-ronin .a {
   width: 62%; aspect-ratio: 1; border-radius: 50%; left: 19%; top: 14%;

@@ -78,6 +78,11 @@ def fabric_is_orderable(fabric: dict) -> bool:
     return fabric.get("status", "live") == "live"
 
 
+def shop_visible(product: dict) -> bool:
+    """Live tees, plus preview cards that can be ordered in the demo shop."""
+    return product.get("status", "live") in {"live", "preview"}
+
+
 def fabric_price(catalog: dict, product: dict, fabric_id: str) -> tuple[int, int]:
     override = (product.get("prices") or {}).get(fabric_id) or {}
     shared = catalog["fabrics"][fabric_id]
@@ -154,6 +159,14 @@ def public_product(catalog: dict, copy: dict, product: dict) -> dict:
         else:
             held.append(row)
     image = next((item["mockup"] for item in fabrics if item["mockup"]), None) or image_url(slug)
+    gallery = []
+    for name in product.get("gallery") or []:
+        if (PUBLIC_PATH / "mockups" / name).is_file():
+            url = f"/mockups/{name}"
+            if url not in gallery:
+                gallery.append(url)
+    if image and image not in gallery:
+        gallery.insert(0, image)
     return {
         "slug": slug,
         "name": product["name"],
@@ -168,6 +181,7 @@ def public_product(catalog: dict, copy: dict, product: dict) -> dict:
         "fabrics": fabrics,
         "held_fabrics": held,
         "image": image,
+        "gallery": gallery,
     }
 
 
@@ -218,7 +232,7 @@ def public_catalog(checkout: dict) -> dict:
         "products": [
             public_product(catalog, copy, item)
             for item in catalog["products"]
-            if item.get("status", "live") == "live"
+            if shop_visible(item)
         ],
     }
 
@@ -271,7 +285,7 @@ def public_fabrics(catalog: dict) -> list[dict]:
 def public_collections(catalog: dict) -> list[dict]:
     counts: dict[str, int] = {}
     for product in catalog["products"]:
-        if product.get("status", "live") != "live":
+        if not shop_visible(product):
             continue
         collection_id = product.get("collection")
         counts[collection_id] = counts.get(collection_id, 0) + 1
@@ -304,7 +318,7 @@ def public_series(catalog: dict) -> list[dict]:
     seen = []
     rows = []
     for product in catalog["products"]:
-        if product.get("status", "live") != "live":
+        if not shop_visible(product):
             continue
         if product.get("collection") in hidden:
             continue
@@ -326,7 +340,7 @@ def public_series(catalog: dict) -> list[dict]:
 
 def find_product(catalog: dict, slug: str) -> dict:
     for product in catalog["products"]:
-        if product["slug"] == slug and product.get("status", "live") == "live":
+        if product["slug"] == slug and shop_visible(product):
             return product
     raise ShopError("That design is not in the shop.")
 

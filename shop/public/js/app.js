@@ -232,6 +232,7 @@ function renderHome(catalog) {
       item.label,
       item.sub ? el("span", { class: "lane-sub" }, item.sub) : null,
       item.status === "upcoming" ? el("span", { class: "lane-status" }, "Coming") : null,
+      item.status === "preview" ? el("span", { class: "lane-status" }, "Preview") : null,
     ])
   )));
   const grid = el("section", { class: "grid wrap" }, catalog.products.map(card));
@@ -273,6 +274,12 @@ function emptyLane(catalog, example, label) {
   return el("p", { class: "empty wrap" }, `${catalog.shop.more} Example: ${example}${stop}`);
 }
 
+function laneLabel(item) {
+  if (item.status === "upcoming") return `${item.label} · Coming`;
+  if (item.status === "preview") return `${item.label} · Preview`;
+  return item.label;
+}
+
 function card(design) {
   const prices = design.fabrics.map((item) => `${item.label} ${money(item.price_cents)}`).join(" · ");
   return el("a", { class: "card", href: `/product/${design.slug}` }, [
@@ -281,6 +288,7 @@ function card(design) {
     el("h2", {}, design.name),
     el("p", { class: "hook" }, design.hook),
     el("p", { class: "meta" }, prices),
+    design.status === "preview" ? el("p", { class: "meta" }, "Preview") : null,
   ]);
 }
 
@@ -319,7 +327,7 @@ function renderShop(catalog, route) {
     ...catalog.collections.map((item) => el("a", {
       href: shopHref(item.id, "all"),
       "aria-current": collection === item.id ? "true" : null,
-    }, item.status === "upcoming" ? `${item.label} · Coming` : item.label)),
+    }, laneLabel(item))),
   ]);
   const seriesFilters = seriesInView.length > 1
     ? el("nav", { class: "filters wrap", "aria-label": "Series" }, [
@@ -440,11 +448,16 @@ function renderProduct(catalog, route) {
     item.note ? el("p", { class: "note" }, item.note) : null,
   ]);
 
+  const extraShots = (design.gallery || []).filter((src) => src && src !== design.image);
+  const moreShots = extraShots.length
+    ? el("div", { class: "gallery" }, extraShots.map((src) => el("img", { src, alt: `${design.name} colour preview` })))
+    : null;
   return [el("article", { class: "product wrap" }, [
-    art(design, fabric),
+    el("div", {}, [art(design, fabric), moreShots]),
     el("div", {}, [
       el("p", { class: "series-name" }, design.series_name),
       el("h1", {}, design.name),
+      design.status === "preview" ? el("p", { class: "note" }, "Preview. Held for go-live until this lane is cleared.") : null,
       el("p", { class: "hook" }, design.hook),
       el("p", { class: "blurb" }, design.blurbs[fabric]),
       form,
