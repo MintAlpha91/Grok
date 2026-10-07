@@ -10,7 +10,7 @@ Prices are GST-inclusive official-store prices, under the Etsy ladder: polyester
 2. Drop mockups at `public/mockups/{slug}-aop-poly.jpg` and `public/mockups/{slug}-aop-cotton.jpg` (or `{slug}-poly.jpg` / `{slug}-cotton.jpg` for a later lane). The fabric selector uses whichever file exists.
 3. To open a new lane, add a collection (`id`, `name`, `label`, `status`, optional `intro`, `detail`, `example`). The homepage lane row and the shop filters pick it up. Series labels go in the `series` list; the shop only shows a series chip once a live product uses it.
 
-The AOP intro “Eight designs…” is the `aop` collection text in `catalog.json`. Change that sentence there when the wave grows. “As High As Fuel” is the stoner collection’s example line, not a priced product.
+The Full Bleed intro is the `aop` collection text in `catalog.json`. It says first wave, not a fixed shirt count. “As High As Fuel” is the stoner collection’s example line, not a priced product. The shop copy for “New drops” and “More designs coming.” lives in `web-copy.json`.
 
 Demo checkout does not charge a card and does not print or ship a shirt.
 

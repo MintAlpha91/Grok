@@ -192,6 +192,14 @@ function chrome(catalog) {
   footer.lastElementChild.classList.add("etsy-link");
 }
 
+function uniqueText(lines) {
+  const seen = [];
+  for (const text of lines) {
+    if (text && !seen.includes(text)) seen.push(text);
+  }
+  return seen;
+}
+
 function pageHead(title, paragraphs) {
   return el("header", { class: "page-head wrap" }, [
     el("h1", {}, title),
@@ -240,9 +248,29 @@ function renderHome(catalog) {
       el("p", { class: "alt" }, catalog.home.alt),
       catalog.offer && catalog.offer.hero_line ? el("p", { class: "note" }, catalog.offer.hero_line) : null,
     ]),
+    el("h2", { class: "section-label wrap" }, "Collections"),
     series,
+    waveHead(catalog),
     grid,
+    moreComing(catalog),
   ];
+}
+
+function waveHead(catalog) {
+  return el("header", { class: "wave wrap" }, [
+    el("h2", {}, catalog.shop.drops_title),
+    el("p", { class: "lede" }, catalog.shop.intro),
+  ]);
+}
+
+function moreComing(catalog) {
+  return el("p", { class: "more wrap" }, catalog.shop.more);
+}
+
+function emptyLane(catalog, example, label) {
+  if (!example || example === label) return el("p", { class: "empty wrap" }, catalog.shop.more);
+  const stop = /[.!?]$/.test(example) ? "" : ".";
+  return el("p", { class: "empty wrap" }, `${catalog.shop.more} Example: ${example}${stop}`);
 }
 
 function card(design) {
@@ -277,9 +305,11 @@ function renderShop(catalog, route) {
   const series = route.series === "all" || !knownSeries ? "all" : route.series;
   const products = series === "all" ? inCollection : inCollection.filter((item) => item.series === series);
   const intro = [];
+  if (selected && selected.sub) intro.push(selected.sub);
   if (selected && selected.intro) intro.push(selected.intro);
   if (selected && selected.detail) intro.push(selected.detail);
   if (!selected) {
+    intro.push(catalog.shop.intro);
     intro.push(catalog.shop.collection);
     const story = catalog.offer && (catalog.offer.story_line || catalog.offer.parity_line);
     if (story) intro.push(story);
@@ -298,19 +328,17 @@ function renderShop(catalog, route) {
         href: shopHref(collection, item.id),
         "aria-current": series === item.id ? "true" : null,
       }, item.label)),
+      el("span", { class: "soon" }, catalog.shop.more),
     ])
     : null;
-  const empty = products.length ? null : el("p", { class: "empty wrap" }, (
-    selected && selected.example
-      ? `Nothing in this lane yet. Example: ${selected.example}.`
-      : "Nothing in this lane yet."
-  ));
+  const empty = products.length ? null : emptyLane(catalog, selected && selected.example, selected && (selected.label || selected.name));
   return [
-    pageHead("Shop", intro),
+    pageHead("Shop", uniqueText(intro)),
     collectionFilters,
     seriesFilters,
     empty,
-    el("section", { class: "grid wrap" }, products.map(card)),
+    products.length ? el("section", { class: "grid wrap" }, products.map(card)) : null,
+    products.length ? moreComing(catalog) : null,
   ];
 }
 
@@ -329,14 +357,13 @@ function renderCollection(catalog, route) {
   const omitted = fabric && fabric.omit_sizes && fabric.omit_sizes.length
     ? el("p", { class: "lede" }, `${fabric.omit_sizes.join(" and ")} are not in this version.`)
     : null;
-  const empty = products.length ? null : el("p", { class: "empty wrap" }, (
-    item.example ? `Nothing in this lane yet. Example: ${item.example}.` : "Nothing in this lane yet."
-  ));
+  const empty = products.length ? null : emptyLane(catalog, item.example, item.name);
   return [
-    pageHead(item.name, [item.sub, item.intro, item.detail].filter((text, index, list) => text && list.indexOf(text) === index)),
+    pageHead(item.name, uniqueText([item.sub, item.intro, item.detail])),
     ladder || omitted ? el("section", { class: "prose wrap" }, [ladder, omitted].filter(Boolean)) : null,
     empty,
-    el("section", { class: "grid wrap" }, products.map(card)),
+    products.length ? el("section", { class: "grid wrap" }, products.map(card)) : null,
+    products.length ? moreComing(catalog) : null,
   ];
 }
 
