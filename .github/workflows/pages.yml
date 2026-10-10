@@ -1,0 +1,46 @@
+name: Publish Rogers App Specialists site
+
+on:
+  push:
+    branches:
+      - main
+      - cursor/rogers-app-specialists-site-5369
+    paths:
+      - "rogers-app-specialists-site/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          # Turns Pages on when this token is allowed to. A token without
+          # repository administration cannot do this, and the job will say so.
+          enablement: true
+
+      - name: Upload site folder
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: rogers-app-specialists-site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
