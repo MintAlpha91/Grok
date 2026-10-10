@@ -1,0 +1,803 @@
+const CART_KEY = "rid-cart";
+const STATES = [
+  ["NSW", "New South Wales"],
+  ["VIC", "Victoria"],
+  ["QLD", "Queensland"],
+  ["SA", "South Australia"],
+  ["WA", "Western Australia"],
+  ["TAS", "Tasmania"],
+  ["NT", "Northern Territory"],
+  ["ACT", "Australian Capital Territory"],
+];
+
+const state = { catalog: null, error: "" };
+
+function el(tag, props = {}, kids = []) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(props)) {
+    if (value == null || value === false) continue;
+    if (key === "class") node.className = value;
+    else node.setAttribute(key, value);
+  }
+  for (const kid of [].concat(kids)) {
+    if (kid == null || kid === false) continue;
+    node.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return node;
+}
+
+function money(cents) {
+  const dollars = cents / 100;
+  const text = Number.isInteger(dollars) ? String(dollars) : dollars.toFixed(2);
+  return `AU$${text}`;
+}
+
+function cart() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
+    return Array.isArray(saved) ? saved : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCart(lines) {
+  localStorage.setItem(CART_KEY, JSON.stringify(lines));
+  const count = document.getElementById("cart-count");
+  if (count) count.textContent = String(lines.reduce((sum, line) => sum + line.qty, 0));
+}
+
+function cartCount() {
+  return cart().reduce((sum, line) => sum + line.qty, 0);
+}
+
+async function api(path, body) {
+  const response = await fetch(path, body ? {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  } : undefined);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "The shop could not complete that.");
+  return data;
+}
+
+function designBySlug(slug) {
+  return state.catalog.products.find((item) => item.slug === slug);
+}
+
+function fabricRow(design, fabricId) {
+  return design.fabrics.find((item) => item.id === fabricId);
+}
+
+function unitCents(design, fabricId, size) {
+  const fabric = fabricRow(design, fabricId);
+  if (!fabric) return 0;
+  const extra = (fabric.premiums_cents && fabric.premiums_cents[size]) || 0;
+  return fabric.price_cents + extra;
+}
+
+function collectionPath(item) {
+  return `/collection/${item.landing || item.id}`;
+}
+
+function art(design, fabricId) {
+  const fabric = fabricRow(design, fabricId || "poly");
+  const src = (fabric && fabric.mockup) || design.image;
+  if (src) {
+    const label = fabric ? fabric.label : "Polyester";
+    return el("div", { class: `art art-${design.slug}` }, [
+      el("img", { src, alt: `${design.name}, ${label} tee` }),
+    ]);
+  }
+  return el("div", { class: `art art-${design.slug}`, "aria-hidden": "true" }, [
+    el("span", { class: "a" }),
+    el("span", { class: "b" }),
+    el("span", { class: "c" }),
+  ]);
+}
+
+function etsyAnchor(catalog, label, href) {
+  return el("a", {
+    href: href || catalog.etsy_listing_url,
+    target: "_blank",
+    rel: "noopener noreferrer",
+  }, label);
+}
+
+function parseRoute() {
+  const url = new URL(location.href);
+  const path = url.pathname;
+  const product = path.match(/^\/product\/([a-z0-9-]+)$/);
+  const order = path.match(/^\/order\/(RID-[A-F0-9]{8})$/i);
+  if (path === "/" || path === "") return { name: "home" };
+  const collectionPage = path.match(/^\/collection\/([a-z0-9-]+)$/);
+  if (collectionPage) return { name: "collection", slug: collectionPage[1] };
+  if (path === "/shop") {
+    return {
+      name: "shop",
+      collection: url.searchParams.get("collection") || "all",
+      series: url.searchParams.get("series") || "all",
+    };
+  }
+  if (product) {
+    return {
+      name: "product",
+      slug: product[1],
+      fabric: url.searchParams.get("fabric") || "poly",
+      size: url.searchParams.get("size") || "",
+    };
+  }
+  if (path === "/cart") return { name: "cart" };
+  if (path === "/checkout") return { name: "checkout", cancelled: url.searchParams.get("cancelled") === "1" };
+  if (order) return { name: "order", id: order[1].toUpperCase(), session: url.searchParams.get("session_id") || "" };
+  if (path === "/shipping") return { name: "shipping" };
+  if (path === "/about") return { name: "about" };
+  return { name: "missing" };
+}
+
+function navigate(href) {
+  const url = new URL(href, location.origin);
+  history.pushState({}, "", url.pathname + url.search + url.hash);
+  render().then(() => {
+    if (!url.hash) window.scrollTo(0, 0);
+  });
+}
+
+function setTitle(title, description) {
+  document.title = title;
+  const meta = document.querySelector('meta[name="description"]');
+  if (meta && description) meta.setAttribute("content", description);
+}
+
+function setRobots(mode) {
+  const meta = document.querySelector('meta[name="robots"]');
+  if (!meta) return;
+  meta.setAttribute("content", "noindex");
+}
+
+function chrome(catalog) {
+  saveCart(cart());
+  setRobots(catalog.checkout.mode);
+  const banner = document.getElementById("demo-banner");
+  banner.replaceChildren();
+  if (catalog.checkout.mode === "demo") {
+    banner.hidden = false;
+    const lead = catalog.checkout.demo_lead;
+    const emphasis = catalog.checkout.demo_emphasis;
+    const chunks = lead.split(emphasis);
+    const kids = [];
+    if (chunks.length === 2) {
+      kids.push(chunks[0], el("strong", {}, emphasis), chunks[1], " ");
+    } else {
+      kids.push(lead, " ");
+    }
+    const tail = catalog.checkout.demo_tail;
+    const marker = "Etsy shop";
+    const split = tail.split(marker);
+    if (split.length === 2) {
+      kids.push(split[0], etsyAnchor(catalog, marker), split[1]);
+    } else {
+      kids.push(tail);
+    }
+    banner.append(el("p", {}, kids));
+  } else {
+    banner.hidden = true;
+  }
+  const footer = document.getElementById("site-footer");
+  footer.replaceChildren(
+    ...catalog.footer.map((line) => el("span", {}, line)),
+    etsyAnchor(catalog, catalog.etsy_link_label),
+  );
+  footer.lastElementChild.classList.add("etsy-link");
+}
+
+function uniqueText(lines) {
+  const seen = [];
+  for (const text of lines) {
+    if (text && !seen.includes(text)) seen.push(text);
+  }
+  return seen;
+}
+
+function pageHead(title, paragraphs) {
+  return el("header", { class: "page-head wrap" }, [
+    el("h1", {}, title),
+    ...paragraphs.filter(Boolean).map((text) => el("p", { class: "lede" }, text)),
+  ]);
+}
+
+function heroKicker(lines) {
+  const copy = lines && lines.length ? lines : [];
+  const kicker = el("p", { class: "kicker" }, copy[0] || "");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reduce && copy.length > 1) {
+    let index = 0;
+    const timer = window.setInterval(() => {
+      if (!kicker.isConnected) {
+        window.clearInterval(timer);
+        return;
+      }
+      index = (index + 1) % copy.length;
+      kicker.textContent = copy[index];
+    }, 4200);
+  }
+  return kicker;
+}
+
+function renderHome(catalog) {
+  setTitle(catalog.seo.title, catalog.seo.meta);
+  const series = el("section", { class: "series wrap", id: "series" }, catalog.collections.map((item) => (
+    el("a", { href: collectionPath(item) }, [
+      item.label,
+      item.sub ? el("span", { class: "lane-sub" }, item.sub) : null,
+      item.status === "upcoming" ? el("span", { class: "lane-status" }, "Coming") : null,
+      item.status === "ready" ? el("span", { class: "lane-status" }, "Ready to list") : null,
+      item.status === "preview" ? el("span", { class: "lane-status" }, "Preview") : null,
+    ])
+  )));
+  const grid = el("section", { class: "grid wrap" }, catalog.products.map(card));
+  return [
+    el("section", { class: "hero wrap" }, [
+      el("img", { class: "hero-banner", src: "/brand/banner.png", alt: "Rogers Inc Designs" }),
+      heroKicker(catalog.home.rotating),
+      el("h1", {}, catalog.home.headline),
+      el("p", { class: "sub" }, catalog.home.sub),
+      el("div", { class: "actions" }, [
+        el("a", { class: "btn", href: "/shop" }, catalog.home.cta_primary),
+        el("a", { class: "btn btn-ghost", href: "/#series" }, catalog.home.cta_secondary),
+      ]),
+      el("p", { class: "alt" }, catalog.home.alt),
+      catalog.offer && catalog.offer.hero_line ? el("p", { class: "note" }, catalog.offer.hero_line) : null,
+    ]),
+    el("h2", { class: "section-label wrap" }, "Collections"),
+    series,
+    waveHead(catalog),
+    grid,
+    moreComing(catalog),
+  ];
+}
+
+function waveHead(catalog) {
+  return el("header", { class: "wave wrap" }, [
+    el("h2", {}, catalog.shop.drops_title),
+    el("p", { class: "lede" }, catalog.shop.intro),
+  ]);
+}
+
+function moreComing(catalog) {
+  return el("p", { class: "more wrap" }, catalog.shop.more);
+}
+
+function emptyLane(catalog, example, label) {
+  if (!example || example === label) return el("p", { class: "empty wrap" }, catalog.shop.more);
+  const stop = /[.!?]$/.test(example) ? "" : ".";
+  return el("p", { class: "empty wrap" }, `${catalog.shop.more} Example: ${example}${stop}`);
+}
+
+function laneStatusLine(item) {
+  if (!item) return "";
+  if (item.status === "upcoming") return "Coming. More designs before this lane is a storefront.";
+  if (item.status === "ready" && (item.count || 0) >= 10) {
+    return "Ready to list. This lane has the designs. The shop stays a preview until every collection has at least 10.";
+  }
+  if (item.status === "ready") return "Ready to list. This preview lane needs at least 10 designs before it is the storefront.";
+  if (item.status === "preview") return "Preview. Held until this lane is cleared.";
+  return "";
+}
+
+function laneLabel(item) {
+  if (item.status === "upcoming") return `${item.label} · Coming`;
+  if (item.status === "ready") return `${item.label} · Ready to list`;
+  if (item.status === "preview") return `${item.label} · Preview`;
+  return item.label;
+}
+
+function card(design) {
+  const prices = design.fabrics.map((item) => `${item.label} ${money(item.price_cents)}`).join(" · ");
+  return el("a", { class: "card", href: `/product/${design.slug}` }, [
+    art(design),
+    el("p", { class: "series-name" }, design.series_name),
+    el("h2", {}, design.name),
+    el("p", { class: "hook" }, design.hook),
+    el("p", { class: "meta" }, prices),
+    design.status === "preview" ? el("p", { class: "meta" }, "Preview") : null,
+    design.status === "ready" ? el("p", { class: "meta" }, "Ready to list") : null,
+    design.status === "upcoming" ? el("p", { class: "meta" }, "Coming") : null,
+  ]);
+}
+
+function shopHref(collection, series) {
+  const params = new URLSearchParams();
+  if (collection && collection !== "all") params.set("collection", collection);
+  if (series && series !== "all") params.set("series", series);
+  const query = params.toString();
+  return query ? `/shop?${query}` : "/shop";
+}
+
+function renderShop(catalog, route) {
+  setTitle("Shop — Rogers Inc Designs", catalog.seo.meta);
+  const knownCollection = catalog.collections.some((item) => item.id === route.collection);
+  const collection = route.collection === "all" || !knownCollection ? "all" : route.collection;
+  const selected = catalog.collections.find((item) => item.id === collection);
+  const inCollection = collection === "all"
+    ? catalog.products
+    : catalog.products.filter((item) => item.collection === collection);
+  const seriesInView = catalog.series.filter((item) => {
+    if (collection === "all") return true;
+    return catalog.products.some((product) => product.collection === collection && product.series === item.id);
+  });
+  const knownSeries = seriesInView.some((item) => item.id === route.series);
+  const series = route.series === "all" || !knownSeries ? "all" : route.series;
+  const products = series === "all" ? inCollection : inCollection.filter((item) => item.series === series);
+  const selectedSeries = series === "all" ? null : catalog.series.find((item) => item.id === series);
+  const intro = [];
+  if (selected && selected.sub) intro.push(selected.sub);
+  const laneNote = laneStatusLine(selected);
+  if (laneNote) intro.push(laneNote);
+  if (selected && selected.intro) intro.push(selected.intro);
+  if (selected && selected.detail) intro.push(selected.detail);
+  if (selectedSeries && selectedSeries.blurb) intro.push(selectedSeries.blurb);
+  if (!selected) {
+    intro.push(catalog.shop.intro);
+    intro.push(catalog.shop.collection);
+    const story = catalog.offer && (catalog.offer.story_line || catalog.offer.parity_line);
+    if (story) intro.push(story);
+  }
+  const collectionFilters = el("nav", { class: "filters wrap", "aria-label": "Collections" }, [
+    el("a", { href: shopHref("all", "all"), "aria-current": collection === "all" ? "true" : null }, "All"),
+    ...catalog.collections.map((item) => el("a", {
+      href: shopHref(item.id, "all"),
+      "aria-current": collection === item.id ? "true" : null,
+    }, laneLabel(item))),
+  ]);
+  const seriesFilters = seriesInView.length > 1
+    ? el("nav", { class: "filters wrap", "aria-label": "Series" }, [
+      el("a", { href: shopHref(collection, "all"), "aria-current": series === "all" ? "true" : null }, "All series"),
+      ...seriesInView.map((item) => el("a", {
+        href: shopHref(collection, item.id),
+        "aria-current": series === item.id ? "true" : null,
+      }, item.label)),
+      el("span", { class: "soon" }, catalog.shop.more),
+    ])
+    : null;
+  const empty = products.length ? null : emptyLane(catalog, selected && selected.example, selected && (selected.label || selected.name));
+  return [
+    pageHead("Shop", uniqueText(intro)),
+    collectionFilters,
+    seriesFilters,
+    empty,
+    products.length ? el("section", { class: "grid wrap" }, products.map(card)) : null,
+    products.length ? moreComing(catalog) : null,
+  ];
+}
+
+function renderCollection(catalog, route) {
+  const item = catalog.collections.find((row) => row.landing === route.slug || row.id === route.slug);
+  if (!item) return renderMissing();
+  setTitle(`${item.name} — Rogers Inc Designs`, item.detail || catalog.seo.meta);
+  const products = catalog.products.filter((product) => product.collection === item.id);
+  const fabric = (catalog.fabrics || []).find((row) => row.id === item.fabric);
+  const ladder = fabric
+    ? el("p", { class: "lede" }, fabric.sizes.map((size) => {
+      const cents = fabric.price_cents + ((fabric.premiums_cents && fabric.premiums_cents[size]) || 0);
+      return `${size} ${money(cents)}`;
+    }).join(" · "))
+    : null;
+  const omitted = fabric && fabric.omit_sizes && fabric.omit_sizes.length
+    ? el("p", { class: "lede" }, `${fabric.omit_sizes.join(" and ")} are not in this version.`)
+    : null;
+  const empty = products.length ? null : emptyLane(catalog, item.example, item.name);
+  return [
+    pageHead(item.name, uniqueText([item.sub, laneStatusLine(item), item.intro, item.detail])),
+    ladder || omitted ? el("section", { class: "prose wrap" }, [ladder, omitted].filter(Boolean)) : null,
+    empty,
+    products.length ? el("section", { class: "grid wrap" }, products.map(card)) : null,
+    products.length ? moreComing(catalog) : null,
+  ];
+}
+
+function renderProduct(catalog, route) {
+  const design = designBySlug(route.slug);
+  if (!design) return [pageHead("Not in the shop", ["That tee is not in the Rogers Inc Designs shop."])];
+  setTitle(`${design.name} — Rogers Inc Designs`, `${design.hook} Free shipping in Australia.`);
+  const fabric = design.fabrics.some((item) => item.id === route.fabric) ? route.fabric : design.fabrics[0].id;
+  const selected = fabricRow(design, fabric);
+  const digital = selected && selected.kind === "digital";
+  const sizes = selected.sizes || catalog.sizes;
+  const size = digital ? "Download" : (sizes.includes(route.size) ? route.size : "");
+  const price = unitCents(design, fabric, size || "M");
+  const shown = size ? price : selected.price_cents;
+  const extra = size && selected.premiums_cents ? selected.premiums_cents[size] : 0;
+
+  const fabricPills = el("div", { class: "pills" }, design.fabrics.map((item) => {
+    const cents = unitCents(design, item.id, size || "M");
+    return el("label", {}, [
+      el("input", { type: "radio", name: "fabric", value: item.id, checked: item.id === fabric ? "checked" : null }),
+      `${item.label} · ${money(cents)}`,
+    ]);
+  }));
+  const sizePills = el("div", { class: "pills" }, sizes.map((item) => (
+    el("label", {}, [
+      el("input", { type: "radio", name: "size", value: item, checked: item === size ? "checked" : null }),
+      item,
+    ])
+  )));
+  const form = el("form", { id: "buy" }, [
+    el("fieldset", { class: "choice" }, [el("legend", {}, digital ? "Format" : "Fabric"), fabricPills]),
+    digital ? null : el("fieldset", { class: "choice" }, [el("legend", {}, "Size"), sizePills]),
+    el("p", { class: "price", id: "price", "aria-live": "polite" }, money(shown)),
+    el("p", { class: "note" }, extra ? `${size} is +${money(extra)}.` : catalog.footer[2]),
+    el("label", { class: "qty" }, ["Quantity", el("input", { name: "qty", type: "number", min: "1", max: "4", value: "1" })]),
+    el("button", { class: "btn", type: "submit" }, "Add to cart"),
+    el("p", { class: "added", id: "added", "aria-live": "polite" }, ""),
+  ]);
+  form.addEventListener("change", (event) => {
+    if (event.target.name === "qty") return;
+    const nextFabric = new FormData(form).get("fabric");
+    const nextSize = new FormData(form).get("size") || "";
+    const params = new URLSearchParams({ fabric: nextFabric });
+    if (nextSize) params.set("size", nextSize);
+    history.replaceState({}, "", `/product/${design.slug}?${params}`);
+    render();
+  });
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (design.status === "upcoming" || design.status === "ready") return;
+    const data = new FormData(form);
+    const chosen = digital ? "Download" : data.get("size");
+    const added = document.getElementById("added");
+    if (!chosen) {
+      added.textContent = "Choose a size.";
+      return;
+    }
+    const qty = Math.min(4, Math.max(1, Number(data.get("qty")) || 1));
+    const lines = cart();
+    const existing = lines.find((line) => line.slug === design.slug && line.fabric === fabric && line.size === chosen);
+    if (existing) existing.qty = Math.min(4, existing.qty + qty);
+    else lines.push({ slug: design.slug, fabric, size: chosen, qty });
+    saveCart(lines);
+    added.textContent = "Added to cart. No payment taken yet.";
+  });
+
+  const etsy = selected.etsy_url ? el("p", { class: "note" }, [
+    etsyAnchor(catalog, catalog.etsy_link_label, selected.etsy_url),
+  ]) : null;
+  const held = (design.held_fabrics || []).map((item) => {
+    const when = item.status === "after_first_sales" ? "after the first sales" : "not on sale yet";
+    return el("p", { class: "note" }, `${item.label} · ${money(item.price_cents)} · ${when}.`);
+  });
+  const addons = (catalog.addons || []).flatMap((item) => [
+    item.line ? el("p", { class: "hook" }, item.line) : null,
+    item.note ? el("p", { class: "note" }, item.note) : null,
+  ]);
+
+  const extraShots = (design.gallery || []).filter((src) => src && src !== design.image);
+  const moreShots = extraShots.length
+    ? el("div", { class: "gallery" }, extraShots.map((src) => el("img", { src, alt: `${design.name} colour preview` })))
+    : null;
+  return [el("article", { class: "product wrap" }, [
+    el("div", {}, [art(design, fabric), moreShots]),
+    el("div", {}, [
+      el("p", { class: "series-name" }, design.series_name),
+      el("h1", {}, design.name),
+      design.status === "preview" ? el("p", { class: "note" }, "Preview. Held for go-live until this lane is cleared.") : null,
+      design.status === "ready" ? el("p", { class: "note" }, "Ready to list. In the catalog, not on sale until this lane is the storefront.") : null,
+      design.status === "upcoming" ? el("p", { class: "note" }, "Coming. One design so far. This lane is not the storefront until it has at least 10.") : null,
+      el("p", { class: "hook" }, design.hook),
+      el("p", { class: "blurb" }, design.blurbs[fabric]),
+      design.status === "upcoming" || design.status === "ready" ? null : form,
+      digital
+        ? el("p", { class: "note" }, selected.size_note || "Digital wallpaper. No shirt size.")
+        : el("p", { class: "note" }, [
+          (selected.size_note || catalog.size_note).split("size guide")[0],
+          el("a", { href: "/shipping#size-guide" }, "size guide"),
+          (selected.size_note || catalog.size_note).split("size guide")[1] || "",
+        ]),
+      etsy,
+      ...held,
+      ...addons,
+    ]),
+  ])];
+}
+
+function renderCart(catalog) {
+  setTitle("Cart — Rogers Inc Designs", catalog.seo.meta);
+  const lines = cart();
+  if (!lines.length) {
+    return [
+      pageHead("Cart", []),
+      el("p", { class: "empty wrap" }, [
+        "Your cart is empty. ",
+        el("a", { href: "/shop" }, catalog.home.cta_primary),
+        ".",
+      ]),
+    ];
+  }
+  const list = el("div", { class: "cart wrap", id: "cart-lines" }, [el("p", {}, "Checking prices…")]);
+  api("/api/quote", { lines }).then((quote) => {
+    list.replaceChildren(...quote.lines.map((line) => lineRow(line)), totals(quote, catalog));
+  }).catch((error) => {
+    list.replaceChildren(el("p", { class: "alert" }, error.message));
+  });
+  return [pageHead("Cart", []), list];
+}
+
+function lineRow(line) {
+  return el("article", { class: "line" }, [
+    el("div", {}, [
+      el("p", { class: "series-name" }, line.series_name),
+      el("h2", {}, line.name),
+      el("p", { class: "note" }, `${line.fabric_label} · ${line.size}`),
+    ]),
+    el("p", {}, money(line.line_cents)),
+    el("div", { class: "row-actions" }, [
+      el("button", { class: "icon-btn", type: "button", "data-qty": "-1", "data-key": lineKey(line), "aria-label": "Fewer" }, "−"),
+      el("span", {}, String(line.qty)),
+      el("button", { class: "icon-btn", type: "button", "data-qty": "1", "data-key": lineKey(line), "aria-label": "More" }, "+"),
+      el("button", { class: "linkish", type: "button", "data-remove": lineKey(line) }, "Remove"),
+    ]),
+  ]);
+}
+
+function lineKey(line) {
+  return `${line.slug}|${line.fabric}|${line.size}`;
+}
+
+function totals(quote, catalog) {
+  return el("div", { class: "totals" }, [
+    el("p", {}, catalog.footer[2]),
+    el("p", {}, `Includes GST ${money(quote.gst_cents)}`),
+    el("strong", {}, money(quote.total_cents)),
+    el("a", { class: "btn", href: "/checkout" }, "Checkout"),
+  ]);
+}
+
+function renderCheckout(catalog, route) {
+  setTitle("Checkout — Rogers Inc Designs", catalog.seo.meta);
+  const mode = catalog.checkout.mode;
+  const lines = cart();
+  if (!lines.length) {
+    return [pageHead("Checkout", []), el("p", { class: "empty wrap" }, "Your cart is empty.")];
+  }
+  const noticeClass = mode === "demo" ? "notice notice-demo" : "notice";
+  const summary = el("div", { id: "summary" }, [el("p", {}, "Checking prices…")]);
+  const error = el("p", { class: "alert", id: "checkout-error" }, "");
+  const buttonLabel = {
+    demo: "Place a demo order — no charge, no print",
+    stripe: "Continue to secure card payment",
+    payid: "Place order and show PayID",
+    off: "Payments are not switched on",
+  }[mode];
+  const form = el("form", { class: "fields", id: "checkout-form" }, [
+    field("Name", "name", "text", true),
+    field("Email", "email", "email", true),
+    field("Phone (optional)", "phone", "tel", false),
+    field("Street address", "line1", "text", true),
+    field("Address line 2 (optional)", "line2", "text", false),
+    el("div", { class: "grid-2" }, [
+      field("Suburb", "suburb", "text", true),
+      stateField(),
+    ]),
+    el("div", { class: "grid-2" }, [
+      field("Postcode", "postcode", "text", true),
+      el("label", {}, ["Country", el("input", { value: "Australia", disabled: "disabled" })]),
+    ]),
+    el("button", { class: "btn", type: "submit", disabled: mode === "off" ? "disabled" : null }, buttonLabel),
+  ]);
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    error.textContent = "";
+    const button = form.querySelector("button[type=submit]");
+    button.disabled = true;
+    const customer = Object.fromEntries(new FormData(form).entries());
+    try {
+      const order = await api("/api/checkout", { lines: cart(), customer });
+      if (order.url) {
+        location.href = order.url;
+        return;
+      }
+      saveCart([]);
+      navigate(`/order/${order.id}`);
+    } catch (err) {
+      error.textContent = err.message;
+      button.disabled = mode === "off";
+    }
+  });
+  api("/api/quote", { lines }).then((quote) => {
+    summary.replaceChildren(...quote.lines.map((line) => (
+      el("p", {}, `${line.qty} × ${line.name} · ${line.fabric_label} · ${line.size} · ${money(line.line_cents)}`)
+    )), el("p", {}, quote.shipping_cents ? `Shipping ${money(quote.shipping_cents)}` : "Free shipping in Australia"), el("p", {}, `Includes GST ${money(quote.gst_cents)}`), el("strong", {}, money(quote.total_cents)));
+  }).catch((err) => {
+    summary.replaceChildren(el("p", { class: "alert" }, err.message));
+  });
+  const cancelled = route.cancelled ? el("p", { class: "alert" }, "Card payment was cancelled. No charge was taken and nothing was sent to print.") : null;
+  return [
+    pageHead("Checkout", [catalog.checkout.international]),
+    el("section", { class: "checkout wrap" }, [
+      cancelled,
+      el("div", { class: noticeClass }, noticeBody(catalog, mode)),
+      summary,
+      error,
+      form,
+    ]),
+  ];
+}
+
+function noticeBody(catalog, mode) {
+  if (mode === "demo") {
+    return [
+      el("strong", { class: "stamp" }, "NO CHARGE · NO PRINT"),
+      el("p", {}, [
+        catalog.checkout.demo_lead.split(catalog.checkout.demo_emphasis)[0],
+        el("strong", {}, catalog.checkout.demo_emphasis),
+        catalog.checkout.demo_lead.split(catalog.checkout.demo_emphasis)[1] || "",
+      ]),
+    ];
+  }
+  return [el("p", {}, catalog.checkout[mode] || catalog.checkout.off)];
+}
+
+function field(label, name, type, required) {
+  const input = el("input", {
+    name,
+    type,
+    autocomplete: autocompleteFor(name),
+    required: required ? "required" : null,
+    maxlength: name === "postcode" ? "4" : "120",
+    inputmode: name === "postcode" ? "numeric" : null,
+  });
+  return el("label", {}, [label, input]);
+}
+
+function autocompleteFor(name) {
+  return {
+    name: "name",
+    email: "email",
+    phone: "tel",
+    line1: "address-line1",
+    line2: "address-line2",
+    suburb: "address-level2",
+    postcode: "postal-code",
+  }[name] || "on";
+}
+
+function stateField() {
+  const select = el("select", { name: "state", autocomplete: "address-level1", required: "required" }, [
+    el("option", { value: "" }, "State"),
+    ...STATES.map(([code, label]) => el("option", { value: code }, label)),
+  ]);
+  return el("label", {}, ["State", select]);
+}
+
+async function renderOrder(catalog, route) {
+  setTitle("Order — Rogers Inc Designs", catalog.seo.meta);
+  const box = el("section", { class: "order wrap" }, [el("p", {}, "Loading the order…")]);
+  const query = route.session ? `?session_id=${encodeURIComponent(route.session)}` : "";
+  try {
+    const order = await api(`/api/orders/${route.id}${query}`);
+    const kids = [el("h1", {}, order.id)];
+    if (order.mode === "demo") {
+      kids.push(el("p", { class: "stamp" }, "NO CHARGE · NO PRINT"));
+      kids.push(el("p", {}, order.notice.text));
+    } else if (order.mode === "payid" && !order.payment_taken) {
+      kids.push(el("p", {}, order.notice.text));
+      kids.push(el("p", {}, `Pay ${money(order.total_cents)} to PayID ${order.payid} (${order.payid_name}).`));
+      kids.push(el("p", {}, `Reference ${order.reference}. The tee is not sent to print until this payment clears.`));
+    } else if (order.mode === "stripe" && !order.payment_taken) {
+      kids.push(el("p", {}, "Card payment is not complete. No charge is treated as finished, and nothing has been sent to print."));
+    } else if (order.payment_taken) {
+      saveCart([]);
+      kids.push(el("p", {}, "Payment received. GST was already included. Free shipping in Australia."));
+      kids.push(el("p", {}, catalog.delivery));
+    } else {
+      kids.push(el("p", {}, order.notice.text));
+    }
+    kids.push(...order.lines.map((line) => (
+      el("p", {}, `${line.qty} × ${line.listing_name} · ${line.fabric_label} · ${line.size} · ${money(line.line_cents)}`)
+    )));
+    kids.push(el("p", {}, order.gst_cents ? `Includes GST ${money(order.gst_cents)}` : catalog.footer[1]));
+    kids.push(el("strong", {}, money(order.total_cents)));
+    kids.push(el("p", { class: "note" }, `${order.customer.name}, ${order.customer.suburb} ${order.customer.state} ${order.customer.postcode}`));
+    kids.push(el("p", { class: "note" }, order.created_brisbane));
+    box.replaceChildren(...kids);
+  } catch (error) {
+    box.replaceChildren(el("p", { class: "alert" }, error.message));
+  }
+  return [box];
+}
+
+function renderShipping(catalog) {
+  setTitle("Shipping — Rogers Inc Designs", catalog.seo.meta);
+  return [el("article", { class: "prose wrap" }, [
+    el("header", { class: "page-head" }, [el("h1", {}, "Shipping and returns")]),
+    el("h2", {}, "Shipping"),
+    el("p", { class: "lede" }, catalog.shipping),
+    el("h2", {}, "Delivery"),
+    el("p", { class: "lede" }, catalog.delivery),
+    el("h2", { id: "size-guide" }, "Size guide"),
+    el("p", { class: "lede" }, catalog.size_note),
+    el("p", { class: "lede" }, catalog.size_chart_gap),
+    el("h2", {}, "Returns"),
+    el("p", { class: "lede" }, catalog.returns),
+    el("p", { class: "lede" }, catalog.returns_contact_gap),
+  ])];
+}
+
+function renderAbout(catalog) {
+  setTitle("About — Rogers Inc Designs", catalog.seo.meta);
+  const parts = catalog.about.split("Elemental Wood");
+  const about = parts.length === 2
+    ? [parts[0], etsyAnchor(catalog, "Elemental Wood"), parts[1]]
+    : [catalog.about];
+  return [el("article", { class: "prose wrap" }, [
+    el("header", { class: "page-head" }, [el("h1", {}, "Rogers Inc Designs")]),
+    el("p", { class: "lede" }, about),
+    el("p", { class: "lede" }, catalog.shop.collection),
+  ])];
+}
+
+function renderMissing() {
+  setTitle("Not found — Rogers Inc Designs");
+  return [pageHead("That page is not here", []), el("p", { class: "empty wrap" }, [el("a", { href: "/shop" }, "Shop the tees")])];
+}
+
+async function render() {
+  const app = document.getElementById("app");
+  const route = parseRoute();
+  if (!state.catalog) {
+    app.replaceChildren(el("p", { class: "loading" }, state.error || "Loading the shop…"));
+    return;
+  }
+  const catalog = state.catalog;
+  chrome(catalog);
+  let nodes = [];
+  if (route.name === "home") nodes = renderHome(catalog);
+  else if (route.name === "shop") nodes = renderShop(catalog, route);
+  else if (route.name === "collection") nodes = renderCollection(catalog, route);
+  else if (route.name === "product") nodes = renderProduct(catalog, route);
+  else if (route.name === "cart") nodes = renderCart(catalog);
+  else if (route.name === "checkout") nodes = renderCheckout(catalog, route);
+  else if (route.name === "order") nodes = await renderOrder(catalog, route);
+  else if (route.name === "shipping") nodes = renderShipping(catalog);
+  else if (route.name === "about") nodes = renderAbout(catalog);
+  else nodes = renderMissing();
+  app.replaceChildren(...nodes.filter(Boolean));
+  if (location.hash) document.querySelector(location.hash)?.scrollIntoView();
+}
+
+document.addEventListener("click", (event) => {
+  const remove = event.target.closest("[data-remove]");
+  const qtyButton = event.target.closest("[data-qty]");
+  if (remove || qtyButton) {
+    const key = (remove || qtyButton).dataset.remove || (remove || qtyButton).dataset.key;
+    const delta = qtyButton ? Number(qtyButton.dataset.qty) : 0;
+    const lines = cart().flatMap((line) => {
+      if (lineKey(line) !== key) return [line];
+      if (remove) return [];
+      const qty = line.qty + delta;
+      return qty >= 1 && qty <= 4 ? [{ ...line, qty }] : [];
+    });
+    saveCart(lines);
+    render();
+    return;
+  }
+  const link = event.target.closest("a[href^='/']");
+  if (!link || link.target || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  navigate(link.getAttribute("href"));
+});
+
+window.addEventListener("popstate", () => { render(); });
+
+async function boot() {
+  try {
+    state.catalog = await api("/api/catalog");
+    state.error = "";
+  } catch (error) {
+    state.error = error.message;
+  }
+  render();
+}
+
+boot();

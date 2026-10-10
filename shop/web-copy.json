@@ -1,0 +1,83 @@
+{
+  "_meta": {
+    "source": "Marketing site copy pack, 7 Oct 2026, brand Rogers Inc Designs",
+    "site_brand": "Rogers Inc Designs",
+    "etsy_shop_name": "Elemental Wood",
+    "status": "draft for build — not live",
+    "scenes": "Product hooks and scenes live on each product in catalog.json. One-sentence scenes are carried from the Etsy listing pack into Marketing's product blurb template. Edit products.*.scene to replace them.",
+    "contact_email": null,
+    "remake_window_confirmed": null,
+    "remake_window_draft": "within 7 days of delivery",
+    "catalog": "Lanes and products are catalog.json. The Full Bleed nav label stays Full Bleed. A collection is not the public storefront until it has at least 10 items. Thin lanes stay ready-to-list or upcoming. This shop is a preview until every collection meets that floor.",
+    "held_collection_blurbs": {
+      "gothic-blackletter": "Industrial gothic type and dark ornament — charcoal ink, brick-red heat, and letterforms with teeth.",
+      "fuel": "Slow burns and night drives — a chest-print lane for hazy skies and long roads."
+    },
+    "voice": "Writer pack, 7 Oct 2026. Marketing may refine. Default hero lead is fixed. rotating lines cycle under it."
+  },
+  "seo": {
+    "title": "Rogers Inc Designs — Full-Bleed Anime Tees",
+    "meta": "Rogers Inc Designs — original anime art for people who actually wear it. Full-bleed tees from Australia. Free shipping in Australia."
+  },
+  "home": {
+    "headline": "Wear the scene. Own the night.",
+    "sub": "Original anime art for people who actually wear it.",
+    "tagline_alt": "Full-print tees and digital packs — made here, not licensed.",
+    "rotating": [
+      "Original art. Full-bleed. Built to wear.",
+      "From the screen to the street — Rogers Inc Designs.",
+      "Dark ink. Brick heat. No franchise filler.",
+      "Wallpaper energy, cut for cloth."
+    ],
+    "cta_primary": "Shop the tees",
+    "cta_secondary": "See the series",
+    "alt": "Free shipping in Australia."
+  },
+  "about": "Rogers Inc Designs is the brand. Elemental Wood is our Etsy shop name for the same art — original anime-style art made in Australia. Dark ink, brick heat, no franchise filler. Tees are printed, cut and sewn to order, so a full-bleed piece can sit a little differently at the seams.",
+  "shop": {
+    "drops_title": "New drops",
+    "intro": "Preview catalog. Each collection needs at least 10 designs before it is the storefront.",
+    "more": "More designs coming.",
+    "fabrics": "Polyester hits with colour and wraps the shirt. Cotton is a softer hand, matte, and opens after the first sales.",
+    "collection": "Original anime art for people who actually wear it."
+  },
+  "collections": {
+    "aop": "All-over print tees that wrap the full scene edge to edge — original anime art cut for cloth, designed in Australia.",
+    "living-screens": "Phone and desktop wallpaper packs built for real screens — same worlds as the tees, ready the moment you download."
+  },
+  "series_blurbs": {
+    "crimson-sun": "Blood-red skies, steel, and standing ground — a pack and print lane for heat and last stands.",
+    "oni-mask": "Masks that don’t sleep — shrine light, crimson vigil, and faces that watch the night.",
+    "quiet-rain": "Soft weather, sharp silence — umbrellas, windows, and streets that hush instead of shout.",
+    "starbound-sirens": "Starfields and siren light — cosmic queens and deep-space glow without the franchise labels.",
+    "neon-cyberpunk": "City veins and electric rain — night drives, alleys, and neon that never quite turns off.",
+    "ronin-rain": "Lone blades in wet streets — ronin weather, empty armour, and the long walk home."
+  },
+  "blurb_template_wallpaper": "{scene}. Phone and desktop wallpaper. Original Rogers Inc Designs artwork.",
+  "blurb_template": "{scene}. Printed edge to edge on a {fabric} full-bleed tee. Original Rogers Inc Designs artwork. Made to order. Free shipping in Australia.",
+  "blurb_template_dtg": "{scene}. Chest print. Original Rogers Inc Designs artwork. Made to order. Free shipping in Australia.",
+  "size_note": "Sizes XS–2XL. 2XL is +AU$4. Check the size guide before you order — each shirt is printed, cut and sewn to order.",
+  "size_chart_gap": "A measurement chart is not on this page yet. Compare with a tee you already wear.",
+  "shipping": "Free shipping within Australia on all tees. Orders are made to order with our print partner, then posted to you. Allow production time before the parcel is on the road — we’ll email when it ships. Overseas postage is charged separately and is not switched on. Free shipping is Australia only.",
+  "delivery": "Because every tee is made to order, please allow about 5–12 business days for printing and Australian delivery once the order is confirmed. Times can vary with the print partner and Australia Post.",
+  "returns": "These tees are made to order, so we can’t take returns for change of mind or wrong size once production has started. If your order arrives damaged or with a clear print fault, email us within 7 days of delivery with photos and your order number and we’ll sort a remake or refund under Australian Consumer Law. Nothing in this policy limits your rights under the Australian Consumer Law.",
+  "returns_contact_gap": "The contact email for print faults is not on this site yet.",
+  "checkout": {
+    "stripe": "Pay securely by card. GST is already in the price. The tee is not sent to print until the payment clears.",
+    "payid": "Checkout will show PayID details. Your order is held until payment clears, then we send it to print.",
+    "demo_lead": "This shop is in demo mode. You can walk through checkout, but no payment will be taken and no shirt will be printed or shipped.",
+    "demo_emphasis": "no payment will be taken and no shirt will be printed or shipped.",
+    "demo_tail": "Place a real order once payments are switched on, or buy the matching designs on our Etsy shop meanwhile.",
+    "international": "Overseas postage is charged. It is not open on this shop yet, and Australian orders do not cover it.",
+    "off": "Payments are not switched on. No payment will be taken and no shirt will be printed."
+  },
+  "fulfillment_note": "Printful fulfilment is started from the order record after payment — not instant auto-push until that pipeline is live.",
+  "footer": [
+    "Rogers Inc Designs · designed in Australia",
+    "GST included in Australian prices",
+    "Free shipping in Australia",
+    "Made to order — check the size guide"
+  ],
+  "etsy_link_label": "Elemental Wood on Etsy",
+  "etsy_listing_url": "https://www.etsy.com/listing/4589600597"
+}
