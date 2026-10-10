@@ -31,6 +31,10 @@ jobs:
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
+        with:
+          # Turns Pages on when this token is allowed to. A token without
+          # repository administration cannot do this, and the job will say so.
+          enablement: true
 
       - name: Upload site folder
         uses: actions/upload-pages-artifact@v3
