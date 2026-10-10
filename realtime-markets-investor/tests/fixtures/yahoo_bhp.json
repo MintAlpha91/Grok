@@ -1,0 +1,22 @@
+{
+  "chart": {
+    "result": [
+      {
+        "meta": {
+          "currency": "AUD",
+          "symbol": "TEST.AX",
+          "exchangeName": "ASX",
+          "shortName": "Test Co",
+          "regularMarketPrice": 12.5,
+          "chartPreviousClose": 10,
+          "previousClose": null,
+          "regularMarketTime": 1700000000,
+          "fulldayChange": 2.5,
+          "fulldayChangePercent": 25,
+          "regularMarketVolume": 1000
+        }
+      }
+    ],
+    "error": null
+  }
+}

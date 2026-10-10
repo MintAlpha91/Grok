@@ -1,0 +1,38 @@
+{
+  "timezone": "Australia/Brisbane",
+  "account_context": {
+    "type": "smsf",
+    "holder": "Stake",
+    "note": "The Stake portfolio is SMSF property, not personal cash. This tool does not read balances, contributions, or pensions."
+  },
+  "instruments": [
+    {
+      "id": "BHP.AX",
+      "sleeve": "equities",
+      "name": "BHP Group",
+      "role": "example_not_a_holding",
+      "feed": "yahoo_chart",
+      "symbol": "BHP.AX"
+    },
+    {
+      "id": "AUDUSD",
+      "sleeve": "fx",
+      "name": "Australian dollar / US dollar",
+      "role": "example_not_a_holding",
+      "feed": "yahoo_chart",
+      "symbol": "AUDUSD=X",
+      "reference_feed": "frankfurter",
+      "frankfurter_from": "AUD",
+      "frankfurter_to": "USD"
+    },
+    {
+      "id": "BTC-USD",
+      "sleeve": "crypto",
+      "name": "Bitcoin",
+      "role": "example_not_a_holding",
+      "feed": "coingecko",
+      "coin_id": "bitcoin",
+      "vs_currency": "usd"
+    }
+  ]
+}
