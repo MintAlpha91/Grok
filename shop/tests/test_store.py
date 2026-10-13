@@ -35,7 +35,7 @@ from store.checkout import (  # noqa: E402
     place_order,
     stripe_fields,
 )
-from store.server import make_server  # noqa: E402
+from store.server import _orders_dir, bind_address, make_server  # noqa: E402
 
 ENV_KEYS = (
     "STRIPE_SECRET_KEY",
@@ -43,7 +43,11 @@ ENV_KEYS = (
     "SHOP_PAYID_NAME",
     "SHOP_CHECKOUT",
     "SHOP_ORDERS",
+    "SHOP_ORDERS_DIR",
     "SHOP_BASE_URL",
+    "PORT",
+    "SHOP_PORT",
+    "SHOP_HOST",
 )
 
 
@@ -820,6 +824,26 @@ class ServerTests(unittest.TestCase):
         status, leaked = self.get("/catalog.json")
         self.assertEqual(status, 200)
         self.assertNotIn("printful_product_id", leaked)
+
+    def test_railway_binds_all_interfaces_on_port_and_orders_dir(self):
+        os.environ["PORT"] = "18080"
+        os.environ["SHOP_PORT"] = "9999"
+        os.environ.pop("SHOP_HOST", None)
+        self.assertEqual(bind_address(), ("0.0.0.0", 18080))
+        os.environ.pop("PORT", None)
+        self.assertEqual(bind_address(), ("0.0.0.0", 9999))
+        volume = self.orders / "volume"
+        os.environ["SHOP_ORDERS_DIR"] = str(volume)
+        os.environ["SHOP_ORDERS"] = str(self.orders)
+        self.assertEqual(_orders_dir(), volume)
+        os.environ.pop("SHOP_ORDERS_DIR", None)
+        self.assertEqual(_orders_dir(), self.orders)
+        server = make_server(0, bind_address()[0], _orders_dir())
+        try:
+            self.assertEqual(server.server_address[0], "0.0.0.0")
+            self.assertEqual(server.orders_dir, self.orders)
+        finally:
+            server.server_close()
 
 
 if __name__ == "__main__":

@@ -46,6 +46,8 @@ Do not commit keys. The server rejects `sk_live_` and `rk_live_`. Copy `.env.exa
 | `STRIPE_SECRET_KEY` | Later. `sk_test_…` turns hosted Checkout on |
 | `STRIPE_PUBLISHABLE_KEY` | Later, optional. `pk_test_…`. Hosted Checkout does not read it |
 | `SHOP_BASE_URL` | Later, with Stripe. Return origin, no path. Local: `http://127.0.0.1:8765` |
+| `PORT` | Railway sets this. The server binds `0.0.0.0` on it. Local fallback is `SHOP_PORT` (default 8765) |
+| `SHOP_ORDERS_DIR` | Directory for order JSON. Point this at a Railway volume. `SHOP_ORDERS` is the local override |
 
 When Jason sets `sk_test_…`, card checkout creates a Stripe Checkout Session in AUD at the catalog price (name, fabric, size). GST is already inside that amount: `automatic_tax` is off and each price is `tax_behavior=inclusive`. The only shipping rate is free delivery inside Australia. Success returns to `/order/RID-…?session_id={CHECKOUT_SESSION_ID}`. Cancel returns to `/checkout?cancelled=1`. Test card `4242 4242 4242 4242`, any future expiry, any CVC. A paid order is saved for a person to send to Printful. Nothing is pushed to Printful automatically.
 
@@ -58,4 +60,4 @@ PYTHONPATH=src python3 -m unittest discover -s tests -v
 
 ## Before publish
 
-See `BEFORE-PUBLISH.md`. Contact email (rogersinc426@gmail.com), 7-day remake window and PayID are confirmed. Deploy env: `deploy.env.example`.
+See `BEFORE-PUBLISH.md`. Contact email (rogersinc426@gmail.com), 7-day remake window and PayID are confirmed. Deploy env: `deploy.env.example`. Railway: service root `shop/`, start `PYTHONPATH=src python3 -m store`.

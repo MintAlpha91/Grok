@@ -1,0 +1,2 @@
+# The shop uses the Python standard library only.
+# This file marks shop/ as a Python app for Railway (Railpack / Nixpacks).

@@ -22,8 +22,23 @@ ORDERS_PATH = PUBLIC_PATH.parent / "orders"
 
 
 def _orders_dir() -> Path:
-    override = os.environ.get("SHOP_ORDERS")
+    """Order JSON lives on a Railway volume when SHOP_ORDERS_DIR is set.
+
+    SHOP_ORDERS remains the local override used by the tests.
+    """
+    override = (os.environ.get("SHOP_ORDERS_DIR") or os.environ.get("SHOP_ORDERS") or "").strip()
     return Path(override) if override else ORDERS_PATH
+
+
+def bind_address() -> tuple[str, int]:
+    """Bind every interface on Railway's PORT.
+
+    SHOP_PORT is the local fallback when PORT is unset. SHOP_HOST can narrow
+    the interface; the default is 0.0.0.0.
+    """
+    host = (os.environ.get("SHOP_HOST") or "0.0.0.0").strip() or "0.0.0.0"
+    raw = (os.environ.get("PORT") or os.environ.get("SHOP_PORT") or "8765").strip()
+    return host, int(raw)
 
 
 class ShopServer(ThreadingHTTPServer):
@@ -148,9 +163,8 @@ def make_server(port: int = 8765, host: str = "127.0.0.1", orders_dir: Path | No
 
 
 def main() -> None:
-    port = int(os.environ.get("SHOP_PORT", "8765"))
-    host = os.environ.get("SHOP_HOST", "0.0.0.0")
+    host, port = bind_address()
     server = make_server(port, host)
     mode = checkout_public()["mode"]
-    print(f"Rogers Inc Designs on http://127.0.0.1:{port} ({mode})")
+    print(f"Rogers Inc Designs on http://{host}:{port} ({mode})")
     server.serve_forever()
