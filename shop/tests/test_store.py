@@ -194,15 +194,24 @@ class CopyAndPriceTests(unittest.TestCase):
             self.assertNotIn(banned, public_body)
         chest = [item for item in public["products"] if item["collection"] == "chest-dtg"]
         self.assertEqual(len(chest), 10)
-        ready_chest = {
-            "chest-kitsune-neon-nine-tail-shrine",
-            "chest-tengu-storm-chrome-crow",
-            "chest-astral-fox-empress",
-        }
+        self.assertEqual(
+            {design["slug"] for design in chest},
+            {
+                "chest-crimson-sun-last-ronin",
+                "chest-oni-mask-crimson-oni",
+                "chest-quiet-rain-umbrella-crossing",
+                "chest-quiet-rain-window-seat",
+                "chest-neon-dual-blade-alley",
+                "chest-ronin-ghost-armour",
+                "chest-ronin-last-stand",
+                "chest-kitsune-neon-nine-tail-shrine",
+                "chest-tengu-storm-chrome-crow",
+                "chest-astral-fox-empress",
+            },
+        )
         for design in chest:
-            if design["slug"] in ready_chest:
-                self.assertEqual(design["status"], "live")
-                self.assertTrue(design["image"].endswith(f"{design['slug']}-chest.jpg"))
+            self.assertEqual(design["status"], "live", design["slug"])
+            self.assertTrue(design["image"].endswith(f"{design['slug']}-chest.jpg"))
         for design in chest:
             self.assertEqual([item["id"] for item in design["fabrics"]], ["chest"])
             self.assertEqual(design["fabrics"][0]["price_cents"], 4700)
