@@ -121,8 +121,8 @@ class CopyAndPriceTests(unittest.TestCase):
         self.assertNotIn("Elemental Wood", " ".join(copy["footer"]))
         self.assertNotIn("Elemental Wood", copy["shop"]["intro"])
         self.assertIn("Wear the scene. Own the night.", public)
-        self.assertIsNone(copy["_meta"]["contact_email"])
-        self.assertIsNone(copy["_meta"]["remake_window_confirmed"])
+        self.assertEqual(copy["_meta"]["contact_email"], "rogersinc426@gmail.com")
+        self.assertEqual(copy["_meta"]["remake_window_confirmed"], "within 7 days of delivery")
 
     def test_homepage_html_uses_rogers_inc_title(self):
         html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")

@@ -4,10 +4,12 @@ This shop is a preview catalog, not a live store. Do not treat it as go-live rea
 
 The website brand is Rogers Inc / Rogers Inc Designs. Elemental Wood is the Etsy shop name only.
 
-Jason still needs to confirm these. They are not invented on the site.
+Resolved by Jason (14 Oct 2026):
 
-- Contact email for damaged or misprinted orders. None is set. The shipping page says the address is not published yet.
-- Remake window. Marketing’s draft says email within 7 days of delivery. That number is not confirmed.
+- Contact email for damaged or misprinted orders: rogersinc426@gmail.com (on the returns/shipping copy).
+- Remake window: 7 days from delivery.
+- Indexing: keep `noindex` for now.
+- PayID: 0499420228, name Rogers Inc Designs. Set via deploy env (`SHOP_PAYID`, `SHOP_PAYID_NAME`); see `deploy.env.example`.
 
 Also still open:
 
@@ -19,7 +21,7 @@ Also still open:
 - Blackletter is 10 live cards. As High As Fuel is 10 live cards. The main Fuel tee uses the white and heather photos only. Print-ready DTG files are 4500×5400 RGB on white, stored under `shop/print-ready/` for Printful later. They are not shop photos. Fuel prints are for white and heather only. On hand: all six Gothic fills (Blood Covenant, Iron Psalm, Wraith March, Bone Chapel, Hex Altar, Pale Reign) and all nine Fuel slogan prints (Too High To Care, Gas Money Went To This, Budget Went Up In Smoke, Running On Fumes, Empty Tank Full Heart, High Mileage Low Motivation, Premium Grade Only, Check Engine Chill Mode, Slow Lane High Life). Print-ready DTG files for the original four Blackletter cards (Void King, Ash Iron, Night Warden, Grave Shift) and the main As High As The Price Of Fuel tee are now in `shop/print-ready/gothic/` and `shop/print-ready/fuel/` (Fuel uses the nobox white RGB front; dark variant also present). Brush & Smoke is 4 preview cards. Biomechanical is the Half Machine Skull preview card.
 - Wave-1 prices are locked if those products are added later: hoodie AU$75, AOP beanie AU$49, Flexfit AU$55. No mockups for them are on this site, so they are not in the catalog.
 - Full Bleed is a live lane at 22 shop cards. Nebula Queen is one of those cards, polyester AU$65. Chest print is live at 10 (7 prior hero chests + Nine-Tail Shrine, Chrome Crow Storm, Astral Fox Empress with black-bar-fixed mockups). Nebula Queen chest stays held. Print-ready files for the 3 new chests are under `shop/print-ready/chest/` as 4500×5400 RGB on white. They are not shop photos. Living Screens is a live lane of wallpaper cards from the preview images on this site: Crimson Sun 9, Quiet Rain 8, plus Oni, Ronin Rain, Starbound, and Neon Cyberpunk collages and the two desktop shots. Pack price AU$12. Design still counts 57 packs; only the images in the preview zips are cards. The AU$10 add-on with a tee stays held, and the pack zip is not a separate download. Night Shift is seasonal, not an adults-only lane. Blackletter and As High As Fuel are live lanes. Their held marketing blurbs stay off the public shop. Demo checkout only. No deploy.
-- Remove `<meta name="robots" content="noindex">` when Jason says the shop should be indexed. Test-mode Stripe still keeps the shop out of search.
+- Keep `noindex` (Jason, 14 Oct). Remove `<meta name="robots" content="noindex">` only when Jason says the shop should be indexed. Test-mode Stripe still keeps the shop out of search.
 - Stripe Checkout is ready and parked. Leave `STRIPE_SECRET_KEY` unset. Use `SHOP_PAYID` or `SHOP_CHECKOUT=demo` until Jason adds `sk_test_` later. Do not commit keys. The server rejects `sk_live_` / `rk_live_`. See README “Payments”.
 - Free shipping on the Stripe session is Australia only. Do not add a zero shipping rate for other countries. Overseas postage stays closed until a charged rate is set.
 - PayID (`SHOP_PAYID`) is the path when the Stripe secret is unset. It does not run alongside Stripe.

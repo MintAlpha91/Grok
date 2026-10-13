@@ -5,8 +5,8 @@
     "etsy_shop_name": "Elemental Wood",
     "status": "draft for build — not live",
     "scenes": "Product hooks and scenes live on each product in catalog.json. One-sentence scenes are carried from the Etsy listing pack into Marketing's product blurb template. Edit products.*.scene to replace them.",
-    "contact_email": null,
-    "remake_window_confirmed": null,
+    "contact_email": "rogersinc426@gmail.com",
+    "remake_window_confirmed": "within 7 days of delivery",
     "remake_window_draft": "within 7 days of delivery",
     "catalog": "Lanes and products are catalog.json. The Full Bleed nav label stays Full Bleed. A collection is not the public storefront until it has at least 10 items. Thin lanes stay ready-to-list or upcoming. This shop is a preview until every collection meets that floor.",
     "held_collection_blurbs": {
@@ -60,8 +60,8 @@
   "size_chart_gap": "A measurement chart is not on this page yet. Compare with a tee you already wear.",
   "shipping": "Free shipping within Australia on all tees. Orders are made to order with our print partner, then posted to you. Allow production time before the parcel is on the road — we’ll email when it ships. Overseas postage is charged separately and is not switched on. Free shipping is Australia only.",
   "delivery": "Because every tee is made to order, please allow about 5–12 business days for printing and Australian delivery once the order is confirmed. Times can vary with the print partner and Australia Post.",
-  "returns": "These tees are made to order, so we can’t take returns for change of mind or wrong size once production has started. If your order arrives damaged or with a clear print fault, email us within 7 days of delivery with photos and your order number and we’ll sort a remake or refund under Australian Consumer Law. Nothing in this policy limits your rights under the Australian Consumer Law.",
-  "returns_contact_gap": "The contact email for print faults is not on this site yet.",
+  "returns": "These tees are made to order, so we can’t take returns for change of mind or wrong size once production has started. If your order arrives damaged or with a clear print fault, email rogersinc426@gmail.com within 7 days of delivery with photos and your order number and we’ll sort a remake or refund under Australian Consumer Law. Nothing in this policy limits your rights under the Australian Consumer Law.",
+  "returns_contact_gap": "Damaged or misprinted? Email rogersinc426@gmail.com within 7 days of delivery.",
   "checkout": {
     "stripe": "Pay securely by card. GST is already in the price. The tee is not sent to print until the payment clears.",
     "payid": "Checkout will show PayID details. Your order is held until payment clears, then we send it to print.",

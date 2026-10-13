@@ -58,4 +58,4 @@ PYTHONPATH=src python3 -m unittest discover -s tests -v
 
 ## Before publish
 
-See `BEFORE-PUBLISH.md`. Contact email and the remake window are still for Jason to confirm.
+See `BEFORE-PUBLISH.md`. Contact email (rogersinc426@gmail.com), 7-day remake window and PayID are confirmed. Deploy env: `deploy.env.example`.
