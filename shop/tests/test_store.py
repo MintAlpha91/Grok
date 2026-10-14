@@ -584,14 +584,20 @@ class CheckoutTests(unittest.TestCase):
         clear_payment_env()
         self.orders = ROOT / "tests" / "tmp-orders"
         self.orders.mkdir(exist_ok=True)
-        for path in self.orders.glob("*.json"):
-            path.unlink()
+        self._clear_orders()
         os.environ["SHOP_ORDERS"] = str(self.orders)
 
     def tearDown(self):
         restore_env(self.saved)
+        self._clear_orders()
+
+    def _clear_orders(self):
         for path in self.orders.glob("*.json"):
             path.unlink()
+        idem = self.orders / "idempotency"
+        if idem.is_dir():
+            for path in idem.glob("*.json"):
+                path.unlink()
 
     def customer(self):
         return {
@@ -922,6 +928,10 @@ class ServerTests(unittest.TestCase):
         self.orders.mkdir(exist_ok=True)
         for path in self.orders.glob("*.json"):
             path.unlink()
+        idem = self.orders / "idempotency"
+        if idem.is_dir():
+            for path in idem.glob("*.json"):
+                path.unlink()
         os.environ["SHOP_CHECKOUT"] = "demo"
         os.environ["SHOP_ORDERS"] = str(self.orders)
         self.server = make_server(0, "127.0.0.1", self.orders)
@@ -936,6 +946,10 @@ class ServerTests(unittest.TestCase):
         restore_env(self.saved)
         for path in self.orders.glob("*.json"):
             path.unlink()
+        idem = self.orders / "idempotency"
+        if idem.is_dir():
+            for path in idem.glob("*.json"):
+                path.unlink()
 
     def get(self, path):
         with urllib.request.urlopen(self.base + path) as response:

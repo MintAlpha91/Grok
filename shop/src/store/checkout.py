@@ -253,7 +253,11 @@ def begin_idempotency(orders_dir: Path, key: str) -> dict | None:
                 data = {}
             order_id = str(data.get("order_id") or "")
             if ORDER_ID.match(order_id):
-                return load_order(orders_dir, order_id)
+                try:
+                    return load_order(orders_dir, order_id)
+                except ShopError:
+                    path.unlink(missing_ok=True)
+                    continue
             time.sleep(0.05)
             continue
         os.write(fd, b'{"status": "pending"}\n')
