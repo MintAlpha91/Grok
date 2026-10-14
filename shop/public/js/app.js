@@ -98,26 +98,54 @@ async function api(path, body) {
   return data;
 }
 
-const CATALOG_TIMEOUT_MS = 8000;
+const CATALOG_TIMEOUT_MS = 12000;
 const CATALOG_TRIES = 3;
+const CATALOG_CACHE = "rid-catalog-v1";
+
+function readCachedCatalog() {
+  try {
+    const data = JSON.parse(sessionStorage.getItem(CATALOG_CACHE) || "null");
+    if (data && Array.isArray(data.products) && data.products.length) return data;
+  } catch {
+    /* ignore a bad cache */
+  }
+  return null;
+}
+
+function rememberCatalog(data) {
+  try {
+    sessionStorage.setItem(CATALOG_CACHE, JSON.stringify(data));
+  } catch {
+    /* private mode can refuse storage */
+  }
+}
 
 function fetchCatalogOnce() {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), CATALOG_TIMEOUT_MS);
-  return fetch("/api/catalog", { signal: controller.signal, headers: { Accept: "application/json" } })
-    .finally(() => clearTimeout(timer));
+  return fetch("/api/catalog", {
+    signal: controller.signal,
+    cache: "no-store",
+    headers: { Accept: "application/json" },
+  }).then(async (response) => {
+    if (!response.ok) throw new Error("The shop could not be loaded.");
+    const data = await response.json();
+    if (!data || !Array.isArray(data.products)) throw new Error("The shop catalog was unreadable.");
+    return data;
+  }).finally(() => clearTimeout(timer));
 }
 
 async function loadCatalog() {
   let lastError = "The shop did not respond.";
   for (let attempt = 1; attempt <= CATALOG_TRIES; attempt += 1) {
-    if (!state.catalog) showShopStatus(attempt === 1 ? "Loading the shop…" : `Loading the shop… (attempt ${attempt} of ${CATALOG_TRIES})`, false);
+    if (!state.catalog) {
+      showShopStatus(
+        attempt === 1 ? "Loading the shop…" : `Loading the shop… (attempt ${attempt} of ${CATALOG_TRIES})`,
+        false,
+      );
+    }
     try {
-      const response = await fetchCatalogOnce();
-      if (!response.ok) throw new Error("The shop could not be loaded.");
-      const data = await response.json();
-      if (!data || !Array.isArray(data.products)) throw new Error("The shop catalog was unreadable.");
-      return data;
+      return await fetchCatalogOnce();
     } catch (error) {
       const timedOut = error && error.name === "AbortError";
       lastError = timedOut ? "The shop took too long to load." : ((error && error.message) || lastError);
@@ -566,6 +594,23 @@ function renderProduct(catalog, route) {
   ])];
 }
 
+function pricedCartLine(catalog, line) {
+  const design = catalog.products.find((item) => item.slug === line.slug);
+  const fabric = design && design.fabrics.find((item) => item.id === line.fabric);
+  const unit = fabric
+    ? fabric.price_cents + ((fabric.premiums_cents && fabric.premiums_cents[line.size]) || 0)
+    : 0;
+  const qty = line.qty || 1;
+  return {
+    ...line,
+    name: design ? design.name : line.slug,
+    series_name: design ? (design.series_name || "") : "",
+    fabric_label: fabric ? fabric.label : (line.fabric || ""),
+    unit_cents: unit,
+    line_cents: unit * qty,
+  };
+}
+
 function renderCart(catalog) {
   setTitle("Cart — Rogers Inc Designs", catalog.seo.meta);
   const lines = cart();
@@ -579,12 +624,34 @@ function renderCart(catalog) {
       ]),
     ];
   }
-  const list = el("div", { class: "cart wrap", id: "cart-lines" }, [el("p", {}, "Checking prices…")]);
-  api("/api/quote", { lines }).then((quote) => {
+  const localLines = lines.map((line) => pricedCartLine(catalog, line));
+  const goods = localLines.reduce((sum, line) => sum + line.line_cents, 0);
+  const list = el("div", { class: "cart wrap", id: "cart-lines" });
+  const paint = (quote) => {
     list.replaceChildren(...quote.lines.map((line) => lineRow(line)), totals(quote, catalog));
-  }).catch((error) => {
-    list.replaceChildren(el("p", { class: "alert" }, error.message));
+  };
+  paint({
+    lines: localLines,
+    gst_cents: Math.floor((goods + 5) / 11),
+    shipping_cents: 0,
+    total_cents: goods,
   });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  fetch("/api/quote", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lines }),
+    signal: controller.signal,
+  }).then(async (response) => {
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Prices could not be checked.");
+    if (list.isConnected) paint(data);
+  }).catch(() => {
+    if (list.isConnected) {
+      list.append(el("p", { class: "note" }, "Showing catalog prices. Refresh the cart if a line looks wrong."));
+    }
+  }).finally(() => clearTimeout(timer));
   return [pageHead("Cart", []), list];
 }
 
@@ -630,9 +697,11 @@ function renderCheckout(catalog, route) {
   const notice = el("div", { class: mode === "demo" ? "notice notice-demo" : "notice" }, noticeBody(catalog, mode));
   const actions = el("div", { class: "payment-actions" });
   const stateSlot = el("div", {});
-  const countrySelect = el("select", { name: "country", autocomplete: "country" }, COUNTRIES.map(([code, label]) => (
-    el("option", { value: code, selected: code === "AU" ? "selected" : null }, label)
-  )));
+  const countrySelect = el("select", { name: "country", autocomplete: "off" }, [
+    el("option", { value: "AU", selected: "selected" }, "Australia"),
+    ...COUNTRIES.filter(([code]) => code !== "AU").map(([code, label]) => el("option", { value: code }, label)),
+  ]);
+  countrySelect.value = "AU";
   const postcode = field("Postcode", "postcode", "text", true);
   const form = el("form", { class: "fields", id: "checkout-form" }, [
     field("Name", "name", "text", true),
@@ -685,9 +754,15 @@ function renderCheckout(catalog, route) {
 
   function applyValues(values) {
     for (const control of form.querySelectorAll("input, select, textarea")) {
-      if (!control.name || values[control.name] == null || values[control.name] === "") continue;
+      if (!control.name || control.name === "country") continue;
+      if (values[control.name] == null || values[control.name] === "") continue;
       if (control.value !== values[control.name]) control.value = values[control.name];
     }
+  }
+
+  function keepAustraliaUntilChosen() {
+    if (countrySelect.dataset.userPicked === "1") return;
+    countrySelect.value = "AU";
   }
 
   function country() {
@@ -727,13 +802,21 @@ function renderCheckout(catalog, route) {
     applyValues(values);
   }
 
-  const saved = readDraft();
-  if (saved.country) countrySelect.value = saved.country;
+  countrySelect.value = "AU";
   paintActions();
+  countrySelect.addEventListener("pointerdown", () => { countrySelect.dataset.userPicked = "1"; });
+  countrySelect.addEventListener("keydown", () => { countrySelect.dataset.userPicked = "1"; });
+  requestAnimationFrame(keepAustraliaUntilChosen);
+  setTimeout(keepAustraliaUntilChosen, 0);
+  setTimeout(keepAustraliaUntilChosen, 400);
 
   countrySelect.addEventListener("change", () => {
-    paintActions();
-    refreshQuote();
+    if (countrySelect.dataset.userPicked === "1") {
+      paintActions();
+      refreshQuote();
+    } else {
+      keepAustraliaUntilChosen();
+    }
   });
   form.addEventListener("input", () => {
     remember(true);
@@ -1051,15 +1134,22 @@ let booting = false;
 async function boot() {
   if (booting) return;
   booting = true;
-  state.catalog = null;
-  state.error = "";
-  showShopStatus("Loading the shop…", false);
-  try {
-    state.catalog = await loadCatalog();
+  const cached = readCachedCatalog();
+  if (cached) {
+    state.catalog = cached;
     state.error = "";
+    render();
+  } else {
+    state.error = "";
+    showShopStatus("Loading the shop…", false);
+  }
+  try {
+    const fresh = await loadCatalog();
+    state.catalog = fresh;
+    state.error = "";
+    rememberCatalog(fresh);
   } catch (error) {
-    state.catalog = null;
-    state.error = (error && error.message) || "The shop could not be loaded.";
+    if (!state.catalog) state.error = (error && error.message) || "The shop could not be loaded.";
   } finally {
     booting = false;
   }
