@@ -621,46 +621,105 @@ function renderCheckout(catalog, route) {
     ]),
     actions,
   ]);
-  stateSlot.replaceChildren(stateField());
+  const draftKey = "rid-checkout-draft";
+  const idempotencyKey = (window.crypto && crypto.randomUUID && crypto.randomUUID())
+    || `checkout-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+  let shownCountry = "";
+  let placing = false;
+
+  function readDraft() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(draftKey) || "{}");
+      return saved && typeof saved === "object" ? saved : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function fieldValues() {
+    const values = {};
+    for (const control of form.querySelectorAll("input, select, textarea")) {
+      if (control.name) values[control.name] = control.value;
+    }
+    return values;
+  }
+
+  function remember(force = false) {
+    const current = fieldValues();
+    const values = { ...readDraft() };
+    for (const [name, value] of Object.entries(current)) {
+      if (value !== "" || force) values[name] = value;
+    }
+    sessionStorage.setItem(draftKey, JSON.stringify(values));
+    return values;
+  }
+
+  function applyValues(values) {
+    for (const control of form.querySelectorAll("input, select, textarea")) {
+      if (!control.name || values[control.name] == null || values[control.name] === "") continue;
+      if (control.value !== values[control.name]) control.value = values[control.name];
+    }
+  }
 
   function country() {
     return countrySelect.value || "AU";
   }
 
+  function syncStateField(values) {
+    const next = country();
+    const current = stateSlot.querySelector("[name=state]");
+    if (current && shownCountry === next) return;
+    const previous = (current && current.value) || values.state || "";
+    shownCountry = next;
+    if (next === "AU") stateSlot.replaceChildren(stateField());
+    else stateSlot.replaceChildren(field("State / region", "state", "text", next === "US" || next === "CA"));
+    const control = stateSlot.querySelector("[name=state]");
+    if (control && previous) control.value = previous;
+  }
+
   function paintActions() {
+    const values = remember();
     const choice = paymentChoice(catalog, country());
     notice.className = country() !== "AU" ? "notice" : (mode === "demo" ? "notice notice-demo" : "notice");
     notice.replaceChildren(...(country() === "AU" ? noticeBody(catalog, mode) : [el("p", {}, catalog.checkout.stripe)]));
-    actions.replaceChildren();
-    if (choice.note) actions.append(el("p", {}, choice.note));
-    for (const button of choice.buttons) {
-      actions.append(el("button", { class: "btn", type: "submit", "data-payment": button.payment }, button.label));
+    if (!placing) {
+      actions.replaceChildren();
+      if (choice.note) actions.append(el("p", {}, choice.note));
+      for (const button of choice.buttons) {
+        actions.append(el("button", { class: "btn", type: "submit", "data-payment": button.payment }, button.label));
+      }
     }
     const code = postcode.querySelector("input");
     if (code) {
       code.maxLength = country() === "AU" ? 4 : 12;
       code.inputMode = country() === "AU" ? "numeric" : "text";
     }
-    if (country() === "AU") stateSlot.replaceChildren(stateField());
-    else stateSlot.replaceChildren(field("State / region", "state", "text", country() === "US" || country() === "CA"));
+    syncStateField(values);
+    applyValues(values);
   }
+
+  const saved = readDraft();
+  if (saved.country) countrySelect.value = saved.country;
+  paintActions();
 
   countrySelect.addEventListener("change", () => {
     paintActions();
     refreshQuote();
   });
   form.addEventListener("input", () => {
+    remember(true);
     if (country() !== "AU") refreshQuote();
   });
-  paintActions();
 
   let quoteTimer = 0;
   function refreshQuote() {
     window.clearTimeout(quoteTimer);
     quoteTimer = window.setTimeout(async () => {
-      const customer = Object.fromEntries(new FormData(form).entries());
+      const typed = remember();
+      const customer = country() === "AU" ? { country: "AU" } : fieldValues();
       try {
-        const quote = await api("/api/quote", { lines: cart(), customer: country() === "AU" ? { country: "AU" } : customer });
+        const quote = await api("/api/quote", { lines: cart(), customer });
+        applyValues(typed);
         const gst = quote.gst_cents ? `Includes GST ${money(quote.gst_cents)}` : "No extra GST on this export.";
         const postage = quote.shipping_cents
           ? `${quote.shipping_name || "Postage"} ${money(quote.shipping_cents)}`
@@ -669,6 +728,7 @@ function renderCheckout(catalog, route) {
           el("p", {}, `${line.qty} × ${line.name} · ${line.fabric_label} · ${line.size} · ${money(line.line_cents)}`)
         )), el("p", {}, postage), el("p", {}, gst), el("strong", {}, money(quote.total_cents)));
       } catch (err) {
+        applyValues(typed);
         summary.replaceChildren(el("p", { class: "alert" }, err.message));
       }
     }, country() === "AU" ? 0 : 250);
@@ -676,12 +736,29 @@ function renderCheckout(catalog, route) {
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (placing) return;
+    placing = true;
     error.textContent = "";
     const payment = event.submitter && event.submitter.dataset.payment;
-    for (const button of actions.querySelectorAll("button")) button.disabled = true;
-    const customer = Object.fromEntries(new FormData(form).entries());
+    const buttons = [...actions.querySelectorAll("button")];
+    const labels = buttons.map((button) => button.textContent);
+    for (const button of buttons) {
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      if (button === event.submitter) button.textContent = "Placing order…";
+    }
+    const status = el("p", { class: "placing", role: "status" }, "Placing order…");
+    actions.append(status);
+    const customer = fieldValues();
+    remember(true);
     try {
-      const order = await api("/api/checkout", { lines: cart(), customer, payment });
+      const order = await api("/api/checkout", {
+        lines: cart(),
+        customer,
+        payment,
+        idempotency_key: idempotencyKey,
+      });
+      sessionStorage.removeItem(draftKey);
       if (order.url) {
         location.href = order.url;
         return;
@@ -689,8 +766,15 @@ function renderCheckout(catalog, route) {
       saveCart([]);
       navigate(`/order/${order.id}`);
     } catch (err) {
+      placing = false;
+      buttons.forEach((button, index) => {
+        button.disabled = false;
+        button.removeAttribute("aria-busy");
+        button.textContent = labels[index];
+      });
+      status.remove();
       error.textContent = err.message;
-      for (const button of actions.querySelectorAll("button")) button.disabled = false;
+      applyValues(customer);
     }
   });
   refreshQuote();

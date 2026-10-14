@@ -623,6 +623,42 @@ class CheckoutTests(unittest.TestCase):
         self.assertNotIn("printful_product_id", view["lines"][0])
         self.assertIn("not instant auto-push", saved["internal_note"])
 
+    def test_same_checkout_key_does_not_create_a_second_order(self):
+        os.environ["SHOP_PAYID"] = "rogers@example"
+        first = place_order(
+            self.orders,
+            self.lines(),
+            self.customer(),
+            base_url="http://127.0.0.1",
+            idempotency_key="checkout-key-1111",
+        )
+        second = place_order(
+            self.orders,
+            self.lines(),
+            self.customer(),
+            base_url="http://127.0.0.1",
+            idempotency_key="checkout-key-1111",
+        )
+        self.assertEqual(first["id"], second["id"])
+        self.assertEqual(len(list(self.orders.glob("RID-*.json"))), 1)
+        other = place_order(
+            self.orders,
+            self.lines(),
+            self.customer(),
+            base_url="http://127.0.0.1",
+            idempotency_key="checkout-key-2222",
+        )
+        self.assertNotEqual(other["id"], first["id"])
+        self.assertEqual(len(list(self.orders.glob("RID-*.json"))), 2)
+        with self.assertRaises(ShopError):
+            place_order(
+                self.orders,
+                self.lines(),
+                self.customer(),
+                base_url="http://127.0.0.1",
+                idempotency_key="../escape",
+            )
+
     def test_payid_holds_the_order(self):
         os.environ["SHOP_PAYID"] = "rogers@example"
         os.environ["SHOP_CHECKOUT"] = "demo"
@@ -1087,6 +1123,25 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(confirmed["printful_order_id"], 9002)
         self.assertTrue(confirmed["print_or_ship"])
 
+    def test_admin_marks_and_deletes_a_test_order(self):
+        from store.admin import admin_token
+
+        os.environ["SHOP_ADMIN_PASSWORD"] = "test-admin-secret"
+        view = self._place_payid()
+        cookie = f"shop_admin={admin_token('test-admin-secret')}"
+        denied, _, _ = self.post_form(f"/admin/orders/{view['id']}/delete", {}, cookie="")
+        self.assertEqual(denied, 401)
+        self.assertTrue((self.orders / f"{view['id']}.json").is_file())
+        status, _, page = self.post_form(f"/admin/orders/{view['id']}/test", {}, cookie=cookie)
+        self.assertEqual(status, 200)
+        self.assertIn("marked as a test order", page)
+        saved = json.loads((self.orders / f"{view['id']}.json").read_text(encoding="utf-8"))
+        self.assertTrue(saved["test"])
+        status, _, page = self.post_form(f"/admin/orders/{view['id']}/delete", {}, cookie=cookie)
+        self.assertEqual(status, 200)
+        self.assertIn(f"Deleted {view['id']}", page)
+        self.assertFalse((self.orders / f"{view['id']}.json").is_file())
+
     def test_mark_paid_skips_printful_when_the_key_is_missing(self):
         from store.admin import admin_token
 
@@ -1165,6 +1220,7 @@ class ServerTests(unittest.TestCase):
             def __init__(self, host, port, timeout=None):
                 self.host = host
                 self.port = port
+                self.timeout = timeout
                 self.messages = []
                 self.user = ""
                 FakeSMTP.opened.append(self)
@@ -1188,9 +1244,13 @@ class ServerTests(unittest.TestCase):
             def send_message(self, message):
                 self.messages.append(message)
 
+        from store.mail import wait_for_mail
+
         with mock.patch("store.mail.smtplib.SMTP", FakeSMTP):
             mailed = self._place_payid()
+            wait_for_mail()
         messages = [item for smtp in FakeSMTP.opened for item in smtp.messages]
+        self.assertEqual(FakeSMTP.opened[0].timeout, 8)
         self.assertEqual(len(messages), 2)
         self.assertEqual(FakeSMTP.opened[0].host, "smtp.test")
         self.assertEqual(FakeSMTP.opened[0].password, "fake-app-password")
@@ -1208,6 +1268,7 @@ class ServerTests(unittest.TestCase):
 
         with mock.patch("store.mail.smtplib.SMTP", BoomSMTP):
             still = self._place_payid(slug="void-king")
+            wait_for_mail()
         self.assertEqual(still["status"], "awaiting_payment")
         self.assertTrue((self.orders / f"{still['id']}.json").is_file())
 
@@ -1230,6 +1291,7 @@ class ServerTests(unittest.TestCase):
         with mock.patch("store.mail.smtplib.SMTP", FakeSMTP):
             self.post("/api/printful/webhook", payload)
             self.post("/api/printful/webhook", payload)
+            wait_for_mail()
         shipped_messages = [item for smtp in FakeSMTP.opened for item in smtp.messages]
         self.assertEqual(len(shipped_messages), 1)
         self.assertIn("has shipped", shipped_messages[0]["Subject"])

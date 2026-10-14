@@ -122,6 +122,7 @@ def printful_result(
     path: str,
     payload: dict | None = None,
     file: tuple[str, bytes] | None = None,
+    timeout: int = 20,
 ):
     """Call the Printful API. Result may be an object or a list. Tests patch printful_request."""
     if file is not None:
@@ -139,7 +140,7 @@ def printful_result(
         headers=_headers(env, content_type),
     )
     try:
-        with urllib.request.urlopen(request, timeout=60) as response:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
             parsed = json.loads(response.read().decode())
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode(errors="replace")
@@ -162,9 +163,10 @@ def printful_request(
     path: str,
     payload: dict | None = None,
     file: tuple[str, bytes] | None = None,
+    timeout: int = 20,
 ) -> dict:
     """Call the Printful API. Tests patch this. No live key is used here."""
-    result = printful_result(env, method, path, payload, file)
+    result = printful_result(env, method, path, payload, file, timeout=timeout)
     if not isinstance(result, dict):
         raise ShopError("Printful returned an unreadable response.", 502)
     return result
@@ -184,6 +186,7 @@ def shipping_rates(recipient: dict, items: list[dict], env: dict) -> list[dict]:
         "POST",
         "/shipping/rates",
         {"recipient": recipient, "items": items, "currency": "AUD"},
+        timeout=8,
     )
     if isinstance(result, dict):
         result = result.get("rates") or []
@@ -404,9 +407,9 @@ def record_package_shipped(orders_dir: Path, payload: dict) -> dict:
     _write(orders_dir, order)
     if not already:
         try:
-            from store.mail import notify_shipped
+            from store.mail import notify_shipped_later
 
-            notify_shipped(order)
+            notify_shipped_later(order)
         except Exception as exc:
             log.warning("shipped email failed: %s", exc)
     saved = dict(order)

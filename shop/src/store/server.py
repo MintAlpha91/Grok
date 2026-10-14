@@ -14,10 +14,12 @@ from store.admin import (
     admin_password,
     admin_token,
     cookie_is_valid,
+    delete_order,
     login_page,
     mark_paid_from_admin,
     orders_page,
     password_matches,
+    toggle_test_order,
 )
 from store.catalog import PUBLIC_PATH, ShopError, public_catalog, quote_lines
 from store.checkout import (
@@ -106,7 +108,13 @@ class Handler(BaseHTTPRequestHandler):
                 self._admin_login()
                 return
             if parsed.path.startswith("/admin/orders/") and parsed.path.endswith("/paid"):
-                self._admin_mark_paid(parsed.path)
+                self._admin_order_action(parsed.path, "/paid", mark_paid_from_admin)
+                return
+            if parsed.path.startswith("/admin/orders/") and parsed.path.endswith("/test"):
+                self._admin_order_action(parsed.path, "/test", toggle_test_order)
+                return
+            if parsed.path.startswith("/admin/orders/") and parsed.path.endswith("/delete"):
+                self._admin_order_action(parsed.path, "/delete", delete_order)
                 return
             if parsed.path == "/api/printful/webhook":
                 record_package_shipped(self.server.orders_dir, self._read_json())
@@ -128,6 +136,7 @@ class Handler(BaseHTTPRequestHandler):
                     payload.get("customer"),
                     base_url=base,
                     payment=payload.get("payment"),
+                    idempotency_key=payload.get("idempotency_key"),
                 )
                 self._send_json(view)
                 return
@@ -200,14 +209,14 @@ class Handler(BaseHTTPRequestHandler):
             extra=[("Set-Cookie", f"{COOKIE}={token}; HttpOnly; Path=/admin; SameSite=Lax")],
         )
 
-    def _admin_mark_paid(self, path: str) -> None:
+    def _admin_order_action(self, path: str, suffix: str, action) -> None:
         if self.headers.get("Content-Length"):
             self._read_body()
         if not self._admin_ok():
             self._send_html_page(login_page("Enter the admin password."), status=401)
             return
-        order_id = path.removeprefix("/admin/orders/").removesuffix("/paid").upper()
-        message = mark_paid_from_admin(self.server.orders_dir, order_id)
+        order_id = path.removeprefix("/admin/orders/").removesuffix(suffix).upper()
+        message = action(self.server.orders_dir, order_id)
         self._send_html_page(orders_page(self.server.orders_dir, message))
 
     def _send_json(self, payload: dict, status: int = 200) -> None:

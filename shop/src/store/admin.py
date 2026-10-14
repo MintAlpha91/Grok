@@ -8,7 +8,7 @@ import os
 from html import escape
 from pathlib import Path
 
-from store.checkout import ORDER_ID
+from store.checkout import ORDER_ID, _write, load_order
 from store.printful import list_orders, mark_order_paid
 
 COOKIE = "shop_admin"
@@ -98,15 +98,24 @@ def orders_page(orders_dir: Path, message: str = "") -> str:
         printful_text = escape(str(printful)) if printful else escape(str(order.get("printful_status") or "not sent"))
         error = escape(str(order.get("printful_error") or ""))
         tracking = escape(str(order.get("tracking_number") or ""))
+        test = bool(order.get("test"))
         button = ""
         if not printful:
             button = (
                 f"<form method='post' action='/admin/orders/{order_id}/paid'>"
                 "<button type='submit'>Mark paid</button></form>"
             )
+        test_label = "Unmark test" if test else "Mark test"
+        button += (
+            f"<form method='post' action='/admin/orders/{order_id}/test'>"
+            f"<button class='quiet' type='submit'>{test_label}</button></form>"
+            f"<form method='post' action='/admin/orders/{order_id}/delete'>"
+            "<button class='quiet' type='submit'>Delete</button></form>"
+        )
+        badge = " test" if test else ""
         rows.append(
             "<tr>"
-            f"<td>{order_id}</td>"
+            f"<td>{order_id}{badge}</td>"
             f"<td>{escape(str(order.get('created_brisbane') or ''))}</td>"
             f"<td>{status}</td>"
             f"<td>{escape(str(customer.get('name') or ''))}<br>{escape(str(customer.get('email') or ''))}</td>"
@@ -132,6 +141,8 @@ def orders_page(orders_dir: Path, message: str = "") -> str:
     table {{ width: 100%; border-collapse: collapse; }}
     th, td {{ border-bottom: 1px solid #3a332c; text-align: left; vertical-align: top; padding: 0.45rem; }}
     button {{ font: inherit; background: #c4553a; color: white; border: 0; padding: 0.4rem 0.6rem; cursor: pointer; }}
+    button.quiet {{ background: transparent; color: #f3eee6; border: 1px solid #6d645c; }}
+    form {{ display: inline; margin-right: 0.35rem; }}
     .alert {{ color: #ffb4a2; }}
     a {{ color: #f3eee6; }}
   </style>
@@ -139,7 +150,7 @@ def orders_page(orders_dir: Path, message: str = "") -> str:
 <body>
   <main>
     <h1>Orders</h1>
-    <p>Mark paid after the PayID payment lands. That creates a Printful order (draft unless PRINTFUL_AUTO_CONFIRM=true).</p>
+    <p>Mark paid after the PayID payment lands. That creates a Printful order (draft unless PRINTFUL_AUTO_CONFIRM=true). Mark test orders, then delete them when the trial is done.</p>
     {note}
     <table>
       <thead>
@@ -152,6 +163,30 @@ def orders_page(orders_dir: Path, message: str = "") -> str:
 </body>
 </html>
 """
+
+
+def toggle_test_order(orders_dir: Path, order_id: str, env: dict | None = None) -> str:
+    if not ORDER_ID.match(order_id):
+        return "Unknown order."
+    order = load_order(orders_dir, order_id)
+    order["test"] = not bool(order.get("test"))
+    _write(orders_dir, order)
+    if order["test"]:
+        return f"{order_id} marked as a test order."
+    return f"{order_id} unmarked."
+
+
+def delete_order(orders_dir: Path, order_id: str, env: dict | None = None) -> str:
+    if not ORDER_ID.match(order_id):
+        return "Unknown order."
+    order = load_order(orders_dir, order_id)
+    path = orders_dir / f"{order_id}.json"
+    path.unlink(missing_ok=True)
+    key = str(order.get("idempotency_key") or "")
+    if key:
+        index = orders_dir / "idempotency" / f"{key}.json"
+        index.unlink(missing_ok=True)
+    return f"Deleted {order_id}."
 
 
 def mark_paid_from_admin(orders_dir: Path, order_id: str, env: dict | None = None) -> str:

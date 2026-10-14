@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import smtplib
 import ssl
+import threading
 from email.message import EmailMessage
 
 log = logging.getLogger("store")
 
 DEFAULT_ALERT = "rogersinc426@gmail.com"
+SMTP_TIMEOUT = 8
+_pending: list[threading.Thread] = []
+_pending_lock = threading.Lock()
 
 
 def alert_email(env: dict | None = None) -> str:
@@ -59,12 +64,12 @@ def send_email(to: str, subject: str, body: str, env: dict | None = None) -> boo
     message.set_content(body)
     try:
         if cfg["port"] == 465:
-            with smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=20) as smtp:
+            with smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=SMTP_TIMEOUT) as smtp:
                 if cfg["user"]:
                     smtp.login(cfg["user"], cfg["password"])
                 smtp.send_message(message)
         else:
-            with smtplib.SMTP(cfg["host"], cfg["port"], timeout=20) as smtp:
+            with smtplib.SMTP(cfg["host"], cfg["port"], timeout=SMTP_TIMEOUT) as smtp:
                 smtp.ehlo()
                 smtp.starttls(context=ssl.create_default_context())
                 smtp.ehlo()
@@ -85,6 +90,53 @@ def _lines(order: dict) -> str:
             f"({line.get('fabric_label', '')}, {line.get('size', '')}) {_money(int(line.get('line_cents') or 0))}"
         )
     return "\n".join(rows)
+
+
+def _snapshot(env: dict | None) -> dict:
+    source = os.environ if env is None else env
+    return {key: value for key, value in source.items()}
+
+
+def _start(name: str, target) -> None:
+    thread = threading.Thread(target=target, name=name, daemon=True)
+    with _pending_lock:
+        _pending.append(thread)
+    thread.start()
+
+
+def wait_for_mail(timeout: float = 2.0) -> None:
+    """Join mail started during a test. The shop request itself does not wait."""
+    with _pending_lock:
+        pending = list(_pending)
+        _pending.clear()
+    for thread in pending:
+        thread.join(timeout)
+
+
+def notify_new_order_later(order: dict, env: dict | None = None) -> None:
+    snapshot = _snapshot(env)
+    payload = json.loads(json.dumps(order))
+
+    def run() -> None:
+        try:
+            notify_new_order(payload, snapshot)
+        except Exception as exc:
+            log.warning("order email failed: %s", exc)
+
+    _start("shop-order-email", run)
+
+
+def notify_shipped_later(order: dict, env: dict | None = None) -> None:
+    snapshot = _snapshot(env)
+    payload = json.loads(json.dumps(order))
+
+    def run() -> None:
+        try:
+            notify_shipped(payload, snapshot)
+        except Exception as exc:
+            log.warning("shipped email failed: %s", exc)
+
+    _start("shop-shipped-email", run)
 
 
 def notify_new_order(order: dict, env: dict | None = None) -> None:

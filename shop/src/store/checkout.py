@@ -213,12 +213,73 @@ def _write(orders_dir: Path, order: dict) -> dict:
 def _commit_new_order(orders_dir: Path, order: dict) -> dict:
     saved = _write(orders_dir, order)
     try:
-        from store.mail import notify_new_order
+        from store.mail import notify_new_order_later
 
-        notify_new_order(saved)
+        notify_new_order_later(saved)
     except Exception as exc:
         logging.getLogger("store").warning("order email failed: %s", exc)
     return saved
+
+
+_IDEMPOTENCY_KEY = re.compile(r"^[A-Za-z0-9_-]{8,80}$")
+
+
+def normalize_idempotency_key(value: object) -> str:
+    key = str(value or "").strip()
+    if not key:
+        return ""
+    if not _IDEMPOTENCY_KEY.match(key):
+        raise ShopError("That checkout key is not valid.")
+    return key
+
+
+def _idempotency_path(orders_dir: Path, key: str) -> Path:
+    return orders_dir / "idempotency" / f"{key}.json"
+
+
+def begin_idempotency(orders_dir: Path, key: str) -> dict | None:
+    """Claim a checkout key. An existing order means this click is a repeat."""
+    if not key:
+        return None
+    path = _idempotency_path(orders_dir, key)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    for _ in range(25):
+        try:
+            fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+        except FileExistsError:
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                data = {}
+            order_id = str(data.get("order_id") or "")
+            if ORDER_ID.match(order_id):
+                return load_order(orders_dir, order_id)
+            time.sleep(0.05)
+            continue
+        os.write(fd, b'{"status": "pending"}\n')
+        os.close(fd)
+        return None
+    raise ShopError("That checkout is already being placed.", 409)
+
+
+def finish_idempotency(orders_dir: Path, key: str, order_id: str) -> None:
+    if not key:
+        return
+    path = _idempotency_path(orders_dir, key)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"status": "done", "order_id": order_id}) + "\n", encoding="utf-8")
+
+
+def release_idempotency(orders_dir: Path, key: str) -> None:
+    if not key:
+        return
+    path = _idempotency_path(orders_dir, key)
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    if data.get("status") == "pending":
+        path.unlink(missing_ok=True)
 
 
 def load_order(orders_dir: Path, order_id: str) -> dict:
@@ -230,6 +291,13 @@ def load_order(orders_dir: Path, order_id: str) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _view_order(order: dict) -> dict:
+    view = buyer_view(order)
+    if order.get("stripe_url"):
+        view["url"] = order["stripe_url"]
+    return view
+
+
 def place_order(
     orders_dir: Path,
     raw_lines: list,
@@ -237,6 +305,7 @@ def place_order(
     *,
     base_url: str,
     payment: object = None,
+    idempotency_key: object = None,
     env: dict | None = None,
 ) -> dict:
     env = os.environ if env is None else env
@@ -251,6 +320,10 @@ def place_order(
         settled = settle(lines, customer["country"], shipping_cents=postage["cents"])
     else:
         settled = settle(lines, "AU")
+    key = normalize_idempotency_key(idempotency_key)
+    existing = begin_idempotency(orders_dir, key)
+    if existing:
+        return _view_order(existing)
     now = _now()
     order = {
         "id": _new_id(),
@@ -273,25 +346,32 @@ def place_order(
         "internal_note": load_copy()["fulfillment_note"],
         "fulfillment_hold": "demo" if mode == "demo" else "unpaid",
     }
+    if key:
+        order["idempotency_key"] = key
     if postage:
         order["printful_shipping"] = postage["id"]
-    if mode == "demo":
+    try:
+        if mode == "demo":
+            _commit_new_order(orders_dir, order)
+            finish_idempotency(orders_dir, key, order["id"])
+            return buyer_view(order)
+        if mode == "payid":
+            order["status"] = "awaiting_payment"
+            order["payid"] = env["SHOP_PAYID"]
+            order["payid_name"] = env.get("SHOP_PAYID_NAME") or "Rogers Inc Designs"
+            _commit_new_order(orders_dir, order)
+            finish_idempotency(orders_dir, key, order["id"])
+            return buyer_view(order)
+        session = create_stripe_session(order, base_url, require_secret(env.get("STRIPE_SECRET_KEY", "")))
+        order["status"] = "pending_payment"
+        order["stripe_session_id"] = session["id"]
+        order["stripe_url"] = session["url"]
         _commit_new_order(orders_dir, order)
-        return buyer_view(order)
-    if mode == "payid":
-        order["status"] = "awaiting_payment"
-        order["payid"] = env["SHOP_PAYID"]
-        order["payid_name"] = env.get("SHOP_PAYID_NAME") or "Rogers Inc Designs"
-        _commit_new_order(orders_dir, order)
-        return buyer_view(order)
-    session = create_stripe_session(order, base_url, require_secret(env.get("STRIPE_SECRET_KEY", "")))
-    order["status"] = "pending_payment"
-    order["stripe_session_id"] = session["id"]
-    order["stripe_url"] = session["url"]
-    _commit_new_order(orders_dir, order)
-    view = buyer_view(order)
-    view["url"] = session["url"]
-    return view
+        finish_idempotency(orders_dir, key, order["id"])
+        return _view_order(order)
+    except Exception:
+        release_idempotency(orders_dir, key)
+        raise
 
 
 def line_summary(line: dict) -> str:
