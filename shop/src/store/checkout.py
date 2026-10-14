@@ -147,6 +147,10 @@ def buyer_view(order: dict) -> dict:
         view["reference"] = order["id"]
     if order.get("stripe_url"):
         view["url"] = order["stripe_url"]
+    if order.get("tracking_number"):
+        view["tracking_number"] = order["tracking_number"]
+        view["tracking_url"] = order.get("tracking_url") or ""
+        view["tracking_carrier"] = order.get("tracking_carrier") or ""
     return view
 
 

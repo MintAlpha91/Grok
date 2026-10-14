@@ -80,7 +80,16 @@
       "premiums_cents": {
         "2XL": 400
       },
-      "printful_product_id": 257
+      "printful_product_id": 257,
+      "printful_placement": "default",
+      "printful_variants": {
+        "XS": 8850,
+        "S": 8851,
+        "M": 8852,
+        "L": 8853,
+        "XL": 8854,
+        "2XL": 8855
+      }
     },
     "cotton": {
       "label": "Cotton",
@@ -101,7 +110,16 @@
       "premiums_cents": {
         "2XL": 400
       },
-      "printful_product_id": 1414
+      "printful_product_id": 1414,
+      "printful_placement": "front_dtfabric",
+      "printful_variants": {
+        "XS": 33937,
+        "S": 33938,
+        "M": 33939,
+        "L": 33940,
+        "XL": 33941,
+        "2XL": 33942
+      }
     },
     "chest": {
       "label": "Chest print",
@@ -122,6 +140,28 @@
       "premiums_cents": {
         "2XL": 400,
         "3XL": 700
+      },
+      "printful_product_id": 71,
+      "printful_placement": "front",
+      "printful_variants": {
+        "black": {
+          "XS": 9527,
+          "S": 4016,
+          "M": 4017,
+          "L": 4018,
+          "XL": 4019,
+          "2XL": 4020,
+          "3XL": 5295
+        },
+        "white": {
+          "XS": 9526,
+          "S": 4011,
+          "M": 4012,
+          "L": 4013,
+          "XL": 4014,
+          "2XL": 4015,
+          "3XL": 5294
+        }
       },
       "omit_sizes": [
         "4XL",

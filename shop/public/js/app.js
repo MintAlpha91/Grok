@@ -690,6 +690,12 @@ async function renderOrder(catalog, route) {
       saveCart([]);
       kids.push(el("p", {}, "Payment received. GST was already included. Free shipping in Australia."));
       kids.push(el("p", {}, catalog.delivery));
+      if (order.tracking_number) {
+        const tracking = order.tracking_url
+          ? el("a", { href: order.tracking_url }, order.tracking_number)
+          : order.tracking_number;
+        kids.push(el("p", {}, ["Shipped. Tracking ", tracking]));
+      }
     } else {
       kids.push(el("p", {}, order.notice.text));
     }

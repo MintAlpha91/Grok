@@ -9,14 +9,25 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
+from store.admin import (
+    COOKIE,
+    admin_password,
+    admin_token,
+    cookie_is_valid,
+    login_page,
+    mark_paid_from_admin,
+    orders_page,
+    password_matches,
+)
 from store.catalog import PUBLIC_PATH, ShopError, public_catalog, quote_lines
 from store.checkout import (
+    buyer_view,
     checkout_public,
     confirm_stripe,
     load_order,
     place_order,
-    buyer_view,
 )
+from store.printful import record_package_shipped
 
 ORDERS_PATH = PUBLIC_PATH.parent / "orders"
 
@@ -63,6 +74,12 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/config":
                 self._send_json(checkout_public())
                 return
+            if path == "/admin" or path == "/admin/":
+                self._send_admin_page()
+                return
+            if path == "/admin/logout":
+                self._send_html_page(login_page(), extra=[("Set-Cookie", _expired_cookie())])
+                return
             if path.startswith("/api/orders/"):
                 order_id = path.removeprefix("/api/orders/").upper()
                 query = parse_qs(parsed.query)
@@ -83,6 +100,16 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         try:
             parsed = urlparse(self.path)
+            if parsed.path == "/admin/login":
+                self._admin_login()
+                return
+            if parsed.path.startswith("/admin/orders/") and parsed.path.endswith("/paid"):
+                self._admin_mark_paid(parsed.path)
+                return
+            if parsed.path == "/api/printful/webhook":
+                record_package_shipped(self.server.orders_dir, self._read_json())
+                self._send_json({"ok": True})
+                return
             payload = self._read_json()
             if parsed.path == "/api/quote":
                 self._send_json(quote_lines(payload.get("lines")))
@@ -104,11 +131,14 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             self._send_json({"error": "The shop hit an unexpected error."}, 500)
 
-    def _read_json(self) -> dict:
+    def _read_body(self) -> bytes:
         length = int(self.headers.get("Content-Length", "0") or "0")
         if length < 0 or length > 100_000:
             raise ShopError("That request is too large.")
-        raw = self.rfile.read(length) if length else b"{}"
+        return self.rfile.read(length) if length else b""
+
+    def _read_json(self) -> dict:
+        raw = self._read_body() or b"{}"
         try:
             data = json.loads(raw.decode())
         except json.JSONDecodeError as exc:
@@ -116,6 +146,46 @@ class Handler(BaseHTTPRequestHandler):
         if not isinstance(data, dict):
             raise ShopError("That request is not valid JSON.")
         return data
+
+    def _read_form(self) -> dict[str, str]:
+        parsed = parse_qs(self._read_body().decode(errors="replace"), keep_blank_values=True)
+        return {key: values[-1] if values else "" for key, values in parsed.items()}
+
+    def _admin_ok(self) -> bool:
+        return cookie_is_valid(self.headers.get("Cookie", ""))
+
+    def _send_admin_page(self, message: str = "") -> None:
+        if not admin_password():
+            self._send_html_page(login_page("Set SHOP_ADMIN_PASSWORD on the server."), status=503)
+            return
+        if not self._admin_ok():
+            self._send_html_page(login_page(message), status=401 if message else 200)
+            return
+        self._send_html_page(orders_page(self.server.orders_dir, message))
+
+    def _admin_login(self) -> None:
+        if not admin_password():
+            self._send_html_page(login_page("Set SHOP_ADMIN_PASSWORD on the server."), status=503)
+            return
+        form = self._read_form()
+        if not password_matches(form.get("password", "")):
+            self._send_html_page(login_page("That password is not right."), status=401)
+            return
+        token = admin_token(admin_password())
+        self._send_html_page(
+            orders_page(self.server.orders_dir),
+            extra=[("Set-Cookie", f"{COOKIE}={token}; HttpOnly; Path=/admin; SameSite=Lax")],
+        )
+
+    def _admin_mark_paid(self, path: str) -> None:
+        if self.headers.get("Content-Length"):
+            self._read_body()
+        if not self._admin_ok():
+            self._send_html_page(login_page("Enter the admin password."), status=401)
+            return
+        order_id = path.removeprefix("/admin/orders/").removesuffix("/paid").upper()
+        message = mark_paid_from_admin(self.server.orders_dir, order_id)
+        self._send_html_page(orders_page(self.server.orders_dir, message))
 
     def _send_json(self, payload: dict, status: int = 200) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode()
@@ -156,10 +226,30 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_html_page(
+        self,
+        html: str,
+        status: int = 200,
+        extra: list[tuple[str, str]] | None = None,
+    ) -> None:
+        body = html.encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        for key, value in extra or []:
+            self.send_header(key, value)
+        self.end_headers()
+        self.wfile.write(body)
+
 
 def make_server(port: int = 8765, host: str = "127.0.0.1", orders_dir: Path | None = None) -> ShopServer:
     directory = orders_dir or _orders_dir()
     return ShopServer((host, port), Handler, directory)
+
+
+def _expired_cookie() -> str:
+    return f"{COOKIE}=; HttpOnly; Path=/admin; Max-Age=0; SameSite=Lax"
 
 
 def main() -> None:

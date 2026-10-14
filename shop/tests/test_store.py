@@ -4,6 +4,8 @@ import json
 import os
 import threading
 import unittest
+import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from unittest import mock
@@ -48,6 +50,16 @@ ENV_KEYS = (
     "PORT",
     "SHOP_PORT",
     "SHOP_HOST",
+    "SHOP_ADMIN_PASSWORD",
+    "PRINTFUL_API_KEY",
+    "PRINTFUL_STORE_ID",
+    "PRINTFUL_AUTO_CONFIRM",
+    "SHOP_ALERT_EMAIL",
+    "SMTP_HOST",
+    "SMTP_PORT",
+    "SMTP_USER",
+    "SMTP_PASS",
+    "SMTP_FROM",
 )
 
 
@@ -798,6 +810,21 @@ class ServerTests(unittest.TestCase):
         with urllib.request.urlopen(request) as response:
             return json.loads(response.read().decode())
 
+    def post_form(self, path, fields, cookie=""):
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        if cookie:
+            headers["Cookie"] = cookie
+        request = urllib.request.Request(
+            self.base + path,
+            data=urllib.parse.urlencode(fields).encode(),
+            headers=headers,
+        )
+        try:
+            with urllib.request.urlopen(request) as response:
+                return response.status, response.headers, response.read().decode()
+        except urllib.error.HTTPError as exc:
+            return exc.status, exc.headers, exc.read().decode()
+
     def test_catalog_and_demo_checkout_round_trip(self):
         status, body = self.get("/")
         self.assertEqual(status, 200)
@@ -853,6 +880,189 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(server.orders_dir, self.orders)
         finally:
             server.server_close()
+
+    def _customer(self):
+        return {
+            "name": "Ada Rogers",
+            "email": "ada@example.com",
+            "line1": "12 Goondoon Street",
+            "suburb": "Gladstone",
+            "state": "QLD",
+            "postcode": "4680",
+        }
+
+    def _place_payid(self, slug="chest-astral-fox-empress", fabric="chest", size="M"):
+        os.environ["SHOP_PAYID"] = "0499420228"
+        os.environ["SHOP_PAYID_NAME"] = "Rogers Inc Designs"
+        return self.post("/api/checkout", {
+            "lines": [{"slug": slug, "fabric": fabric, "size": size, "qty": 1}],
+            "customer": self._customer(),
+        })
+
+    def test_admin_lists_orders_and_mark_paid_creates_a_printful_draft(self):
+        from store.admin import admin_token
+        from store.printful import _headers
+
+        os.environ["SHOP_ADMIN_PASSWORD"] = "test-admin-secret"
+        os.environ["PRINTFUL_API_KEY"] = "printful-test-token"
+        os.environ["PRINTFUL_STORE_ID"] = "4242"
+        status, login = self.get("/admin")
+        self.assertEqual(status, 200)
+        self.assertIn("Shop admin", login)
+        self.assertIn("noindex", login)
+        denied_status, _, denied = self.post_form("/admin/login", {"password": "nope"})
+        self.assertEqual(denied_status, 401)
+        self.assertIn("not right", denied)
+        authed_status, authed_headers, page = self.post_form("/admin/login", {"password": "test-admin-secret"})
+        self.assertEqual(authed_status, 200)
+        cookie = authed_headers.get("Set-Cookie")
+        self.assertIn(admin_token("test-admin-secret"), cookie)
+        self.assertIn("No orders yet", page)
+
+        view = self._place_payid()
+        self.assertEqual(view["status"], "awaiting_payment")
+        self.assertNotIn("printful_order_id", view)
+        calls = []
+
+        def fake(env, method, path, payload=None, file=None):
+            calls.append({"method": method, "path": path, "payload": payload, "file": file})
+            if path == "/files":
+                return {"id": 77}
+            return {"id": 9001, "status": "draft"}
+
+        with mock.patch("store.printful.read_print_bytes", return_value=b"png-bytes"):
+            with mock.patch("store.printful.printful_request", side_effect=fake):
+                paid_status, _, paid = self.post_form(
+                    f"/admin/orders/{view['id']}/paid",
+                    {},
+                    cookie=cookie.split(";", 1)[0],
+                )
+        self.assertEqual(paid_status, 200)
+        self.assertIn("9001", paid)
+        self.assertIn("draft", paid)
+        self.assertEqual(calls[0]["path"], "/files")
+        self.assertEqual(calls[0]["file"][1], b"png-bytes")
+        self.assertEqual(_headers(os.environ)["X-PF-Store-Id"], "4242")
+        self.assertTrue(_headers(os.environ)["Authorization"].startswith("Bearer printful-test-token"))
+        created = calls[1]
+        self.assertEqual(created["path"], "/orders?confirm=false")
+        self.assertEqual(created["payload"]["external_id"], view["id"])
+        self.assertEqual(created["payload"]["items"][0]["variant_id"], 4017)
+        self.assertEqual(created["payload"]["items"][0]["files"][0]["type"], "front")
+        self.assertEqual(created["payload"]["recipient"]["country_code"], "AU")
+        self.assertEqual(created["payload"]["recipient"]["state_code"], "QLD")
+        saved = json.loads((self.orders / f"{view['id']}.json").read_text(encoding="utf-8"))
+        self.assertTrue(saved["payment_taken"])
+        self.assertEqual(saved["printful_order_id"], 9001)
+        self.assertEqual(saved["printful_status"], "draft")
+        self.assertFalse(saved["print_or_ship"])
+        buyer = json.loads(self.get(f"/api/orders/{view['id']}")[1])
+        self.assertNotIn("printful_order_id", buyer)
+
+        os.environ["PRINTFUL_AUTO_CONFIRM"] = "true"
+        second = self._place_payid(slug="starbound-nebula-queen", fabric="poly", size="L")
+
+        def fake_confirm(env, method, path, payload=None, file=None):
+            calls.append({"path": path, "payload": payload})
+            if path == "/files":
+                return {"id": 78}
+            return {"id": 9002, "status": "pending"}
+
+        calls.clear()
+        with mock.patch("store.printful.read_print_bytes", return_value=b"png"):
+            with mock.patch("store.printful.printful_request", side_effect=fake_confirm):
+                self.post_form(
+                    f"/admin/orders/{second['id']}/paid",
+                    {},
+                    cookie=cookie.split(";", 1)[0],
+                )
+        self.assertEqual(calls[1]["path"], "/orders?confirm=true")
+        self.assertEqual(calls[1]["payload"]["items"][0]["variant_id"], 8853)
+        self.assertEqual(calls[1]["payload"]["items"][0]["files"][0]["type"], "default")
+        confirmed = json.loads((self.orders / f"{second['id']}.json").read_text(encoding="utf-8"))
+        self.assertEqual(confirmed["printful_order_id"], 9002)
+        self.assertTrue(confirmed["print_or_ship"])
+
+    def test_mark_paid_skips_printful_when_the_key_is_missing(self):
+        from store.admin import admin_token
+
+        os.environ["SHOP_ADMIN_PASSWORD"] = "test-admin-secret"
+        view = self._place_payid(slug="chest-crimson-sun-last-ronin")
+        cookie = f"shop_admin={admin_token('test-admin-secret')}"
+        with mock.patch("store.printful.printful_request", side_effect=AssertionError("printful called")):
+            status, _, page = self.post_form(f"/admin/orders/{view['id']}/paid", {}, cookie=cookie)
+        self.assertEqual(status, 200)
+        self.assertIn("PRINTFUL_API_KEY is not set", page)
+        saved = json.loads((self.orders / f"{view['id']}.json").read_text(encoding="utf-8"))
+        self.assertEqual(saved["status"], "paid")
+        self.assertEqual(saved["printful_status"], "skipped")
+        self.assertNotIn("printful_order_id", saved)
+
+    def test_printful_webhook_records_tracking(self):
+        view = self._place_payid()
+        path = self.orders / f"{view['id']}.json"
+        saved = json.loads(path.read_text(encoding="utf-8"))
+        saved["status"] = "paid"
+        saved["payment_taken"] = True
+        saved["printful_order_id"] = 9001
+        path.write_text(json.dumps(saved), encoding="utf-8")
+        payload = {
+            "type": "package_shipped",
+            "data": {
+                "order": {"id": 9001, "external_id": view["id"]},
+                "shipment": {
+                    "carrier": "AUSTRALIA_POST",
+                    "tracking_number": "TRACK123",
+                    "tracking_url": "https://track.example/TRACK123",
+                    "ship_date": "2026-10-14",
+                },
+            },
+        }
+        request = urllib.request.Request(
+            self.base + "/api/printful/webhook",
+            data=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(request) as response:
+            self.assertEqual(response.status, 200)
+        updated = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(updated["status"], "shipped")
+        self.assertEqual(updated["tracking_number"], "TRACK123")
+        self.assertTrue(updated["print_or_ship"])
+        buyer = json.loads(self.get(f"/api/orders/{view['id']}")[1])
+        self.assertEqual(buyer["tracking_number"], "TRACK123")
+        self.assertEqual(buyer["tracking_url"], "https://track.example/TRACK123")
+        other = urllib.request.Request(
+            self.base + "/api/printful/webhook",
+            data=json.dumps({"type": "order_created"}).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(other) as response:
+            self.assertEqual(json.loads(response.read().decode())["ok"], True)
+        self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["tracking_number"], "TRACK123")
+
+
+class PrintfulMapTests(unittest.TestCase):
+    def test_variant_map_matches_the_printful_catalog(self):
+        from store.printful import placement_for, shirt_color, variant_id
+
+        catalog = load_catalog()
+        fox = next(item for item in catalog["products"] if item["slug"] == "chest-astral-fox-empress")
+        fuel = next(item for item in catalog["products"] if item["slug"] == "as-high-as-fuel")
+        nebula = next(item for item in catalog["products"] if item["slug"] == "starbound-nebula-queen")
+        self.assertEqual(shirt_color(fox), "black")
+        self.assertEqual(shirt_color(fuel), "white")
+        self.assertEqual(variant_id(catalog, fox, "chest", "M"), 4017)
+        self.assertEqual(variant_id(catalog, fox, "chest", "3XL"), 5295)
+        self.assertEqual(variant_id(catalog, fuel, "chest", "M"), 4012)
+        self.assertEqual(variant_id(catalog, nebula, "poly", "XS"), 8850)
+        self.assertEqual(variant_id(catalog, nebula, "cotton", "2XL"), 33942)
+        self.assertEqual(placement_for(catalog, "poly"), "default")
+        self.assertEqual(placement_for(catalog, "cotton"), "front_dtfabric")
+        self.assertEqual(placement_for(catalog, "chest"), "front")
+        public = json.dumps(public_catalog(checkout_public()))
+        self.assertNotIn("printful_variants", public)
+        self.assertNotIn("8852", public)
 
 
 if __name__ == "__main__":
