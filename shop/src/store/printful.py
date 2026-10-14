@@ -321,6 +321,13 @@ def record_package_shipped(orders_dir: Path, payload: dict) -> dict:
     order["shipped_at"] = str(shipment.get("ship_date") or shipment.get("shipped_at") or "")
     order["fulfillment_hold"] = "shipped"
     _write(orders_dir, order)
+    if not already:
+        try:
+            from store.mail import notify_shipped
+
+            notify_shipped(order)
+        except Exception as exc:
+            log.warning("shipped email failed: %s", exc)
     saved = dict(order)
     saved["_shipment_already_recorded"] = already
     return saved

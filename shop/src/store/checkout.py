@@ -8,6 +8,7 @@ Demo never charges and never prints.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import secrets
@@ -163,6 +164,17 @@ def _write(orders_dir: Path, order: dict) -> dict:
     return order
 
 
+def _commit_new_order(orders_dir: Path, order: dict) -> dict:
+    saved = _write(orders_dir, order)
+    try:
+        from store.mail import notify_new_order
+
+        notify_new_order(saved)
+    except Exception as exc:
+        logging.getLogger("store").warning("order email failed: %s", exc)
+    return saved
+
+
 def load_order(orders_dir: Path, order_id: str) -> dict:
     if not ORDER_ID.match(order_id):
         raise ShopError("Unknown order.", 404)
@@ -209,19 +221,19 @@ def place_order(
         "fulfillment_hold": "demo" if mode == "demo" else "unpaid",
     }
     if mode == "demo":
-        _write(orders_dir, order)
+        _commit_new_order(orders_dir, order)
         return buyer_view(order)
     if mode == "payid":
         order["status"] = "awaiting_payment"
         order["payid"] = env["SHOP_PAYID"]
         order["payid_name"] = env.get("SHOP_PAYID_NAME") or "Rogers Inc Designs"
-        _write(orders_dir, order)
+        _commit_new_order(orders_dir, order)
         return buyer_view(order)
     session = create_stripe_session(order, base_url, require_test_secret(env.get("STRIPE_SECRET_KEY", "")))
     order["status"] = "pending_payment"
     order["stripe_session_id"] = session["id"]
     order["stripe_url"] = session["url"]
-    _write(orders_dir, order)
+    _commit_new_order(orders_dir, order)
     view = buyer_view(order)
     view["url"] = session["url"]
     return view

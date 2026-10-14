@@ -1041,6 +1041,97 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(json.loads(response.read().decode())["ok"], True)
         self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["tracking_number"], "TRACK123")
 
+    def test_payid_order_emails_and_skips_when_smtp_is_unset(self):
+        from store.mail import alert_email
+
+        self.assertEqual(alert_email(), "rogersinc426@gmail.com")
+        view = self._place_payid()
+        self.assertTrue((self.orders / f"{view['id']}.json").is_file())
+
+        os.environ["SMTP_HOST"] = "smtp.test"
+        os.environ["SMTP_PORT"] = "587"
+        os.environ["SMTP_USER"] = "rogersinc426@gmail.com"
+        os.environ["SMTP_PASS"] = "fake-app-password"
+        os.environ["SMTP_FROM"] = "rogersinc426@gmail.com"
+        os.environ["SHOP_ALERT_EMAIL"] = "jason@example.com"
+
+        class FakeSMTP:
+            opened = []
+
+            def __init__(self, host, port, timeout=None):
+                self.host = host
+                self.port = port
+                self.messages = []
+                self.user = ""
+                FakeSMTP.opened.append(self)
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def ehlo(self):
+                return None
+
+            def starttls(self, context=None):
+                return None
+
+            def login(self, user, password):
+                self.user = user
+                self.password = password
+
+            def send_message(self, message):
+                self.messages.append(message)
+
+        with mock.patch("store.mail.smtplib.SMTP", FakeSMTP):
+            mailed = self._place_payid()
+        messages = [item for smtp in FakeSMTP.opened for item in smtp.messages]
+        self.assertEqual(len(messages), 2)
+        self.assertEqual(FakeSMTP.opened[0].host, "smtp.test")
+        self.assertEqual(FakeSMTP.opened[0].password, "fake-app-password")
+        alert = next(item for item in messages if item["To"] == "jason@example.com")
+        customer = next(item for item in messages if item["To"] == "ada@example.com")
+        self.assertIn(mailed["id"], alert["Subject"])
+        self.assertIn("0499420228", customer.get_content())
+        self.assertIn(mailed["id"], customer.get_content())
+        self.assertIn("Rogers Inc Designs", customer.get_content())
+        self.assertEqual(customer["From"], "rogersinc426@gmail.com")
+
+        class BoomSMTP(FakeSMTP):
+            def login(self, user, password):
+                raise OSError("smtp down")
+
+        with mock.patch("store.mail.smtplib.SMTP", BoomSMTP):
+            still = self._place_payid(slug="void-king")
+        self.assertEqual(still["status"], "awaiting_payment")
+        self.assertTrue((self.orders / f"{still['id']}.json").is_file())
+
+        shipped = json.loads((self.orders / f"{mailed['id']}.json").read_text(encoding="utf-8"))
+        shipped["status"] = "paid"
+        shipped["printful_order_id"] = 44
+        (self.orders / f"{mailed['id']}.json").write_text(json.dumps(shipped), encoding="utf-8")
+        payload = {
+            "type": "package_shipped",
+            "data": {
+                "order": {"external_id": mailed["id"]},
+                "shipment": {
+                    "carrier": "AUSTRALIA_POST",
+                    "tracking_number": "SHIP999",
+                    "tracking_url": "https://track.example/SHIP999",
+                },
+            },
+        }
+        FakeSMTP.opened = []
+        with mock.patch("store.mail.smtplib.SMTP", FakeSMTP):
+            self.post("/api/printful/webhook", payload)
+            self.post("/api/printful/webhook", payload)
+        shipped_messages = [item for smtp in FakeSMTP.opened for item in smtp.messages]
+        self.assertEqual(len(shipped_messages), 1)
+        self.assertIn("has shipped", shipped_messages[0]["Subject"])
+        self.assertIn("SHIP999", shipped_messages[0].get_content())
+        self.assertIn("https://track.example/SHIP999", shipped_messages[0].get_content())
+
 
 class PrintfulMapTests(unittest.TestCase):
     def test_variant_map_matches_the_printful_catalog(self):

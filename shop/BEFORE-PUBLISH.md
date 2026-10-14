@@ -13,7 +13,7 @@ Resolved by Jason (14 Oct 2026):
 
 Also still open:
 
-- This server stores the order. It does not send the “we’ll email when it ships” message itself.
+- This server stores the order. With SMTP set, it emails Jason on a new order, emails the customer PayID instructions, and emails tracking when Printful reports `package_shipped`. Without SMTP it logs and continues.
 - Shirt photos are the Printful mockups in `public/mockups/{slug}-aop-poly.jpg` and `{slug}-aop-cotton.jpg`, cropped to 1280×720 so the caption strip is gone. The page price is the only price. Do not put the Printful caption (old AU$69 / AU$75) back on the photo. Pin crops for six designs are in the same folder and are not gallery tiles.
 - Scene sentences live on each product in `catalog.json`. They were carried from the Etsy listing pack into Marketing’s blurb template. Marketing can replace `products.*.scene`.
 - Jason cleared Gothic and As High As Fuel. Both lanes are live on the catalog, 10 cards each. As High As The Price Of Fuel shows white and heather only. Colour shots stay off the shop. The site is still demo checkout, not a deployed store.
@@ -32,4 +32,34 @@ Demo checkout, used when Stripe and PayID are both unset, does not charge a card
 
 Host the preview from the `shop/` directory. In the Railway service, set Root Directory to `shop`. Config-as-code is not picked up from that root on its own, so set the config file path to `/shop/railway.json`. The start command is `PYTHONPATH=src python3 -m store`. `Procfile` and `nixpacks.toml` in `shop/` use the same command if the builder reads those instead.
 
-Railway sets `PORT`. The process binds `0.0.0.0` on that port. Mount a volume for orders and set `SHOP_ORDERS_DIR` to the mount path (for example `/data`). Copy PayID from `deploy.env.example` (`SHOP_PAYID`, `SHOP_PAYID_NAME`). Leave `STRIPE_SECRET_KEY` unset. Keep `noindex`.
+Railway sets `PORT`. The process binds `0.0.0.0` on that port. The live service uses PayID checkout and stores orders at `SHOP_ORDERS_DIR=/data/orders`. Copy PayID from `deploy.env.example` (`SHOP_PAYID`, `SHOP_PAYID_NAME`). Leave `STRIPE_SECRET_KEY` unset. Keep `noindex`.
+
+## Railway env vars
+
+Set these on the Railway service. Do not commit the secret values.
+
+Already on the service:
+
+- `PORT` — Railway sets this. The shop binds `0.0.0.0` on it.
+- `SHOP_PAYID` — `0499420228`.
+- `SHOP_PAYID_NAME` — `Rogers Inc Designs`.
+- `SHOP_ORDERS_DIR` — `/data/orders` (the volume mount).
+
+Jason adds:
+
+- `SHOP_ADMIN_PASSWORD` — a long password Jason chooses. It is not issued by a vendor. It unlocks `https://<railway-host>/admin`, which lists orders and has Mark paid. PayID cannot be confirmed by the bank, so this button is the payment switch.
+- `PRINTFUL_API_KEY` — Printful private token. In Printful: Settings → API → Create token (private token). Copy it once; Printful does not show it again. Never commit it.
+- `PRINTFUL_STORE_ID` — optional. Printful → Settings → Stores, the numeric store id. Set it when the token can see more than one store. Leave unset for a single-store token.
+- `PRINTFUL_AUTO_CONFIRM` — leave unset or `false`. Mark paid then creates a Printful draft Jason can check before production. Set `true` only to submit the order for fulfilment immediately.
+- `SHOP_ALERT_EMAIL` — inbox for each new order. If unset, the shop uses `rogersinc426@gmail.com`.
+- `SMTP_HOST` — Gmail: `smtp.gmail.com`. Resend: `smtp.resend.com`.
+- `SMTP_PORT` — `587`.
+- `SMTP_USER` — the Gmail address, or `resend` for Resend SMTP.
+- `SMTP_PASS` — Gmail app password, or a Resend API key used as the SMTP password. Gmail: Google Account → Security → turn on 2-Step Verification → App passwords → create one for Mail → paste the 16-character password. A normal Gmail password will not work.
+- `SMTP_FROM` — the From address. For Gmail use `rogersinc426@gmail.com`. For Resend it must be an address on a domain verified in Resend.
+
+Printful webhook: Settings → Webhooks → add `https://<railway-host>/api/printful/webhook` for the Package shipped event (`package_shipped`). That call stores the tracking number and emails the customer when SMTP is set.
+
+Shirt map sent to Printful: polyester is product 257 (file type `default`), cotton is product 1414 (file type `front_dtfabric`), chest print is Bella+Canvas 3001 product 71 (file type `front`). Chest-print lane uses black. Gothic and As High As Fuel use white. Heather photos are not a separate Printful colour.
+
+If `PRINTFUL_API_KEY` or the SMTP variables are missing, the shop logs the skip and still takes the order.
