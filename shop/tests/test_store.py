@@ -41,6 +41,8 @@ from store.server import _orders_dir, bind_address, make_server  # noqa: E402
 
 ENV_KEYS = (
     "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "STRIPE_PUBLISHABLE_KEY",
     "SHOP_PAYID",
     "SHOP_PAYID_NAME",
     "SHOP_CHECKOUT",
@@ -677,10 +679,24 @@ class CheckoutTests(unittest.TestCase):
         self.assertIn("{CHECKOUT_SESSION_ID}", body)
         self.assertNotIn("%7BCHECKOUT_SESSION_ID%7D", body)
 
-    def test_stripe_test_key_opens_checkout_and_live_key_does_not(self):
+    def test_card_sits_beside_payid_and_live_keys_open_checkout(self):
+        from store.checkout import card_available
+
         os.environ["STRIPE_SECRET_KEY"] = "sk_test_example"
         os.environ["SHOP_PAYID"] = "rogers@example"
-        self.assertEqual(checkout_mode(), "stripe")
+        self.assertEqual(checkout_mode(), "payid")
+        self.assertTrue(card_available())
+        public = checkout_public()
+        self.assertTrue(public["card"])
+        self.assertTrue(public["payid_available"])
+        self.assertNotIn("sk_test_example", json.dumps(public))
+        held = place_order(
+            self.orders,
+            [{"slug": "crimson-sun-last-ronin", "fabric": "poly", "size": "2XL", "qty": 1}],
+            self.customer(),
+            base_url="http://127.0.0.1:8765",
+        )
+        self.assertEqual(held["mode"], "payid")
         captured = {}
 
         def fake(path, secret, fields=None):
@@ -695,24 +711,112 @@ class CheckoutTests(unittest.TestCase):
                 [{"slug": "crimson-sun-last-ronin", "fabric": "poly", "size": "2XL", "qty": 1}],
                 self.customer(),
                 base_url="http://127.0.0.1:8765",
+                payment="card",
             )
         self.assertEqual(view["url"], "https://checkout.stripe.com/c/pay/cs_test_1")
+        self.assertEqual(view["mode"], "stripe")
         self.assertEqual(view["status"], "pending_payment")
         self.assertFalse(view["payment_taken"])
         self.assertFalse(view["print_or_ship"])
         self.assertEqual(view["total_cents"], 6900)
         self.assertEqual(captured["secret"], "sk_test_example")
         self.assertEqual(captured["fields"]["line_items[0][price_data][unit_amount]"], "6900")
+        self.assertEqual(captured["fields"]["line_items[0][price_data][currency]"], "aud")
         self.assertEqual(captured["fields"]["automatic_tax[enabled]"], "false")
+        self.assertEqual(captured["fields"]["shipping_options[0][shipping_rate_data][fixed_amount][amount]"], "0")
         self.assertIn("2XL", captured["fields"]["line_items[0][price_data][product_data][name]"])
         self.assertIn("Polyester", captured["fields"]["line_items[0][price_data][product_data][name]"])
 
         os.environ["STRIPE_SECRET_KEY"] = "sk_live_example"
-        with mock.patch("store.checkout._stripe_request", side_effect=AssertionError("live stripe called")):
+        with mock.patch("store.checkout._stripe_request", side_effect=fake):
+            live = place_order(
+                self.orders,
+                self.lines(),
+                self.customer(),
+                base_url="http://127.0.0.1:8765",
+                payment="card",
+            )
+        self.assertEqual(live["mode"], "stripe")
+        self.assertEqual(captured["secret"], "sk_live_example")
+
+        os.environ["STRIPE_SECRET_KEY"] = "pk_test_not_a_secret"
+        self.assertFalse(card_available())
+        with mock.patch("store.checkout._stripe_request", side_effect=AssertionError("stripe called")):
             with self.assertRaises(ShopError) as caught:
-                place_order(self.orders, self.lines(), self.customer(), base_url="http://127.0.0.1:8765")
+                place_order(self.orders, self.lines(), self.customer(), base_url="http://127.0.0.1:8765", payment="card")
         self.assertEqual(caught.exception.status, 409)
-        self.assertIn("test secret", str(caught.exception))
+
+    def test_overseas_card_adds_printful_postage_and_payid_cannot_pay_it(self):
+        os.environ["SHOP_PAYID"] = "rogers@example"
+        overseas = {
+            "name": "Ada Rogers",
+            "email": "ada@example.com",
+            "line1": "1600 Pennsylvania Avenue",
+            "suburb": "Washington",
+            "state": "DC",
+            "postcode": "20500",
+            "country": "US",
+        }
+        with self.assertRaises(ShopError) as missing:
+            place_order(self.orders, self.lines(), overseas, base_url="http://127.0.0.1:8765")
+        self.assertEqual(missing.exception.status, 409)
+        self.assertIn("Card checkout is not switched on", str(missing.exception))
+        self.assertEqual(list(self.orders.glob("*.json")), [])
+
+        os.environ["STRIPE_SECRET_KEY"] = "sk_test_example"
+        os.environ["PRINTFUL_API_KEY"] = "printful-test-token"
+
+        def rates(recipient, items, env):
+            self.assertEqual(recipient["country_code"], "US")
+            self.assertEqual(recipient["state_code"], "DC")
+            self.assertEqual(items[0]["variant_id"], 8853)
+            self.assertEqual(env["PRINTFUL_API_KEY"], "printful-test-token")
+            return [{"id": "STANDARD", "name": "Flat Rate", "rate": "18.40", "currency": "AUD"}]
+
+        captured = {}
+
+        def fake(path, secret, fields=None):
+            captured["fields"] = dict(fields or [])
+            captured["secret"] = secret
+            return {"id": "cs_test_os", "url": "https://checkout.stripe.com/c/pay/cs_test_os"}
+
+        with mock.patch("store.printful.shipping_rates", side_effect=rates):
+            with self.assertRaises(ShopError) as blocked:
+                place_order(
+                    self.orders,
+                    [{"slug": "crimson-sun-last-ronin", "fabric": "poly", "size": "L", "qty": 1}],
+                    overseas,
+                    base_url="https://shop.example",
+                    payment="payid",
+                )
+        self.assertIn("pay by card", str(blocked.exception).lower())
+        with mock.patch("store.printful.shipping_rates", side_effect=rates):
+            with mock.patch("store.checkout._stripe_request", side_effect=fake):
+                view = place_order(
+                    self.orders,
+                    [{"slug": "crimson-sun-last-ronin", "fabric": "poly", "size": "L", "qty": 1}],
+                    overseas,
+                    base_url="https://shop.example",
+                    payment="card",
+                )
+        self.assertEqual(view["mode"], "stripe")
+        self.assertEqual(view["shipping_cents"], 1840)
+        self.assertEqual(view["total_cents"], 6500 + 1840)
+        self.assertEqual(view["gst_cents"], 0)
+        self.assertEqual(captured["fields"]["shipping_options[0][shipping_rate_data][fixed_amount][amount]"], "1840")
+        self.assertEqual(captured["fields"]["line_items[0][price_data][currency]"], "aud")
+        self.assertNotIn("shipping_address_collection[allowed_countries][0]", captured["fields"])
+        self.assertNotIn("shipping_options[1][shipping_rate_data][fixed_amount][amount]", captured["fields"])
+        saved = json.loads((self.orders / f"{view['id']}.json").read_text(encoding="utf-8"))
+        self.assertEqual(saved["customer"]["country"], "US")
+        self.assertEqual(saved["printful_shipping"], "STANDARD")
+        from store.printful import order_payload
+
+        payload = order_payload(saved, [{"variant_id": 8853, "quantity": 1}])
+        self.assertEqual(payload["recipient"]["country_code"], "US")
+        self.assertEqual(payload["recipient"]["city"], "Washington")
+        self.assertEqual(payload["recipient"]["state_code"], "DC")
+        self.assertEqual(payload["shipping"], "STANDARD")
 
     def test_confirm_stripe_accepts_the_inclusive_total_only(self):
         os.environ["STRIPE_SECRET_KEY"] = "sk_test_example"
@@ -1131,6 +1235,87 @@ class ServerTests(unittest.TestCase):
         self.assertIn("has shipped", shipped_messages[0]["Subject"])
         self.assertIn("SHIP999", shipped_messages[0].get_content())
         self.assertIn("https://track.example/SHIP999", shipped_messages[0].get_content())
+
+
+    def test_stripe_webhook_marks_the_order_paid_and_creates_printful(self):
+        import hashlib
+        import hmac
+        import time
+
+        os.environ["STRIPE_SECRET_KEY"] = "sk_test_example"
+        os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_test"
+        os.environ["PRINTFUL_API_KEY"] = "printful-test-token"
+
+        def fake_stripe(path, secret, fields=None):
+            return {"id": "cs_test_hook", "url": "https://checkout.stripe.com/c/pay/cs_test_hook"}
+
+        with mock.patch("store.checkout._stripe_request", side_effect=fake_stripe):
+            view = self.post("/api/checkout", {
+                "payment": "card",
+                "lines": [{"slug": "starbound-nebula-queen", "fabric": "poly", "size": "M", "qty": 1}],
+                "customer": self._customer(),
+            })
+        self.assertEqual(view["status"], "pending_payment")
+        self.assertEqual(view["total_cents"], 6500)
+        event = {
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "cs_test_hook",
+                    "payment_status": "paid",
+                    "amount_total": 6500,
+                    "currency": "aud",
+                    "client_reference_id": view["id"],
+                    "metadata": {"order_id": view["id"]},
+                    "total_details": {"amount_shipping": 0},
+                    "shipping_details": {"address": {"country": "AU"}},
+                }
+            },
+        }
+        raw = json.dumps(event).encode()
+        stamp = int(time.time())
+        signature = hmac.new(b"whsec_test", f"{stamp}.".encode() + raw, hashlib.sha256).hexdigest()
+        header = f"t={stamp},v1={signature}"
+        calls = []
+
+        def fake_printful(env, method, path, payload=None, file=None):
+            calls.append(path)
+            if path == "/files":
+                return {"id": 11}
+            self.assertEqual(payload["recipient"]["country_code"], "AU")
+            self.assertEqual(payload["shipping"], "STANDARD")
+            return {"id": 55, "status": "draft"}
+
+        with mock.patch("store.printful.read_print_bytes", return_value=b"png"):
+            with mock.patch("store.printful.printful_request", side_effect=fake_printful):
+                status, body = self.post_signed("/api/stripe/webhook", raw, header)
+        self.assertEqual(status, 200)
+        self.assertEqual(calls[1], "/orders?confirm=false")
+        saved = json.loads((self.orders / f"{view['id']}.json").read_text(encoding="utf-8"))
+        self.assertTrue(saved["payment_taken"])
+        self.assertEqual(saved["status"], "paid")
+        self.assertEqual(saved["printful_order_id"], 55)
+        self.assertIn(view["id"], body)
+
+        status, _ = self.post_signed("/api/stripe/webhook", raw, "t=1,v1=deadbeef")
+        self.assertEqual(status, 400)
+        os.environ.pop("STRIPE_WEBHOOK_SECRET", None)
+        status, denied = self.post_signed("/api/stripe/webhook", raw, header)
+        self.assertEqual(status, 503)
+        self.assertIn("not set", denied)
+        self.assertEqual(json.loads((self.orders / f"{view['id']}.json").read_text(encoding="utf-8"))["printful_order_id"], 55)
+
+    def post_signed(self, path, raw, signature):
+        request = urllib.request.Request(
+            self.base + path,
+            data=raw,
+            headers={"Content-Type": "application/json", "Stripe-Signature": signature},
+        )
+        try:
+            with urllib.request.urlopen(request) as response:
+                return response.status, response.read().decode()
+        except urllib.error.HTTPError as exc:
+            return exc.status, exc.read().decode()
 
 
 class PrintfulMapTests(unittest.TestCase):

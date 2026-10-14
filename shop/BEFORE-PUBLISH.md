@@ -22,9 +22,9 @@ Also still open:
 - Wave-1 prices are locked if those products are added later: hoodie AU$75, AOP beanie AU$49, Flexfit AU$55. No mockups for them are on this site, so they are not in the catalog.
 - Full Bleed is a live lane at 22 shop cards. Nebula Queen is one of those cards, polyester AU$65. Chest print is live at 10 (7 prior hero chests + Nine-Tail Shrine, Chrome Crow Storm, Astral Fox Empress with black-bar-fixed mockups). Nebula Queen chest stays held. Print-ready files for the 3 new chests are under `shop/print-ready/chest/` as 4500×5400 RGB on white. They are not shop photos. Living Screens is a live lane of wallpaper cards from the preview images on this site: Crimson Sun 9, Quiet Rain 8, plus Oni, Ronin Rain, Starbound, and Neon Cyberpunk collages and the two desktop shots. Pack price AU$12. Design still counts 57 packs; only the images in the preview zips are cards. The AU$10 add-on with a tee stays held, and the pack zip is not a separate download. Night Shift is seasonal, not an adults-only lane. Blackletter and As High As Fuel are live lanes. Their held marketing blurbs stay off the public shop. Demo checkout only. Hosting this preview on Railway is below.
 - Keep `noindex` (Jason, 14 Oct). Remove `<meta name="robots" content="noindex">` only when Jason says the shop should be indexed. Test-mode Stripe still keeps the shop out of search.
-- Stripe Checkout is ready and parked. Leave `STRIPE_SECRET_KEY` unset. Use `SHOP_PAYID` or `SHOP_CHECKOUT=demo` until Jason adds `sk_test_` later. Do not commit keys. The server rejects `sk_live_` / `rk_live_`. See README “Payments”.
-- Free shipping on the Stripe session is Australia only. Do not add a zero shipping rate for other countries. Overseas postage stays closed until a charged rate is set.
-- PayID (`SHOP_PAYID`) is the path when the Stripe secret is unset. It does not run alongside Stripe.
+- Card checkout is on for overseas orders when `STRIPE_SECRET_KEY` is set. Australian orders stay on PayID, and card is an optional second button. If the secret is missing, the card button is hidden and PayID still works. Do not commit keys.
+- Free shipping on the Stripe session is Australia only. Do not add a zero shipping rate for other countries. Overseas postage is the Printful AUD rate, quoted with `PRINTFUL_API_KEY`, and added to the Checkout Session.
+- PayID (`SHOP_PAYID`) stays available for Australia alongside Stripe. It does not pay an overseas order.
 
 Demo checkout, used when Stripe and PayID are both unset, does not charge a card and does not send anything to print. A Stripe test payment is a real test-mode charge and still does not send the shirt to print by itself.
 
@@ -32,7 +32,7 @@ Demo checkout, used when Stripe and PayID are both unset, does not charge a card
 
 Host the preview from the `shop/` directory. In the Railway service, set Root Directory to `shop`. Config-as-code is not picked up from that root on its own, so set the config file path to `/shop/railway.json`. The start command is `PYTHONPATH=src python3 -m store`. `Procfile` and `nixpacks.toml` in `shop/` use the same command if the builder reads those instead.
 
-Railway sets `PORT`. The process binds `0.0.0.0` on that port. The live service uses PayID checkout and stores orders at `SHOP_ORDERS_DIR=/data/orders`. Copy PayID from `deploy.env.example` (`SHOP_PAYID`, `SHOP_PAYID_NAME`). Leave `STRIPE_SECRET_KEY` unset. Keep `noindex`.
+Railway sets `PORT`. The process binds `0.0.0.0` on that port. The live service uses PayID for Australia and stores orders at `SHOP_ORDERS_DIR=/data/orders`. Copy PayID from `deploy.env.example` (`SHOP_PAYID`, `SHOP_PAYID_NAME`). Keep `noindex`.
 
 ## Railway env vars
 
@@ -51,6 +51,9 @@ Jason adds:
 - `PRINTFUL_API_KEY` — Printful private token. In Printful: Settings → API → Create token (private token). Copy it once; Printful does not show it again. Never commit it.
 - `PRINTFUL_STORE_ID` — optional. Printful → Settings → Stores, the numeric store id. Set it when the token can see more than one store. Leave unset for a single-store token.
 - `PRINTFUL_AUTO_CONFIRM` — leave unset or `false`. Mark paid then creates a Printful draft Jason can check before production. Set `true` only to submit the order for fulfilment immediately.
+- `STRIPE_SECRET_KEY` — Stripe secret key. Dashboard: Developers → API keys → Secret key. Use `sk_live_…` on the live shop, or `sk_test_…` to try a test payment. This turns the card button on. Without it, Australia still pays by PayID and overseas checkout is refused.
+- `STRIPE_WEBHOOK_SECRET` — signing secret for the card webhook. Dashboard: Developers → Webhooks → Add endpoint. Endpoint URL `https://grok-production-043e.up.railway.app/api/stripe/webhook`. Event `checkout.session.completed`. Open the endpoint and reveal the signing secret (`whsec_…`). A paid event marks the order paid and runs the same Printful path as Mark paid. Without this secret the webhook is refused.
+- `STRIPE_PUBLISHABLE_KEY` — optional. Developers → API keys → Publishable key (`pk_live_…` or `pk_test_…`). Hosted Checkout does not read it.
 - `SHOP_ALERT_EMAIL` — inbox for each new order. If unset, the shop uses `rogersinc426@gmail.com`.
 - `SMTP_HOST` — Gmail: `smtp.gmail.com`. Resend: `smtp.resend.com`.
 - `SMTP_PORT` — `587`.

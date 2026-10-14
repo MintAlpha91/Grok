@@ -12,6 +12,7 @@ import os
 import secrets
 import urllib.error
 import urllib.request
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 
 from store.catalog import PUBLIC_PATH, ShopError, load_catalog
@@ -115,14 +116,14 @@ def _multipart(filename: str, content: bytes) -> tuple[bytes, str]:
     return body, f"multipart/form-data; boundary={boundary}"
 
 
-def printful_request(
+def printful_result(
     env: dict,
     method: str,
     path: str,
     payload: dict | None = None,
     file: tuple[str, bytes] | None = None,
-) -> dict:
-    """Call the Printful API. Tests patch this. No live key is used here."""
+):
+    """Call the Printful API. Result may be an object or a list. Tests patch printful_request."""
     if file is not None:
         data, content_type = _multipart(file[0], file[1])
     elif payload is not None:
@@ -152,10 +153,89 @@ def printful_request(
         raise ShopError("Printful could not be reached.", 502) from exc
     if not isinstance(parsed, dict):
         raise ShopError("Printful returned an unreadable response.", 502)
-    result = parsed.get("result", parsed)
+    return parsed.get("result", parsed)
+
+
+def printful_request(
+    env: dict,
+    method: str,
+    path: str,
+    payload: dict | None = None,
+    file: tuple[str, bytes] | None = None,
+) -> dict:
+    """Call the Printful API. Tests patch this. No live key is used here."""
+    result = printful_result(env, method, path, payload, file)
     if not isinstance(result, dict):
         raise ShopError("Printful returned an unreadable response.", 502)
     return result
+
+
+def _aud_cents(amount: object) -> int:
+    cents = (Decimal(str(amount)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    return int(cents)
+
+
+def shipping_rates(recipient: dict, items: list[dict], env: dict) -> list[dict]:
+    if not _api_key(env):
+        log.warning("printful shipping skipped: PRINTFUL_API_KEY is not set")
+        raise ShopError("Overseas postage cannot be quoted until PRINTFUL_API_KEY is set.", 409)
+    result = printful_result(
+        env,
+        "POST",
+        "/shipping/rates",
+        {"recipient": recipient, "items": items, "currency": "AUD"},
+    )
+    if isinstance(result, dict):
+        result = result.get("rates") or []
+    if not isinstance(result, list) or not result:
+        raise ShopError("Printful did not return a postage rate.", 502)
+    return [rate for rate in result if isinstance(rate, dict)]
+
+
+def choose_rate(rates: list[dict]) -> dict:
+    aud = [rate for rate in rates if str(rate.get("currency") or "AUD").upper() == "AUD"]
+    if not aud:
+        raise ShopError("Printful postage was not quoted in AUD.", 502)
+    for rate in aud:
+        if str(rate.get("id") or "").upper() == "STANDARD":
+            return rate
+    return aud[0]
+
+
+def quote_postage(lines: list[dict], customer: dict, env: dict | None = None) -> dict:
+    """Charged overseas postage from Printful. A zero rate is refused."""
+    env = os.environ if env is None else env
+    catalog = load_catalog()
+    items = []
+    for line in lines:
+        if line.get("addon") or line.get("fabric") in {"digital", "wallpaper"}:
+            continue
+        product = stored_product(catalog, line["slug"])
+        items.append(
+            {
+                "variant_id": variant_id(catalog, product, line["fabric"], line["size"]),
+                "quantity": line["qty"],
+            }
+        )
+    if not items:
+        raise ShopError("Overseas postage needs a tee in the order.", 409)
+    recipient = {
+        "address1": customer["line1"],
+        "city": customer["suburb"],
+        "country_code": customer["country"],
+        "zip": customer["postcode"],
+    }
+    if customer.get("state"):
+        recipient["state_code"] = customer["state"]
+    chosen = choose_rate(shipping_rates(recipient, items, env))
+    cents = _aud_cents(chosen.get("rate"))
+    if cents <= 0:
+        raise ShopError("Overseas postage is charged. A zero rate is not accepted.", 409)
+    return {
+        "id": str(chosen.get("id") or "STANDARD"),
+        "name": str(chosen.get("name") or "International postage"),
+        "cents": cents,
+    }
 
 
 def _dollars(cents: int) -> str:
@@ -197,18 +277,19 @@ def order_payload(order: dict, items: list[dict]) -> dict:
         "name": customer["name"],
         "address1": customer["line1"],
         "city": customer["suburb"],
-        "state_code": customer["state"],
-        "country_code": "AU",
+        "country_code": customer.get("country") or "AU",
         "zip": customer["postcode"],
         "email": customer["email"],
     }
+    if customer.get("state"):
+        recipient["state_code"] = customer["state"]
     if customer.get("line2"):
         recipient["address2"] = customer["line2"]
     if customer.get("phone"):
         recipient["phone"] = customer["phone"]
     return {
         "external_id": order["id"],
-        "shipping": "STANDARD",
+        "shipping": order.get("printful_shipping") or "STANDARD",
         "recipient": recipient,
         "items": items,
     }

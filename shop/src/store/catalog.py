@@ -142,19 +142,31 @@ def gst_included_cents(total_cents: int) -> int:
     return (total_cents + 5) // 11
 
 
-def settle(lines: list[dict], country: str = "AU") -> dict:
-    if country != "AU":
-        raise ShopError(
-            "Overseas postage is charged and is not open yet. This shop does not cover international shipping."
-        )
+def settle(lines: list[dict], country: str = "AU", shipping_cents: int | None = None) -> dict:
+    """Australia ships free. Overseas needs a charged postage amount. Never a zero rate."""
     goods = sum(line["line_cents"] for line in lines)
-    shipping = 0
+    if country == "AU":
+        shipping = 0
+        total = goods
+        return {
+            "shipping_cents": shipping,
+            "goods_cents": goods,
+            "gst_cents": gst_included_cents(total),
+            "gst_included": True,
+            "total_cents": total,
+            "currency": "AUD",
+        }
+    if shipping_cents is None or isinstance(shipping_cents, bool) or int(shipping_cents) <= 0:
+        raise ShopError(
+            "Overseas postage is charged. A rate has to be quoted before checkout. Australian free shipping does not cover it."
+        )
+    shipping = int(shipping_cents)
     total = goods + shipping
     return {
         "shipping_cents": shipping,
         "goods_cents": goods,
-        "gst_cents": gst_included_cents(total),
-        "gst_included": True,
+        "gst_cents": 0,
+        "gst_included": False,
         "total_cents": total,
         "currency": "AUD",
     }
@@ -448,7 +460,7 @@ def price_addon(catalog: dict, addon_id: str, qty: int, parent_slug: str) -> dic
     }
 
 
-def quote_lines(raw_lines: list) -> dict:
+def _priced_lines(raw_lines: list) -> list[dict]:
     if not isinstance(raw_lines, list):
         raise ShopError("Cart lines are missing.")
     if len(raw_lines) > 12:
@@ -471,7 +483,24 @@ def quote_lines(raw_lines: list) -> dict:
         addon_id = raw.get("addon")
         if addon_id:
             priced.append(price_addon(catalog, str(addon_id), qty, str(raw.get("slug", ""))))
-    settled = settle(priced)
+    return priced
+
+
+def quote_lines(raw_lines: list, raw_customer: object = None) -> dict:
+    priced = _priced_lines(raw_lines)
+    country = "AU"
+    if isinstance(raw_customer, dict) and str(raw_customer.get("country") or "").strip():
+        country = str(raw_customer.get("country") or "AU").strip().upper()
+    if country == "AU":
+        settled = settle(priced, "AU")
+    else:
+        customer = validate_customer(raw_customer)
+        from store.printful import quote_postage
+
+        postage = quote_postage(priced, customer)
+        settled = settle(priced, customer["country"], shipping_cents=postage["cents"])
+        settled["shipping_name"] = postage["name"]
+        settled["printful_shipping"] = postage["id"]
     return {
         "lines": [public_line(line) for line in priced],
         **settled,
@@ -487,15 +516,19 @@ def _clean(value: object, limit: int) -> str:
 
 def validate_customer(raw: object) -> dict:
     if not isinstance(raw, dict):
-        raise ShopError("Add a name and an Australian address.")
+        raise ShopError("Add a name and an address.")
     name = _clean(raw.get("name"), 80)
     email = _clean(raw.get("email"), 120)
     phone = _clean(raw.get("phone"), 30)
     line1 = _clean(raw.get("line1"), 120)
     line2 = _clean(raw.get("line2"), 120)
     suburb = _clean(raw.get("suburb"), 60)
-    state = _clean(raw.get("state"), 8).upper()
-    postcode = _clean(raw.get("postcode"), 8)
+    country = _clean(raw.get("country") or "AU", 2).upper() or "AU"
+    state_limit = 8 if country == "AU" else 40
+    state = _clean(raw.get("state"), state_limit)
+    if country in {"AU", "US", "CA"}:
+        state = state.upper()
+    postcode = _clean(raw.get("postcode"), 12)
     if len(name) < 2:
         raise ShopError("Enter the name for the parcel.")
     if "@" not in email or "." not in email.split("@")[-1] or " " in email:
@@ -507,11 +540,19 @@ def validate_customer(raw: object) -> dict:
     if len(line1) < 4:
         raise ShopError("Enter a street address.")
     if len(suburb) < 2:
-        raise ShopError("Enter a suburb.")
-    if state not in STATES:
-        raise ShopError("Choose an Australian state or territory.")
-    if len(postcode) != 4 or not postcode.isdigit():
-        raise ShopError("Enter a 4-digit postcode.")
+        raise ShopError("Enter a suburb or city.")
+    if len(country) != 2 or not country.isalpha():
+        raise ShopError("Choose a country.")
+    if country == "AU":
+        if state not in STATES:
+            raise ShopError("Choose an Australian state or territory.")
+        if len(postcode) != 4 or not postcode.isdigit():
+            raise ShopError("Enter a 4-digit postcode.")
+    else:
+        if country in {"US", "CA"} and len(state) < 2:
+            raise ShopError("Enter a state.")
+        if len(postcode) < 2 or any(ch not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -" for ch in postcode.upper()):
+            raise ShopError("Enter a postcode.")
     return {
         "name": name,
         "email": email,
@@ -521,5 +562,5 @@ def validate_customer(raw: object) -> dict:
         "suburb": suburb,
         "state": state,
         "postcode": postcode,
-        "country": "AU",
+        "country": country,
     }

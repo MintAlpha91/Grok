@@ -109,6 +109,15 @@ def notify_new_order(order: dict, env: dict | None = None) -> None:
             "The tee is held until the payment clears, then we send it to print. "
             "Free shipping in Australia. GST is included in the price.\n"
         )
+    elif order.get("mode") == "stripe":
+        postage = ""
+        if order.get("shipping_cents"):
+            postage = f"Postage {_money(int(order['shipping_cents']))}. "
+        body = (
+            f"Hello {customer['name']},\n\n"
+            f"We received order {order_id}. Total {_money(int(order['total_cents']))} AUD. {postage}\n"
+            "Pay by card on the secure page. The tee is not sent to print until the payment clears.\n"
+        )
     elif order.get("mode") == "demo":
         body = (
             f"Hello {customer['name']},\n\n"

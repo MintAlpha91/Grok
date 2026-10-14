@@ -2,7 +2,7 @@
 
 Draft preview catalog for Rogers Inc Designs. This is not a live store. A collection is not the public storefront until it has at least 10 items, and the site stays a preview until every collection meets that floor. Thin lanes use `ready` (ready to list) or `upcoming`. Later lanes (gothic blackletter, fuel, calligraphy, and anything after that) are collections in the catalog, not extra pages. The header uses `public/brand/logo.png`, the homepage hero uses `public/brand/banner.png`, and the strip under the nav uses `public/brand/mini-banner.png`. **Elemental Wood** is the Etsy shop name only, linked from the footer and the about page.
 
-Prices are GST-inclusive official-store prices, under the Etsy ladder: polyester AU$65 (2XL +AU$4), cotton AU$71 (opens after the first sales), chest print AU$47 (2XL +AU$4, 3XL +AU$7, no 4XL or 5XL). The site does not show the Etsy amount on the same tee. The line is “Official store — no Etsy fees.” Free shipping is Australia only. Overseas postage is charged and is not open, so checkout does not give it away. GST is one eleventh of the price already shown. Checkout does not add GST again. Page wording lives in `web-copy.json`. Products, collections, and series live in `catalog.json`. The homepage, shop, and `/collection/…` pages render that list. Adding a tee does not need a new page.
+Prices are GST-inclusive official-store prices, under the Etsy ladder: polyester AU$65 (2XL +AU$4), cotton AU$71 (opens after the first sales), chest print AU$47 (2XL +AU$4, 3XL +AU$7, no 4XL or 5XL). The site does not show the Etsy amount on the same tee. The line is “Official store — no Etsy fees.” Free shipping is Australia only. Overseas postage is a charged Printful rate in AUD, so checkout does not give it away. GST is one eleventh of the price already shown. Checkout does not add GST again. Page wording lives in `web-copy.json`. Products, collections, and series live in `catalog.json`. The homepage, shop, and `/collection/…` pages render that list. Adding a tee does not need a new page.
 
 ## Add a product or a lane
 
@@ -34,17 +34,18 @@ SHOP_PAYID=you@bank SHOP_PAYID_NAME="Rogers Inc Designs" PYTHONPATH=src python3 
 
 ## Payments
 
-Stripe Checkout is ready and parked. The server uses it only when `STRIPE_SECRET_KEY` is set. With that variable unset, `SHOP_PAYID` shows PayID and holds the order unpaid. If PayID is also unset, `SHOP_CHECKOUT=demo` walks through checkout with no charge and no print. If none of those are set, checkout refuses the order.
+Australia pays by PayID. Card checkout is added when `STRIPE_SECRET_KEY` is set, and overseas addresses have to use it. With that secret unset, PayID still works and the card button stays hidden. If PayID and the secret are both unset, `SHOP_CHECKOUT=demo` walks through checkout with no charge and no print. If none of those are set, checkout refuses the order.
 
-Do not commit keys. The server rejects `sk_live_` and `rk_live_`. Copy `.env.example` to `.env` (gitignored) only if you want those variables in one file. The process does not load `.env` by itself.
+Do not commit keys. `sk_test_` and `sk_live_` are both accepted. Copy `.env.example` to `.env` (gitignored) only if you want those variables in one file. The process does not load `.env` by itself.
 
 | Variable | When |
 | --- | --- |
 | `SHOP_CHECKOUT=demo` | Local no-charge walkthrough. Use this until a PayID or a Stripe test key is set |
-| `SHOP_PAYID` | PayID address. Used when `STRIPE_SECRET_KEY` is unset |
+| `SHOP_PAYID` | PayID for Australian orders. Stays available when card checkout is on |
 | `SHOP_PAYID_NAME` | Optional. Defaults to Rogers Inc Designs |
-| `STRIPE_SECRET_KEY` | Later. `sk_test_…` turns hosted Checkout on |
-| `STRIPE_PUBLISHABLE_KEY` | Later, optional. `pk_test_…`. Hosted Checkout does not read it |
+| `STRIPE_SECRET_KEY` | `sk_test_…` or `sk_live_…`. Turns the card button on. Required for overseas orders |
+| `STRIPE_WEBHOOK_SECRET` | Signing secret for `POST /api/stripe/webhook` (`checkout.session.completed`) |
+| `STRIPE_PUBLISHABLE_KEY` | Optional. `pk_test_…` or `pk_live_…`. Hosted Checkout does not read it |
 | `SHOP_BASE_URL` | Later, with Stripe. Return origin, no path. Local: `http://127.0.0.1:8765` |
 | `PORT` | Railway sets this. The server binds `0.0.0.0` on it. Local fallback is `SHOP_PORT` (default 8765) |
 | `SHOP_ORDERS_DIR` | Directory for order JSON. Live Railway volume: `/data/orders`. `SHOP_ORDERS` is the local override |
@@ -55,7 +56,7 @@ Do not commit keys. The server rejects `sk_live_` and `rk_live_`. Copy `.env.exa
 | `SHOP_ALERT_EMAIL` | New-order alert. Default `rogersinc426@gmail.com` |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | Mail. Gmail app password or Resend. Missing settings: log and skip |
 
-When Jason sets `sk_test_…`, card checkout creates a Stripe Checkout Session in AUD at the catalog price (name, fabric, size). GST is already inside that amount: `automatic_tax` is off and each price is `tax_behavior=inclusive`. The only shipping rate is free delivery inside Australia. Success returns to `/order/RID-…?session_id={CHECKOUT_SESSION_ID}`. Cancel returns to `/checkout?cancelled=1`. Test card `4242 4242 4242 4242`, any future expiry, any CVC. A paid order is saved for a person to send to Printful. Nothing is pushed to Printful automatically.
+Card checkout creates a Stripe Checkout Session in AUD at the catalog price (name, fabric, size). GST is already inside the Australian amount: `automatic_tax` is off and each price is `tax_behavior=inclusive`. Australia ships free. Overseas postage is a charged Printful rate in AUD, never a zero rate. Success returns to `/order/RID-…?session_id={CHECKOUT_SESSION_ID}`. Cancel returns to `/checkout?cancelled=1`. The webhook `checkout.session.completed` marks the order paid and creates the Printful order, the same path as Mark paid. Test card `4242 4242 4242 4242`, any future expiry, any CVC.
 
 ## Tests
 

@@ -24,8 +24,10 @@ from store.checkout import (
     buyer_view,
     checkout_public,
     confirm_stripe,
+    handle_stripe_webhook,
     load_order,
     place_order,
+    verify_stripe_signature,
 )
 from store.printful import record_package_shipped
 
@@ -110,9 +112,12 @@ class Handler(BaseHTTPRequestHandler):
                 record_package_shipped(self.server.orders_dir, self._read_json())
                 self._send_json({"ok": True})
                 return
+            if parsed.path == "/api/stripe/webhook":
+                self._stripe_webhook()
+                return
             payload = self._read_json()
             if parsed.path == "/api/quote":
-                self._send_json(quote_lines(payload.get("lines")))
+                self._send_json(quote_lines(payload.get("lines"), payload.get("customer")))
                 return
             if parsed.path == "/api/checkout":
                 host = self.headers.get("Host", "127.0.0.1")
@@ -122,6 +127,7 @@ class Handler(BaseHTTPRequestHandler):
                     payload.get("lines"),
                     payload.get("customer"),
                     base_url=base,
+                    payment=payload.get("payment"),
                 )
                 self._send_json(view)
                 return
@@ -130,6 +136,23 @@ class Handler(BaseHTTPRequestHandler):
             self._send_json({"error": str(exc)}, exc.status)
         except Exception:
             self._send_json({"error": "The shop hit an unexpected error."}, 500)
+
+    def _stripe_webhook(self) -> None:
+        raw = self._read_body()
+        secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
+        if not secret:
+            self._send_json({"error": "Stripe webhook secret is not set."}, 503)
+            return
+        if not verify_stripe_signature(raw, self.headers.get("Stripe-Signature", ""), secret):
+            self._send_json({"error": "Bad Stripe signature."}, 400)
+            return
+        try:
+            event = json.loads(raw.decode() or "{}")
+        except json.JSONDecodeError as exc:
+            raise ShopError("That request is not valid JSON.") from exc
+        if not isinstance(event, dict):
+            raise ShopError("That request is not valid JSON.")
+        self._send_json(handle_stripe_webhook(self.server.orders_dir, event))
 
     def _read_body(self) -> bytes:
         length = int(self.headers.get("Content-Length", "0") or "0")

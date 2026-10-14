@@ -10,6 +10,42 @@ const STATES = [
   ["ACT", "Australian Capital Territory"],
 ];
 
+const COUNTRIES = [
+  ["AU", "Australia"],
+  ["NZ", "New Zealand"],
+  ["US", "United States"],
+  ["CA", "Canada"],
+  ["GB", "United Kingdom"],
+  ["IE", "Ireland"],
+  ["DE", "Germany"],
+  ["FR", "France"],
+  ["NL", "Netherlands"],
+  ["BE", "Belgium"],
+  ["SE", "Sweden"],
+  ["NO", "Norway"],
+  ["DK", "Denmark"],
+  ["FI", "Finland"],
+  ["ES", "Spain"],
+  ["IT", "Italy"],
+  ["PT", "Portugal"],
+  ["AT", "Austria"],
+  ["CH", "Switzerland"],
+  ["PL", "Poland"],
+  ["JP", "Japan"],
+  ["KR", "South Korea"],
+  ["SG", "Singapore"],
+  ["HK", "Hong Kong"],
+  ["MY", "Malaysia"],
+  ["PH", "Philippines"],
+  ["TH", "Thailand"],
+  ["ID", "Indonesia"],
+  ["IN", "India"],
+  ["AE", "United Arab Emirates"],
+  ["ZA", "South Africa"],
+  ["BR", "Brazil"],
+  ["MX", "Mexico"],
+];
+
 const state = { catalog: null, error: "" };
 
 function el(tag, props = {}, kids = []) {
@@ -560,15 +596,15 @@ function renderCheckout(catalog, route) {
   if (!lines.length) {
     return [pageHead("Checkout", []), el("p", { class: "empty wrap" }, "Your cart is empty.")];
   }
-  const noticeClass = mode === "demo" ? "notice notice-demo" : "notice";
   const summary = el("div", { id: "summary" }, [el("p", {}, "Checking prices…")]);
   const error = el("p", { class: "alert", id: "checkout-error" }, "");
-  const buttonLabel = {
-    demo: "Place a demo order — no charge, no print",
-    stripe: "Continue to secure card payment",
-    payid: "Place order and show PayID",
-    off: "Payments are not switched on",
-  }[mode];
+  const notice = el("div", { class: mode === "demo" ? "notice notice-demo" : "notice" }, noticeBody(catalog, mode));
+  const actions = el("div", { class: "payment-actions" });
+  const stateSlot = el("div", {});
+  const countrySelect = el("select", { name: "country", autocomplete: "country" }, COUNTRIES.map(([code, label]) => (
+    el("option", { value: code, selected: code === "AU" ? "selected" : null }, label)
+  )));
+  const postcode = field("Postcode", "postcode", "text", true);
   const form = el("form", { class: "fields", id: "checkout-form" }, [
     field("Name", "name", "text", true),
     field("Email", "email", "email", true),
@@ -576,23 +612,76 @@ function renderCheckout(catalog, route) {
     field("Street address", "line1", "text", true),
     field("Address line 2 (optional)", "line2", "text", false),
     el("div", { class: "grid-2" }, [
-      field("Suburb", "suburb", "text", true),
-      stateField(),
+      field("Suburb / city", "suburb", "text", true),
+      stateSlot,
     ]),
     el("div", { class: "grid-2" }, [
-      field("Postcode", "postcode", "text", true),
-      el("label", {}, ["Country", el("input", { value: "Australia", disabled: "disabled" })]),
+      postcode,
+      el("label", {}, ["Country", countrySelect]),
     ]),
-    el("button", { class: "btn", type: "submit", disabled: mode === "off" ? "disabled" : null }, buttonLabel),
+    actions,
   ]);
+  stateSlot.replaceChildren(stateField());
+
+  function country() {
+    return countrySelect.value || "AU";
+  }
+
+  function paintActions() {
+    const choice = paymentChoice(catalog, country());
+    notice.className = country() !== "AU" ? "notice" : (mode === "demo" ? "notice notice-demo" : "notice");
+    notice.replaceChildren(...(country() === "AU" ? noticeBody(catalog, mode) : [el("p", {}, catalog.checkout.stripe)]));
+    actions.replaceChildren();
+    if (choice.note) actions.append(el("p", {}, choice.note));
+    for (const button of choice.buttons) {
+      actions.append(el("button", { class: "btn", type: "submit", "data-payment": button.payment }, button.label));
+    }
+    const code = postcode.querySelector("input");
+    if (code) {
+      code.maxLength = country() === "AU" ? 4 : 12;
+      code.inputMode = country() === "AU" ? "numeric" : "text";
+    }
+    if (country() === "AU") stateSlot.replaceChildren(stateField());
+    else stateSlot.replaceChildren(field("State / region", "state", "text", country() === "US" || country() === "CA"));
+  }
+
+  countrySelect.addEventListener("change", () => {
+    paintActions();
+    refreshQuote();
+  });
+  form.addEventListener("input", () => {
+    if (country() !== "AU") refreshQuote();
+  });
+  paintActions();
+
+  let quoteTimer = 0;
+  function refreshQuote() {
+    window.clearTimeout(quoteTimer);
+    quoteTimer = window.setTimeout(async () => {
+      const customer = Object.fromEntries(new FormData(form).entries());
+      try {
+        const quote = await api("/api/quote", { lines: cart(), customer: country() === "AU" ? { country: "AU" } : customer });
+        const gst = quote.gst_cents ? `Includes GST ${money(quote.gst_cents)}` : "No extra GST on this export.";
+        const postage = quote.shipping_cents
+          ? `${quote.shipping_name || "Postage"} ${money(quote.shipping_cents)}`
+          : "Free shipping in Australia";
+        summary.replaceChildren(...quote.lines.map((line) => (
+          el("p", {}, `${line.qty} × ${line.name} · ${line.fabric_label} · ${line.size} · ${money(line.line_cents)}`)
+        )), el("p", {}, postage), el("p", {}, gst), el("strong", {}, money(quote.total_cents)));
+      } catch (err) {
+        summary.replaceChildren(el("p", { class: "alert" }, err.message));
+      }
+    }, country() === "AU" ? 0 : 250);
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     error.textContent = "";
-    const button = form.querySelector("button[type=submit]");
-    button.disabled = true;
+    const payment = event.submitter && event.submitter.dataset.payment;
+    for (const button of actions.querySelectorAll("button")) button.disabled = true;
     const customer = Object.fromEntries(new FormData(form).entries());
     try {
-      const order = await api("/api/checkout", { lines: cart(), customer });
+      const order = await api("/api/checkout", { lines: cart(), customer, payment });
       if (order.url) {
         location.href = order.url;
         return;
@@ -601,27 +690,38 @@ function renderCheckout(catalog, route) {
       navigate(`/order/${order.id}`);
     } catch (err) {
       error.textContent = err.message;
-      button.disabled = mode === "off";
+      for (const button of actions.querySelectorAll("button")) button.disabled = false;
     }
   });
-  api("/api/quote", { lines }).then((quote) => {
-    summary.replaceChildren(...quote.lines.map((line) => (
-      el("p", {}, `${line.qty} × ${line.name} · ${line.fabric_label} · ${line.size} · ${money(line.line_cents)}`)
-    )), el("p", {}, quote.shipping_cents ? `Shipping ${money(quote.shipping_cents)}` : "Free shipping in Australia"), el("p", {}, `Includes GST ${money(quote.gst_cents)}`), el("strong", {}, money(quote.total_cents)));
-  }).catch((err) => {
-    summary.replaceChildren(el("p", { class: "alert" }, err.message));
-  });
+  refreshQuote();
   const cancelled = route.cancelled ? el("p", { class: "alert" }, "Card payment was cancelled. No charge was taken and nothing was sent to print.") : null;
   return [
     pageHead("Checkout", [catalog.checkout.international]),
     el("section", { class: "checkout wrap" }, [
       cancelled,
-      el("div", { class: noticeClass }, noticeBody(catalog, mode)),
+      notice,
       summary,
       error,
       form,
     ]),
   ];
+}
+
+function paymentChoice(catalog, country) {
+  const card = Boolean(catalog.checkout.card);
+  const payid = Boolean(catalog.checkout.payid_available);
+  const mode = catalog.checkout.mode;
+  if (country !== "AU") {
+    if (!card) return { buttons: [], note: "Overseas orders pay by card. Card checkout is not switched on." };
+    return { buttons: [{ payment: "card", label: "Continue to secure card payment" }], note: "" };
+  }
+  const buttons = [];
+  if (payid) buttons.push({ payment: "payid", label: "Place order and show PayID" });
+  if (card) buttons.push({ payment: "card", label: "Pay by card" });
+  if (!buttons.length && mode === "demo") buttons.push({ payment: "demo", label: "Place a demo order — no charge, no print" });
+  if (!buttons.length && mode === "stripe") buttons.push({ payment: "card", label: "Continue to secure card payment" });
+  if (!buttons.length) return { buttons: [], note: catalog.checkout.off };
+  return { buttons, note: "" };
 }
 
 function noticeBody(catalog, mode) {
@@ -688,7 +788,10 @@ async function renderOrder(catalog, route) {
       kids.push(el("p", {}, "Card payment is not complete. No charge is treated as finished, and nothing has been sent to print."));
     } else if (order.payment_taken) {
       saveCart([]);
-      kids.push(el("p", {}, "Payment received. GST was already included. Free shipping in Australia."));
+      const local = (order.customer.country || "AU") === "AU";
+      kids.push(el("p", {}, local
+        ? "Payment received. GST was already included. Free shipping in Australia."
+        : "Payment received. Postage is included in the total."));
       kids.push(el("p", {}, catalog.delivery));
       if (order.tracking_number) {
         const tracking = order.tracking_url
