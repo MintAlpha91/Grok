@@ -8,11 +8,15 @@ import os
 import smtplib
 import ssl
 import threading
+import urllib.error
+import urllib.request
 from email.message import EmailMessage
 
 log = logging.getLogger("store")
 
 DEFAULT_ALERT = "rogersinc426@gmail.com"
+SENDER_NAME = "Rogers Inc Designs"
+BREVO_URL = "https://api.brevo.com/v3/smtp/email"
 SMTP_TIMEOUT = 8
 _pending: list[threading.Thread] = []
 _pending_lock = threading.Lock()
@@ -53,33 +57,102 @@ def smtp_config(env: dict | None = None) -> dict | None:
     }
 
 
-def send_email(to: str, subject: str, body: str, env: dict | None = None) -> bool:
+def sender_email(env: dict | None = None) -> str:
+    """Verified From address. SMTP_FROM wins, then SHOP_FROM_EMAIL, then the Gmail sender."""
+    env = os.environ if env is None else env
+    return (
+        (env.get("SMTP_FROM") or "").strip()
+        or (env.get("SHOP_FROM_EMAIL") or "").strip()
+        or DEFAULT_ALERT
+    )
+
+
+def _reference(reference: str) -> str:
+    return reference or "-"
+
+
+def send_brevo(to: str, subject: str, body: str, env: dict) -> None:
+    key = (env.get("BREVO_API_KEY") or "").strip()
+    payload = {
+        "sender": {"name": SENDER_NAME, "email": sender_email(env)},
+        "to": [{"email": to}],
+        "subject": subject,
+        "textContent": body,
+    }
+    request = urllib.request.Request(
+        BREVO_URL,
+        data=json.dumps(payload).encode(),
+        method="POST",
+        headers={
+            "api-key": key,
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=SMTP_TIMEOUT) as response:
+            response.read()
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode(errors="replace")[:300]
+        raise RuntimeError(f"Brevo HTTP {exc.code}: {detail}") from exc
+
+
+def _send_smtp(to: str, subject: str, body: str, env: dict) -> bool:
     cfg = smtp_config(env)
-    if cfg is None or not to:
+    if cfg is None:
         return False
     message = EmailMessage()
     message["From"] = cfg["sender"]
     message["To"] = to
     message["Subject"] = subject
     message.set_content(body)
-    try:
-        if cfg["port"] == 465:
-            with smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=SMTP_TIMEOUT) as smtp:
-                if cfg["user"]:
-                    smtp.login(cfg["user"], cfg["password"])
-                smtp.send_message(message)
-        else:
-            with smtplib.SMTP(cfg["host"], cfg["port"], timeout=SMTP_TIMEOUT) as smtp:
-                smtp.ehlo()
-                smtp.starttls(context=ssl.create_default_context())
-                smtp.ehlo()
-                if cfg["user"]:
-                    smtp.login(cfg["user"], cfg["password"])
-                smtp.send_message(message)
-    except Exception as exc:
-        log.warning("email failed: %s", exc)
-        return False
+    if cfg["port"] == 465:
+        with smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=SMTP_TIMEOUT) as smtp:
+            if cfg["user"]:
+                smtp.login(cfg["user"], cfg["password"])
+            smtp.send_message(message)
+    else:
+        with smtplib.SMTP(cfg["host"], cfg["port"], timeout=SMTP_TIMEOUT) as smtp:
+            smtp.ehlo()
+            smtp.starttls(context=ssl.create_default_context())
+            smtp.ehlo()
+            if cfg["user"]:
+                smtp.login(cfg["user"], cfg["password"])
+            smtp.send_message(message)
     return True
+
+
+def send_email(
+    to: str,
+    subject: str,
+    body: str,
+    env: dict | None = None,
+    reference: str = "",
+) -> bool:
+    env = os.environ if env is None else env
+    order_ref = _reference(reference)
+    if not to:
+        log.warning("email skipped order=%s: no recipient", order_ref)
+        return False
+    if (env.get("BREVO_API_KEY") or "").strip():
+        log.warning("email attempt order=%s to=%s via=brevo", order_ref, to)
+        try:
+            send_brevo(to, subject, body, env)
+        except Exception as exc:
+            log.warning("email failed order=%s to=%s via=brevo: %s", order_ref, to, exc)
+        else:
+            log.warning("email sent order=%s to=%s via=brevo", order_ref, to)
+            return True
+    log.warning("email attempt order=%s to=%s via=smtp", order_ref, to)
+    try:
+        if _send_smtp(to, subject, body, env):
+            log.warning("email sent order=%s to=%s via=smtp", order_ref, to)
+            return True
+    except Exception as exc:
+        log.warning("email failed order=%s to=%s via=smtp: %s", order_ref, to, exc)
+        return False
+    log.warning("email skipped order=%s to=%s: no Brevo key and SMTP is not set", order_ref, to)
+    return False
 
 
 def _lines(order: dict) -> str:
@@ -149,7 +222,7 @@ def notify_new_order(order: dict, env: dict | None = None) -> None:
         f"Total {_money(int(order['total_cents']))} (GST included).\n\n"
         f"{_lines(order)}\n"
     )
-    send_email(alert_email(env), f"New Rogers Inc Designs order {order_id}", alert, env)
+    send_email(alert_email(env), f"New Rogers Inc Designs order {order_id}", alert, env, reference=order_id)
     if order.get("mode") == "payid":
         body = (
             f"Hello {customer['name']},\n\n"
@@ -185,6 +258,7 @@ def notify_new_order(order: dict, env: dict | None = None) -> None:
         f"We received your Rogers Inc Designs order {order_id}",
         body,
         env,
+        reference=order_id,
     )
 
 
@@ -203,4 +277,5 @@ def notify_shipped(order: dict, env: dict | None = None) -> None:
         f"Your Rogers Inc Designs order {order_id} has shipped",
         body,
         env,
+        reference=order_id,
     )

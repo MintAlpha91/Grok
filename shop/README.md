@@ -54,7 +54,9 @@ Do not commit keys. `sk_test_` and `sk_live_` are both accepted. Copy `.env.exam
 | `PRINTFUL_STORE_ID` | Optional Printful store id |
 | `PRINTFUL_AUTO_CONFIRM` | `true` submits the Printful order. Otherwise it stays a draft |
 | `SHOP_ALERT_EMAIL` | New-order alert. Default `rogersinc426@gmail.com` |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | Mail. Gmail app password or Resend. Missing settings: log and skip |
+| `BREVO_API_KEY` | Brevo HTTPS mail. Used when set. Railway blocks SMTP on trial/Hobby |
+| `SHOP_FROM_EMAIL` | From address if `SMTP_FROM` is unset. Verified Brevo sender `rogersinc426@gmail.com` |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | SMTP fallback. From address and name Rogers Inc Designs. Missing mail settings: log and skip |
 
 Card checkout creates a Stripe Checkout Session in AUD at the catalog price (name, fabric, size). GST is already inside the Australian amount: `automatic_tax` is off and each price is `tax_behavior=inclusive`. Australia ships free. Overseas postage is a charged Printful rate in AUD, never a zero rate. Success returns to `/order/RID-…?session_id={CHECKOUT_SESSION_ID}`. Cancel returns to `/checkout?cancelled=1`. The webhook `checkout.session.completed` marks the order paid and creates the Printful order, the same path as Mark paid. Test card `4242 4242 4242 4242`, any future expiry, any CVC.
 

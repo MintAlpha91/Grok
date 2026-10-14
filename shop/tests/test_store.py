@@ -62,6 +62,8 @@ ENV_KEYS = (
     "SMTP_USER",
     "SMTP_PASS",
     "SMTP_FROM",
+    "SHOP_FROM_EMAIL",
+    "BREVO_API_KEY",
 )
 
 
@@ -671,6 +673,97 @@ class CheckoutTests(unittest.TestCase):
                 base_url="http://127.0.0.1",
                 idempotency_key="../escape",
             )
+
+    def test_brevo_sends_over_https_and_smtp_is_the_fallback(self):
+        from store.mail import send_email
+
+        os.environ["BREVO_API_KEY"] = "xkeysib-test"
+        os.environ["SHOP_FROM_EMAIL"] = "rogersinc426@gmail.com"
+        captured = {}
+
+        class Response:
+            def read(self):
+                return b'{"messageId":"<1@brevo>"}'
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        def fake_urlopen(request, timeout=None):
+            captured["url"] = request.full_url
+            captured["timeout"] = timeout
+            captured["headers"] = {key.lower(): value for key, value in request.header_items()}
+            captured["body"] = json.loads(request.data.decode())
+            return Response()
+
+        with mock.patch("store.mail.urllib.request.urlopen", fake_urlopen):
+            with mock.patch("store.mail.smtplib.SMTP", side_effect=AssertionError("smtp called")):
+                with self.assertLogs("store", level="WARNING") as logs:
+                    sent = send_email(
+                        "ada@example.com",
+                        "We received your order",
+                        "Hello",
+                        reference="RID-D48B65CB",
+                    )
+        self.assertTrue(sent)
+        self.assertEqual(captured["url"], "https://api.brevo.com/v3/smtp/email")
+        self.assertEqual(captured["timeout"], 8)
+        self.assertEqual(captured["headers"]["api-key"], "xkeysib-test")
+        self.assertEqual(captured["body"]["sender"]["name"], "Rogers Inc Designs")
+        self.assertEqual(captured["body"]["sender"]["email"], "rogersinc426@gmail.com")
+        self.assertEqual(captured["body"]["to"], [{"email": "ada@example.com"}])
+        self.assertEqual(captured["body"]["textContent"], "Hello")
+        text = " ".join(logs.output)
+        self.assertIn("email attempt order=RID-D48B65CB", text)
+        self.assertIn("email sent order=RID-D48B65CB to=ada@example.com via=brevo", text)
+
+        os.environ["SMTP_FROM"] = "from@example.com"
+        with mock.patch("store.mail.urllib.request.urlopen", fake_urlopen):
+            send_email("ada@example.com", "Subject", "Body", reference="RID-D48B65CB")
+        self.assertEqual(captured["body"]["sender"]["email"], "from@example.com")
+
+        os.environ["SMTP_HOST"] = "smtp.test"
+        os.environ["SMTP_PORT"] = "587"
+        os.environ["SMTP_USER"] = "rogersinc426@gmail.com"
+        os.environ["SMTP_PASS"] = "fake-app-password"
+
+        class FakeSMTP:
+            opened = []
+
+            def __init__(self, host, port, timeout=None):
+                self.host = host
+                self.messages = []
+                FakeSMTP.opened.append(self)
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def ehlo(self):
+                return None
+
+            def starttls(self, context=None):
+                return None
+
+            def login(self, user, password):
+                return None
+
+            def send_message(self, message):
+                self.messages.append(message)
+
+        with mock.patch("store.mail.urllib.request.urlopen", side_effect=OSError("Network is unreachable")):
+            with mock.patch("store.mail.smtplib.SMTP", FakeSMTP):
+                with self.assertLogs("store", level="WARNING") as logs:
+                    fallback = send_email("ada@example.com", "Subject", "Body", reference="RID-D48B65CB")
+        self.assertTrue(fallback)
+        self.assertEqual(FakeSMTP.opened[0].host, "smtp.test")
+        self.assertEqual(len(FakeSMTP.opened[0].messages), 1)
+        self.assertIn("via=smtp", " ".join(logs.output))
+        self.assertIn("order=RID-D48B65CB", " ".join(logs.output))
 
     def test_payid_holds_the_order(self):
         os.environ["SHOP_PAYID"] = "rogers@example"

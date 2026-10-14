@@ -55,11 +55,13 @@ Jason adds:
 - `STRIPE_WEBHOOK_SECRET` — signing secret for the card webhook. Dashboard: Developers → Webhooks → Add endpoint. Endpoint URL `https://grok-production-043e.up.railway.app/api/stripe/webhook`. Event `checkout.session.completed`. Open the endpoint and reveal the signing secret (`whsec_…`). A paid event marks the order paid and runs the same Printful path as Mark paid. Without this secret the webhook is refused.
 - `STRIPE_PUBLISHABLE_KEY` — optional. Developers → API keys → Publishable key (`pk_live_…` or `pk_test_…`). Hosted Checkout does not read it.
 - `SHOP_ALERT_EMAIL` — inbox for each new order. If unset, the shop uses `rogersinc426@gmail.com`.
-- `SMTP_HOST` — Gmail: `smtp.gmail.com`. Resend: `smtp.resend.com`.
+- `BREVO_API_KEY` — Brevo transactional key. Railway trial and Hobby block outbound SMTP (`Network is unreachable`), so this HTTPS API is the live mail path. In Brevo: SMTP & API → API keys → Generate a new API key. The shop POSTs to `https://api.brevo.com/v3/smtp/email` with header `api-key`. Leave unset only if SMTP is reachable.
+- `SHOP_FROM_EMAIL` — From address when `SMTP_FROM` is unset. Use `rogersinc426@gmail.com`. In Brevo that address must be a verified single sender (Senders & IP → Senders).
+- `SMTP_FROM` — optional override of the From address. Same verified sender, `rogersinc426@gmail.com`. The visible sender name is Rogers Inc Designs.
+- `SMTP_HOST` — SMTP fallback when `BREVO_API_KEY` is unset or Brevo fails. Gmail: `smtp.gmail.com`. Not used on Railway trial/Hobby.
 - `SMTP_PORT` — `587`.
-- `SMTP_USER` — the Gmail address, or `resend` for Resend SMTP.
-- `SMTP_PASS` — Gmail app password, or a Resend API key used as the SMTP password. Gmail: Google Account → Security → turn on 2-Step Verification → App passwords → create one for Mail → paste the 16-character password. A normal Gmail password will not work.
-- `SMTP_FROM` — the From address. For Gmail use `rogersinc426@gmail.com`. For Resend it must be an address on a domain verified in Resend.
+- `SMTP_USER` — the Gmail address for the SMTP fallback.
+- `SMTP_PASS` — Gmail app password for the SMTP fallback. Google Account → Security → 2-Step Verification → App passwords → Mail. A normal Gmail password will not work.
 
 Printful webhook: Settings → Webhooks → add `https://<railway-host>/api/printful/webhook` for the Package shipped event (`package_shipped`). That call stores the tracking number and emails the customer when SMTP is set.
 
