@@ -46,6 +46,19 @@ def card_available(env: dict | None = None) -> bool:
     return _secret(env).startswith(("sk_test_", "sk_live_", "rk_test_", "rk_live_"))
 
 
+def warn_stripe_secret(env: dict | None = None) -> None:
+    """A pk_ key in the secret slot leaves card checkout off. Say so at startup."""
+    env = os.environ if env is None else env
+    secret = _secret(env)
+    if not secret.startswith("pk_"):
+        return
+    logging.getLogger("store").warning(
+        "STRIPE_SECRET_KEY starts with pk_. That is a Stripe publishable key, not the secret key. "
+        "Card checkout stays off. Put sk_test_ or sk_live_ in STRIPE_SECRET_KEY, "
+        "and put this pk_ value in STRIPE_PUBLISHABLE_KEY."
+    )
+
+
 def payid_available(env: dict | None = None) -> bool:
     env = os.environ if env is None else env
     return bool((env.get("SHOP_PAYID") or "").strip())

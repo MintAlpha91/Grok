@@ -486,21 +486,45 @@ def _priced_lines(raw_lines: list) -> list[dict]:
     return priced
 
 
+def _ready_for_postage(raw: dict, country: str) -> bool:
+    """Quote postage only once the address can be checked. Empty fields wait for submit."""
+    if len(_clean(raw.get("name"), 80)) < 2:
+        return False
+    if "@" not in _clean(raw.get("email"), 120):
+        return False
+    if len(_clean(raw.get("line1"), 120)) < 4:
+        return False
+    if len(_clean(raw.get("suburb"), 60)) < 2:
+        return False
+    if len(_clean(raw.get("postcode"), 12)) < 2:
+        return False
+    if country in {"AU", "US", "CA"} and len(_clean(raw.get("state"), 40)) < 2:
+        return False
+    return True
+
+
 def quote_lines(raw_lines: list, raw_customer: object = None) -> dict:
     priced = _priced_lines(raw_lines)
     country = "AU"
     if isinstance(raw_customer, dict) and str(raw_customer.get("country") or "").strip():
         country = str(raw_customer.get("country") or "AU").strip().upper()
-    if country == "AU":
+    if country == "AU" or not isinstance(raw_customer, dict) or not _ready_for_postage(raw_customer, country):
         settled = settle(priced, "AU")
-    else:
-        customer = validate_customer(raw_customer)
-        from store.printful import quote_postage
+        payload = {
+            "lines": [public_line(line) for line in priced],
+            **settled,
+        }
+        if country != "AU":
+            payload["postage_pending"] = True
+            payload["shipping_name"] = ""
+        return payload
+    customer = validate_customer(raw_customer)
+    from store.printful import quote_postage
 
-        postage = quote_postage(priced, customer)
-        settled = settle(priced, customer["country"], shipping_cents=postage["cents"])
-        settled["shipping_name"] = postage["name"]
-        settled["printful_shipping"] = postage["id"]
+    postage = quote_postage(priced, customer)
+    settled = settle(priced, customer["country"], shipping_cents=postage["cents"])
+    settled["shipping_name"] = postage["name"]
+    settled["printful_shipping"] = postage["id"]
     return {
         "lines": [public_line(line) for line in priced],
         **settled,

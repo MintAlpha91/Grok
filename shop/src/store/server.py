@@ -30,6 +30,7 @@ from store.checkout import (
     load_order,
     place_order,
     verify_stripe_signature,
+    warn_stripe_secret,
 )
 from store.printful import record_package_shipped
 
@@ -285,6 +286,7 @@ def _expired_cookie() -> str:
 
 
 def main() -> None:
+    warn_stripe_secret()
     host, port = bind_address()
     server = make_server(port, host)
     mode = checkout_public()["mode"]

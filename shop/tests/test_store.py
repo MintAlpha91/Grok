@@ -560,6 +560,13 @@ class CopyAndPriceTests(unittest.TestCase):
             quote_lines([{"slug": "crimson-sun-last-ronin", "fabric": "poly", "size": "4XL", "qty": 1}])
         with self.assertRaises(ShopError):
             settle([], "US")
+        pending = quote_lines(
+            [{"slug": "crimson-sun-last-ronin", "fabric": "poly", "size": "M", "qty": 1}],
+            {"country": "US"},
+        )
+        self.assertTrue(pending["postage_pending"])
+        self.assertEqual(pending["lines"][0]["unit_cents"], 6500)
+        self.assertNotIn("Enter the name", json.dumps(pending))
 
     def test_customer_must_be_in_australia(self):
         with self.assertRaises(Exception):
@@ -783,6 +790,11 @@ class CheckoutTests(unittest.TestCase):
 
         os.environ["STRIPE_SECRET_KEY"] = "pk_test_not_a_secret"
         self.assertFalse(card_available())
+        from store.checkout import warn_stripe_secret
+        with self.assertLogs("store", level="WARNING") as caught:
+            warn_stripe_secret()
+        self.assertIn("publishable key", " ".join(caught.output))
+        self.assertIn("pk_", " ".join(caught.output))
         with mock.patch("store.checkout._stripe_request", side_effect=AssertionError("stripe called")):
             with self.assertRaises(ShopError) as caught:
                 place_order(self.orders, self.lines(), self.customer(), base_url="http://127.0.0.1:8765", payment="card")

@@ -98,6 +98,35 @@ async function api(path, body) {
   return data;
 }
 
+const CATALOG_TIMEOUT_MS = 8000;
+const CATALOG_TRIES = 3;
+
+function fetchCatalogOnce() {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CATALOG_TIMEOUT_MS);
+  return fetch("/api/catalog", { signal: controller.signal, headers: { Accept: "application/json" } })
+    .finally(() => clearTimeout(timer));
+}
+
+async function loadCatalog() {
+  let lastError = "The shop did not respond.";
+  for (let attempt = 1; attempt <= CATALOG_TRIES; attempt += 1) {
+    if (!state.catalog) showShopStatus(attempt === 1 ? "Loading the shop…" : `Loading the shop… (attempt ${attempt} of ${CATALOG_TRIES})`, false);
+    try {
+      const response = await fetchCatalogOnce();
+      if (!response.ok) throw new Error("The shop could not be loaded.");
+      const data = await response.json();
+      if (!data || !Array.isArray(data.products)) throw new Error("The shop catalog was unreadable.");
+      return data;
+    } catch (error) {
+      const timedOut = error && error.name === "AbortError";
+      lastError = timedOut ? "The shop took too long to load." : ((error && error.message) || lastError);
+      if (attempt < CATALOG_TRIES) await new Promise((resolve) => setTimeout(resolve, 400 * attempt));
+    }
+  }
+  throw new Error(lastError);
+}
+
 function designBySlug(slug) {
   return state.catalog.products.find((item) => item.slug === slug);
 }
@@ -716,14 +745,19 @@ function renderCheckout(catalog, route) {
     window.clearTimeout(quoteTimer);
     quoteTimer = window.setTimeout(async () => {
       const typed = remember();
-      const customer = country() === "AU" ? { country: "AU" } : fieldValues();
+      const values = fieldValues();
+      const customer = country() === "AU" || !addressReady(values) ? { country: country() } : values;
       try {
         const quote = await api("/api/quote", { lines: cart(), customer });
         applyValues(typed);
-        const gst = quote.gst_cents ? `Includes GST ${money(quote.gst_cents)}` : "No extra GST on this export.";
-        const postage = quote.shipping_cents
-          ? `${quote.shipping_name || "Postage"} ${money(quote.shipping_cents)}`
-          : "Free shipping in Australia";
+        const gst = quote.postage_pending
+          ? "Postage is added when the address is complete."
+          : (quote.gst_cents ? `Includes GST ${money(quote.gst_cents)}` : "No extra GST on this export.");
+        const postage = quote.postage_pending
+          ? "Postage is added when the address is complete."
+          : (quote.shipping_cents
+            ? `${quote.shipping_name || "Postage"} ${money(quote.shipping_cents)}`
+            : "Free shipping in Australia");
         summary.replaceChildren(...quote.lines.map((line) => (
           el("p", {}, `${line.qty} × ${line.name} · ${line.fabric_label} · ${line.size} · ${money(line.line_cents)}`)
         )), el("p", {}, postage), el("p", {}, gst), el("strong", {}, money(quote.total_cents)));
@@ -789,6 +823,17 @@ function renderCheckout(catalog, route) {
       form,
     ]),
   ];
+}
+
+function addressReady(values) {
+  const code = values.country || "AU";
+  if ((values.name || "").trim().length < 2) return false;
+  if ((values.email || "").indexOf("@") < 0) return false;
+  if ((values.line1 || "").trim().length < 4) return false;
+  if ((values.suburb || "").trim().length < 2) return false;
+  if ((values.postcode || "").trim().length < 2) return false;
+  if ((code === "US" || code === "CA" || code === "AU") && (values.state || "").trim().length < 2) return false;
+  return true;
 }
 
 function paymentChoice(catalog, country) {
@@ -935,28 +980,46 @@ function renderMissing() {
   return [pageHead("That page is not here", []), el("p", { class: "empty wrap" }, [el("a", { href: "/shop" }, "Shop the tees")])];
 }
 
+function showShopStatus(message, failed) {
+  const app = document.getElementById("app");
+  if (!app) return;
+  const note = el("p", { class: failed ? "alert" : "loading" }, message);
+  if (!failed) {
+    app.replaceChildren(note);
+    return;
+  }
+  const button = el("button", { class: "btn", type: "button" }, "Try again");
+  button.addEventListener("click", () => { boot(); });
+  app.replaceChildren(el("section", { class: "wrap" }, [note, button]));
+}
+
 async function render() {
   const app = document.getElementById("app");
   const route = parseRoute();
   if (!state.catalog) {
-    app.replaceChildren(el("p", { class: "loading" }, state.error || "Loading the shop…"));
+    showShopStatus(state.error || "Loading the shop…", Boolean(state.error));
     return;
   }
   const catalog = state.catalog;
-  chrome(catalog);
-  let nodes = [];
-  if (route.name === "home") nodes = renderHome(catalog);
-  else if (route.name === "shop") nodes = renderShop(catalog, route);
-  else if (route.name === "collection") nodes = renderCollection(catalog, route);
-  else if (route.name === "product") nodes = renderProduct(catalog, route);
-  else if (route.name === "cart") nodes = renderCart(catalog);
-  else if (route.name === "checkout") nodes = renderCheckout(catalog, route);
-  else if (route.name === "order") nodes = await renderOrder(catalog, route);
-  else if (route.name === "shipping") nodes = renderShipping(catalog);
-  else if (route.name === "about") nodes = renderAbout(catalog);
-  else nodes = renderMissing();
-  app.replaceChildren(...nodes.filter(Boolean));
-  if (location.hash) document.querySelector(location.hash)?.scrollIntoView();
+  try {
+    chrome(catalog);
+    let nodes = [];
+    if (route.name === "home") nodes = renderHome(catalog);
+    else if (route.name === "shop") nodes = renderShop(catalog, route);
+    else if (route.name === "collection") nodes = renderCollection(catalog, route);
+    else if (route.name === "product") nodes = renderProduct(catalog, route);
+    else if (route.name === "cart") nodes = renderCart(catalog);
+    else if (route.name === "checkout") nodes = renderCheckout(catalog, route);
+    else if (route.name === "order") nodes = await renderOrder(catalog, route);
+    else if (route.name === "shipping") nodes = renderShipping(catalog);
+    else if (route.name === "about") nodes = renderAbout(catalog);
+    else nodes = renderMissing();
+    app.replaceChildren(...nodes.filter(Boolean));
+    if (location.hash) document.querySelector(location.hash)?.scrollIntoView();
+  } catch (error) {
+    state.error = (error && error.message) || "The shop could not be shown.";
+    showShopStatus(state.error, true);
+  }
 }
 
 document.addEventListener("click", (event) => {
@@ -983,12 +1046,22 @@ document.addEventListener("click", (event) => {
 
 window.addEventListener("popstate", () => { render(); });
 
+let booting = false;
+
 async function boot() {
+  if (booting) return;
+  booting = true;
+  state.catalog = null;
+  state.error = "";
+  showShopStatus("Loading the shop…", false);
   try {
-    state.catalog = await api("/api/catalog");
+    state.catalog = await loadCatalog();
     state.error = "";
   } catch (error) {
-    state.error = error.message;
+    state.catalog = null;
+    state.error = (error && error.message) || "The shop could not be loaded.";
+  } finally {
+    booting = false;
   }
   render();
 }
