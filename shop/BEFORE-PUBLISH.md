@@ -8,7 +8,7 @@ Resolved by Jason (14 Oct 2026):
 
 - Contact email for damaged or misprinted orders: rogersinc426@gmail.com (on the returns/shipping copy).
 - Remake window: 7 days from delivery.
-- Indexing: keep `noindex` for now.
+- Indexing: public pages on rogersincdesigns.com are indexable (Jason, 18 Oct 2026). Admin, API, checkout, order, and cart stay `noindex`. Other hosts stay `noindex`.
 - PayID: 0499420228, name Rogers Inc Designs. Set via deploy env (`SHOP_PAYID`, `SHOP_PAYID_NAME`); see `deploy.env.example`.
 
 Also still open:
@@ -21,7 +21,7 @@ Also still open:
 - Blackletter is 10 live cards. As High As Fuel is 10 live cards. The main Fuel tee uses the white and heather photos only. Print-ready DTG files are 4500×5400 RGB on white, stored under `shop/print-ready/` for Printful later. They are not shop photos. Fuel prints are for white and heather only. On hand: all six Gothic fills (Blood Covenant, Iron Psalm, Wraith March, Bone Chapel, Hex Altar, Pale Reign) and all nine Fuel slogan prints (Too High To Care, Gas Money Went To This, Budget Went Up In Smoke, Running On Fumes, Empty Tank Full Heart, High Mileage Low Motivation, Premium Grade Only, Check Engine Chill Mode, Slow Lane High Life). Print-ready DTG files for the original four Blackletter cards (Void King, Ash Iron, Night Warden, Grave Shift) and the main As High As The Price Of Fuel tee are now in `shop/print-ready/gothic/` and `shop/print-ready/fuel/` (Fuel uses the nobox white RGB front; dark variant also present). Brush & Smoke is 4 preview cards. Biomechanical is the Half Machine Skull preview card.
 - Wave-1 prices are locked if those products are added later: hoodie AU$75, AOP beanie AU$49, Flexfit AU$55. No mockups for them are on this site, so they are not in the catalog.
 - Full Bleed is a live lane at 22 shop cards. Nebula Queen is one of those cards, polyester AU$65. Chest print is live at 10 (7 prior hero chests + Nine-Tail Shrine, Chrome Crow Storm, Astral Fox Empress with black-bar-fixed mockups). Nebula Queen chest stays held. Print-ready files for the 3 new chests are under `shop/print-ready/chest/` as 4500×5400 RGB on white. They are not shop photos. Living Screens is a live lane of wallpaper cards from the preview images on this site: Crimson Sun 9, Quiet Rain 8, plus Oni, Ronin Rain, Starbound, and Neon Cyberpunk collages and the two desktop shots. Pack price AU$12. Design still counts 57 packs; only the images in the preview zips are cards. The AU$10 add-on with a tee stays held, and the pack zip is not a separate download. Night Shift is seasonal, not an adults-only lane. Blackletter and As High As Fuel are live lanes. Their held marketing blurbs stay off the public shop. Demo checkout only. Hosting this preview on Railway is below.
-- Keep `noindex` (Jason, 14 Oct). Remove `<meta name="robots" content="noindex">` only when Jason says the shop should be indexed. Test-mode Stripe still keeps the shop out of search.
+- Indexing is on for https://rogersincdesigns.com (Jason, 18 Oct). `/robots.txt` allows crawling and points at `/sitemap.xml`. Checkout, order, cart, admin, and API stay out of search.
 - Card checkout is on for overseas orders when `STRIPE_SECRET_KEY` is set. Australian orders stay on PayID, and card is an optional second button. If the secret is missing, the card button is hidden and PayID still works. Do not commit keys.
 - Free shipping on the Stripe session is Australia only. Do not add a zero shipping rate for other countries. Overseas postage is the Printful AUD rate, quoted with `PRINTFUL_API_KEY`, and added to the Checkout Session.
 - PayID (`SHOP_PAYID`) stays available for Australia alongside Stripe. It does not pay an overseas order.
@@ -32,7 +32,7 @@ Demo checkout, used when Stripe and PayID are both unset, does not charge a card
 
 Host the preview from the `shop/` directory. In the Railway service, set Root Directory to `shop`. Config-as-code is not picked up from that root on its own, so set the config file path to `/shop/railway.json`. The start command is `PYTHONPATH=src python3 -m store`. `Procfile` and `nixpacks.toml` in `shop/` use the same command if the builder reads those instead.
 
-Railway sets `PORT`. The process binds `0.0.0.0` on that port. The live service uses PayID for Australia and stores orders at `SHOP_ORDERS_DIR=/data/orders`. Copy PayID from `deploy.env.example` (`SHOP_PAYID`, `SHOP_PAYID_NAME`). Keep `noindex`.
+Railway sets `PORT`. The process binds `0.0.0.0` on that port. The live service uses PayID for Australia and stores orders at `SHOP_ORDERS_DIR=/data/orders`. Copy PayID from `deploy.env.example` (`SHOP_PAYID`, `SHOP_PAYID_NAME`). Public pages on rogersincdesigns.com are indexable.
 
 ## Railway env vars
 
@@ -54,6 +54,7 @@ Jason adds:
 - `STRIPE_SECRET_KEY` — Stripe secret key. Dashboard: Developers → API keys → Secret key. Use `sk_live_…` on the live shop, or `sk_test_…` to try a test payment. This turns the card button on. Without it, Australia still pays by PayID and overseas checkout is refused.
 - `STRIPE_WEBHOOK_SECRET` — signing secret for the card webhook. Dashboard: Developers → Webhooks → Add endpoint. Endpoint URL `https://grok-production-043e.up.railway.app/api/stripe/webhook`. Event `checkout.session.completed`. Open the endpoint and reveal the signing secret (`whsec_…`). A paid event marks the order paid and runs the same Printful path as Mark paid. Without this secret the webhook is refused.
 - `STRIPE_PUBLISHABLE_KEY` — optional. Developers → API keys → Publishable key (`pk_live_…` or `pk_test_…`). Hosted Checkout does not read it.
+- `CF_ANALYTICS_TOKEN` — optional override of the Cloudflare Web Analytics site token. The shop already uses the public token `781581d7a1804f0d828e30b4139f2f7a` for rogersincdesigns.com when this is unset. Set it only to replace that token.
 - `SHOP_ALERT_EMAIL` — inbox for each new order. If unset, the shop uses `rogersinc426@gmail.com`.
 - `BREVO_API_KEY` — Brevo transactional key. Railway trial and Hobby block outbound SMTP (`Network is unreachable`), so this HTTPS API is the live mail path. In Brevo: SMTP & API → API keys → Generate a new API key. The shop POSTs to `https://api.brevo.com/v3/smtp/email` with header `api-key`. Leave unset only if SMTP is reachable.
 - `SHOP_FROM_EMAIL` — From address when `SMTP_FROM` is unset. Use `rogersinc426@gmail.com`. In Brevo that address must be a verified single sender (Senders & IP → Senders).

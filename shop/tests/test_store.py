@@ -64,6 +64,7 @@ ENV_KEYS = (
     "SMTP_FROM",
     "SHOP_FROM_EMAIL",
     "BREVO_API_KEY",
+    "CF_ANALYTICS_TOKEN",
 )
 
 
@@ -1119,6 +1120,56 @@ class ServerTests(unittest.TestCase):
         status, leaked = self.get("/catalog.json")
         self.assertEqual(status, 200)
         self.assertNotIn("printful_product_id", leaked)
+
+    def _open(self, path, host=None):
+        headers = {}
+        if host:
+            headers["Host"] = host
+        request = urllib.request.Request(self.base + path, headers=headers)
+        with urllib.request.urlopen(request) as response:
+            return response.status, {key.lower(): value for key, value in response.headers.items()}, response.read().decode()
+
+    def test_production_home_is_indexable_and_private_paths_are_not(self):
+        status, headers, body = self._open("/", "rogersincdesigns.com")
+        self.assertEqual(status, 200)
+        self.assertNotIn('content="noindex"', body)
+        self.assertNotIn("x-robots-tag", headers)
+        self.assertIn('rel="canonical" href="https://rogersincdesigns.com/"', body)
+        self.assertIn("static.cloudflareinsights.com", headers["content-security-policy"])
+        self.assertIn("cloudflareinsights.com", headers["content-security-policy"])
+        self.assertEqual(body.count("beacon.min.js"), 1)
+        self.assertIn('data-cf-beacon=\'{"token": "781581d7a1804f0d828e30b4139f2f7a"}\'', body)
+        os.environ["CF_ANALYTICS_TOKEN"] = "abc123token"
+        _, _, beacon = self._open("/", "rogersincdesigns.com")
+        self.assertEqual(beacon.count("beacon.min.js"), 1)
+        self.assertIn('data-cf-beacon=\'{"token": "abc123token"}\'', beacon)
+        _, checkout_headers, checkout = self._open("/checkout", "rogersincdesigns.com")
+        self.assertIn('content="noindex"', checkout)
+        self.assertEqual(checkout_headers.get("x-robots-tag"), "noindex")
+        self.assertNotIn("beacon.min.js", checkout)
+        _, local_headers, local = self._open("/")
+        self.assertIn('content="noindex"', local)
+        self.assertEqual(local_headers.get("x-robots-tag"), "noindex")
+
+    def test_robots_and_sitemap_list_public_pages(self):
+        status, _, robots = self._open("/robots.txt", "rogersincdesigns.com")
+        self.assertEqual(status, 200)
+        self.assertIn("Allow: /", robots)
+        self.assertIn("Disallow: /admin", robots)
+        self.assertIn("Disallow: /api", robots)
+        self.assertIn("Disallow: /checkout", robots)
+        self.assertIn("Disallow: /order", robots)
+        self.assertIn("Sitemap: https://rogersincdesigns.com/sitemap.xml", robots)
+        status, headers, sitemap = self._open("/sitemap.xml", "rogersincdesigns.com")
+        self.assertEqual(status, 200)
+        self.assertIn("application/xml", headers["content-type"])
+        self.assertIn("https://rogersincdesigns.com/</loc>", sitemap)
+        self.assertIn("https://rogersincdesigns.com/collection/", sitemap)
+        self.assertIn("https://rogersincdesigns.com/product/crimson-sun-last-ronin</loc>", sitemap)
+        self.assertNotIn("/checkout", sitemap)
+        self.assertNotIn("/admin", sitemap)
+        _, api_headers, _ = self._open("/api/catalog")
+        self.assertEqual(api_headers.get("x-robots-tag"), "noindex")
 
     def test_railway_binds_all_interfaces_on_port_and_orders_dir(self):
         os.environ["PORT"] = "18080"
