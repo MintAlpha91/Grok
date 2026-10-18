@@ -243,15 +243,39 @@ function setTitle(title, description) {
   if (meta && description) meta.setAttribute("content", description);
 }
 
-function setRobots(mode) {
-  const meta = document.querySelector('meta[name="robots"]');
-  if (!meta) return;
+function indexingHost() {
+  return location.hostname === "rogersincdesigns.com" || location.hostname === "www.rogersincdesigns.com";
+}
+
+function setRobots(routeName) {
+  const privateRoute = routeName === "checkout" || routeName === "order" || routeName === "cart";
+  const indexable = indexingHost() && !privateRoute;
+  let meta = document.querySelector('meta[name="robots"]');
+  if (indexable) {
+    if (meta) meta.remove();
+    return;
+  }
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.name = "robots";
+    document.head.appendChild(meta);
+  }
   meta.setAttribute("content", "noindex");
+}
+
+function setCanonical(pathname) {
+  const path = !pathname || pathname === "/" ? "/" : pathname.replace(/\/$/, "");
+  let link = document.querySelector('link[rel="canonical"]');
+  if (!link) {
+    link = document.createElement("link");
+    link.rel = "canonical";
+    document.head.appendChild(link);
+  }
+  link.href = "https://rogersincdesigns.com" + path;
 }
 
 function chrome(catalog) {
   saveCart(cart());
-  setRobots(catalog.checkout.mode);
   const banner = document.getElementById("demo-banner");
   banner.replaceChildren();
   if (catalog.checkout.mode === "demo") {
@@ -1086,6 +1110,8 @@ async function render() {
   const catalog = state.catalog;
   try {
     chrome(catalog);
+    setRobots(route.name);
+    setCanonical(route.name === "home" ? "/" : location.pathname);
     let nodes = [];
     if (route.name === "home") nodes = renderHome(catalog);
     else if (route.name === "shop") nodes = renderShop(catalog, route);

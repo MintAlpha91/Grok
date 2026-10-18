@@ -33,6 +33,14 @@ from store.checkout import (
     warn_stripe_secret,
 )
 from store.printful import record_package_shipped
+from store.seo import (
+    CONTENT_SECURITY_POLICY,
+    analytics_token,
+    prepare_html,
+    robots_txt,
+    should_noindex,
+    sitemap_xml,
+)
 
 ORDERS_PATH = PUBLIC_PATH.parent / "orders"
 
@@ -84,6 +92,12 @@ class Handler(BaseHTTPRequestHandler):
                 return
             if path == "/admin/logout":
                 self._send_html_page(login_page(), extra=[("Set-Cookie", _expired_cookie())])
+                return
+            if path == "/robots.txt":
+                self._send_text(robots_txt(), "text/plain; charset=utf-8")
+                return
+            if path == "/sitemap.xml":
+                self._send_text(sitemap_xml(), "application/xml; charset=utf-8")
                 return
             if path.startswith("/api/orders/"):
                 order_id = path.removeprefix("/api/orders/").upper()
@@ -220,14 +234,45 @@ class Handler(BaseHTTPRequestHandler):
         message = action(self.server.orders_dir, order_id)
         self._send_html_page(orders_page(self.server.orders_dir, message))
 
-    def _send_json(self, payload: dict, status: int = 200) -> None:
-        body = json.dumps(payload, ensure_ascii=False).encode()
+    def _request_host(self) -> str:
+        return self.headers.get("Host", "")
+
+    def _send_bytes(
+        self,
+        body: bytes,
+        content_type: str,
+        *,
+        status: int = 200,
+        extra: list[tuple[str, str]] | None = None,
+        path: str = "/",
+        robots: bool = False,
+        cache: str | None = "no-store",
+    ) -> None:
         self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Security-Policy", CONTENT_SECURITY_POLICY)
+        if robots or should_noindex(self._request_host(), path):
+            self.send_header("X-Robots-Tag", "noindex")
+        if cache:
+            self.send_header("Cache-Control", cache)
+        for key, value in extra or []:
+            self.send_header(key, value)
         self.end_headers()
         self.wfile.write(body)
+
+    def _send_text(self, text: str, content_type: str, path: str = "/") -> None:
+        self._send_bytes(text.encode(), content_type, path=path)
+
+    def _send_json(self, payload: dict, status: int = 200) -> None:
+        body = json.dumps(payload, ensure_ascii=False).encode()
+        self._send_bytes(
+            body,
+            "application/json; charset=utf-8",
+            status=status,
+            path="/api",
+            robots=True,
+        )
 
     def _send_file(self, path: str) -> None:
         relative = path.lstrip("/") or "index.html"
@@ -238,26 +283,23 @@ class Handler(BaseHTTPRequestHandler):
             self._send_html(PUBLIC_PATH / "index.html")
             return
         if candidate.is_file():
-            self._send_html(candidate) if candidate.suffix == ".html" else self._send_static(candidate)
+            if candidate.suffix == ".html":
+                self._send_html(candidate, path)
+            else:
+                self._send_static(candidate)
             return
-        self._send_html(PUBLIC_PATH / "index.html")
+        self._send_html(PUBLIC_PATH / "index.html", path)
 
     def _send_static(self, path: Path) -> None:
         mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
         body = path.read_bytes()
-        self.send_response(200)
-        self.send_header("Content-Type", mime)
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+        self._send_bytes(body, mime, path="/" + path.name, cache=None)
 
-    def _send_html(self, path: Path) -> None:
-        body = path.read_bytes()
-        self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+    def _send_html(self, path: Path, request_path: str) -> None:
+        html = path.read_text(encoding="utf-8")
+        if path.name == "index.html":
+            html = prepare_html(html, request_path, self._request_host(), analytics_token())
+        self._send_bytes(html.encode(), "text/html; charset=utf-8", path=request_path)
 
     def _send_html_page(
         self,
@@ -265,15 +307,14 @@ class Handler(BaseHTTPRequestHandler):
         status: int = 200,
         extra: list[tuple[str, str]] | None = None,
     ) -> None:
-        body = html.encode()
-        self.send_response(status)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "no-store")
-        for key, value in extra or []:
-            self.send_header(key, value)
-        self.end_headers()
-        self.wfile.write(body)
+        self._send_bytes(
+            html.encode(),
+            "text/html; charset=utf-8",
+            status=status,
+            extra=extra,
+            path="/admin",
+            robots=True,
+        )
 
 
 def make_server(port: int = 8765, host: str = "127.0.0.1", orders_dir: Path | None = None) -> ShopServer:
