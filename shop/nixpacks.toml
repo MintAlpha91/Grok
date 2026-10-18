@@ -1,0 +1,5 @@
+# Used when the Railway service root is shop/ and the builder is Nixpacks.
+# The process reads PORT (Railway) and binds 0.0.0.0.
+
+[start]
+cmd = "PYTHONPATH=src python3 -m store"

@@ -1,0 +1,12 @@
+Nebula Queen AOP — nudge down
+Date: 2026-10-07 (Australia/Brisbane)
+Source: Rogers-Inc-Designs-starbound-nebula-queen-aop-centered-4500x5400.png (4500×5400 RGB)
+Method: PIL crop/paste only (no AI regenerate). Shift artwork DOWN by dy=320px (5.93% of canvas height).
+Top fill: vertical mirror of original top 320px nebula band + GaussianBlur(1.2) + 40px feather blend into content edge.
+Bottom: clipped 320px of original (space/lower nebula).
+Width: unchanged, edge-to-edge 4500.
+Outputs:
+  print-ready: /workspace/etsy-draft-uploads/printful-shirts/print-ready/Rogers-Inc-Designs-starbound-nebula-queen-aop-nudge-down-4500x5400.png
+  preview: /workspace/etsy-draft-uploads/printful-shirts/mockups-aop/nebula-queen-nudge-down-preview.jpg
+  compare: /workspace/etsy-draft-uploads/printful-shirts/mockups-aop/nebula-queen-nudge-compare.jpg
+Exact pixel shift: dy = +320 (content moves down; face lands ~320px lower on canvas).
