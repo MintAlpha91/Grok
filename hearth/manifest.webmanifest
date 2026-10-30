@@ -1,0 +1,11 @@
+{
+  "name": "Hearth",
+  "short_name": "Hearth",
+  "description": "Dating for adults 18 and over in Australia.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4efe6",
+  "theme_color": "#1f6b4a",
+  "lang": "en-AU"
+}
